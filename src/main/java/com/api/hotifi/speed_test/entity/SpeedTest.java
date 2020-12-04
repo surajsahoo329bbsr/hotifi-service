@@ -1,16 +1,21 @@
-package com.api.hotifi.models;
+package com.api.hotifi.speed_test.entity;
 
+import com.api.hotifi.identity.entity.User;
+import com.api.hotifi.session.entity.Session;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
-public class SpeedTest {
+@Entity
+public class SpeedTest implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +24,8 @@ public class SpeedTest {
     @Column(nullable = false)
     private String networkName;
 
-    @Column(columnDefinition = "DATETIME", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
     @Column(precision = 10, scale = 2, nullable = false)
@@ -35,7 +41,7 @@ public class SpeedTest {
     @Column(length = 12, nullable = false)
     private String pinCode;
 
-    @OneToMany(mappedBy = "speed_test")
-    private Set<Session> sessionSet;
+    @OneToMany(mappedBy = "speedTest")
+    private List<Session> sessions = new ArrayList<>();
 
 }

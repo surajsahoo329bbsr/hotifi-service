@@ -1,15 +1,16 @@
-package com.api.hotifi.models;
+package com.api.hotifi.payment.entity;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Getter
 @Setter
 @Entity
-public class SellerPayment {
+public class SellerPayment implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +26,7 @@ public class SellerPayment {
     @Column(precision = 10, scale = 2, nullable = false)
     private double amountPaid; // Total amount to be paid to the seller
 
-    @Column(columnDefinition = "DATETIME")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date paidAt; // Time at which amount is paid to the seller
 
 }

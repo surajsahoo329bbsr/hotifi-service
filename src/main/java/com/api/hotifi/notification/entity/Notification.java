@@ -1,16 +1,18 @@
-package com.api.hotifi.models;
+package com.api.hotifi.notification.entity;
 
+import com.api.hotifi.identity.entity.User;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
 @Getter
 @Setter
 @Entity
-public class Notification {
+public class Notification implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +20,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private long userId;
+    private User user;
 
     //Id to go to certain page if clicked
     @Column(columnDefinition = "BIGINT")
@@ -32,10 +34,11 @@ public class Notification {
 
     private String photoUrl;
 
-    @Column(columnDefinition = "DATETIME", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
-    @Column(columnDefinition = "TINYINT", nullable = false)
+    @Column(columnDefinition = "TINYINT(1)", nullable = false)
     private boolean isSeen = false;
 
 }
