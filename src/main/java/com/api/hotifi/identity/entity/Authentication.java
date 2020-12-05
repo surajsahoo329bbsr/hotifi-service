@@ -20,10 +20,16 @@ public class Authentication implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(length = 5)
+    private String countryCode;
+
+    @Column(length = 15, unique = true)
+    private String phone;
+
     @Column(nullable = false)
     private String token;
 
-    private String otp;
+    private String emailOtp;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
@@ -33,7 +39,7 @@ public class Authentication implements Serializable {
     private boolean isEmailVerified = false;
 
     @Column(columnDefinition = "TINYINT(1)", nullable = false)
-    private boolean isVerified = false;
+    private boolean isPhoneVerified = false;
 
     @Column(columnDefinition = "TINYINT(1)", nullable = false)
     private boolean isActivated = false;

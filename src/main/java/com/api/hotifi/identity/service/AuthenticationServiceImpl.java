@@ -15,7 +15,9 @@ import javax.crypto.KeyGenerator;
 import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -40,7 +42,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 authenticationRepository.save(authentication);
             } else {
                 authenticationRepository.save(authentication);
-                generateEmailOtp(authentication);
+                generateEmailOtpSignUp(authentication);
             }
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
@@ -50,32 +52,75 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
-    public boolean isEmailAvailable(String email) {
+    public Authentication getAuthentication(String email) {
         try{
             Authentication authentication = authenticationRepository.findByEmail(email);
             if(authentication != null)
-                return false;
+                return authentication;
         } catch (Exception e){
             log.error("Error occured ", e);
         }
-        return true;
+        return null;
     }
 
     @Transactional
     @Override
-    public String generateEmailOtp(Authentication authentication) {
+    public void generateEmailOtpSignUp(Authentication authentication) {
         try {
-            //Date currentTime = new Date(System.currentTimeMillis());
-            //long timeDifference = emailAuth.getTokenCreatedAt().getTime() - currentTime.getTime();
-            //TimeUnit.MILLISECONDS.toMinutes(timeDifference) % 60 < 10
-            if (authentication.getOtp() != null) {
+            if (authentication.getEmailOtp() != null) {
                 //If time limit is less than 10 minutes
                 //Generate new token
-                log.error("Otp already generated");
+                log.error("Email otp already generated");
+                return;
+            }
+            String emailOtp = generateOtp();
+            if(emailOtp != null) {
+                log.info("Otp " + emailOtp);
+                String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
+                authentication.setEmailOtp(encryptedEmailOtp);
+                authenticationRepository.save(authentication); //updating otp in password
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.error("Duplicate Email ", e);
+        } catch (Exception e) {
+            log.error("Error Occurred ", e);
+        }
+    }
+
+    @Override
+    public String generateEmailOtpLogin(String email) {
+        try{
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            if (authentication.getEmailOtp() != null) {
+                //If time limit is less than 10 minutes
+                //Generate new token
+                log.error("Email otp already generated");
                 return UserErrorMessages.OTP_ALREADY_GENERATED;
             }
+            if (!authentication.isEmailVerified() || !authentication.isPhoneVerified()) {
+                log.error("User not verified");
+                return UserErrorMessages.USER_ALREADY_NOT_VERIFIED;
+            }
+            String emailOtp = generateOtp();
+            if(emailOtp != null) {
+                log.info("Otp " + emailOtp);
+                String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
+                Date now = new Date(System.currentTimeMillis());
+                authentication.setEmailOtp(encryptedEmailOtp);
+                authentication.setToken(UUID.randomUUID().toString());
+                authentication.setTokenCreatedAt(now);
+                authenticationRepository.save(authentication); //updating otp in password
+                return emailOtp;
+            }
+        } catch (Exception e){
+            log.error("Error ", e);
+        }
+        return null;
+    }
 
-            //do stuff
+    public String generateOtp(){
+        //do stuff
+        try {
             TimeBasedOneTimePasswordGenerator timeOtp = new TimeBasedOneTimePasswordGenerator(Duration.ofMinutes(10));
 
             Key key;
@@ -86,23 +131,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 keyGenerator.init(160);
                 key = keyGenerator.generateKey();
             }
-
             //Instant now = Instant.now();
             //final Instant later = now.plus(timeOtp.getTimeStep());
 
             //System.out.format("Current password: %06d\n", timeOtp.generateOneTimePassword(key, now));
             //System.out.format("Future password:  %06d\n", timeOtp.generateOneTimePassword(key, later));
-            String emailOtp = String.valueOf(timeOtp.generateOneTimePassword(key, Instant.now()));
-            String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
-            log.info("Otp " + emailOtp);
-            authentication.setOtp(encryptedEmailOtp);
-            authenticationRepository.save(authentication); //updating otp in password
-            return emailOtp;
-
-        } catch (DataIntegrityViolationException e) {
-            log.error("Duplicate Email ", e);
-        } catch (Exception e) {
-            log.error("Error Occurred ", e);
+            return String.valueOf(timeOtp.generateOneTimePassword(key, Instant.now()));
+        }
+        catch (Exception e){
+            log.error("Error ", e);
         }
         return null;
     }
@@ -112,9 +149,20 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public boolean verifyEmailOtp(String email, String emailOtp) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
-            String encryptedEmailOtp = authentication.getOtp();
+            String encryptedEmailOtp = authentication.getEmailOtp();
+            Date currentTime = new Date(System.currentTimeMillis());
+            long timeDifference = authentication.getTokenCreatedAt().getTime() - currentTime.getTime();
+            boolean isOtpExpired = TimeUnit.MILLISECONDS.toMinutes(timeDifference) % 60 >= 10; //Less than 10 minutes
+
+            if(isOtpExpired){
+                log.error("Otp Expired");
+                authentication.setEmailOtp(null);
+                authenticationRepository.save(authentication);
+                return false;
+            }
+
             if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
-                authentication.setOtp(null);
+                authentication.setEmailOtp(null);
                 authentication.setEmailVerified(true);
                 authenticationRepository.save(authentication);
                 log.info("User Email Verified");
@@ -122,6 +170,23 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             }
         } catch (Exception e) {
             log.error("Error Occured" + e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean verifyPhoneUser(String email,String countryCode, String phone) {
+        try{
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            if(!authentication.isEmailVerified())
+                throw new Exception("Email not verified");
+            authentication.setCountryCode(countryCode);
+            authentication.setPhone(phone);
+            authentication.setPhoneVerified(true);
+            authenticationRepository.save(authentication);
+            return true;
+        } catch (Exception e){
+            log.error("Error occurred ", e);
         }
         return false;
     }

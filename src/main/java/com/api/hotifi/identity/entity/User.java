@@ -29,7 +29,7 @@ public class User implements Serializable {
     @Column(columnDefinition = "TINYINT(1)", nullable = false)
     private boolean isLoggedIn = true;
 
-    @Column(length = 20, unique = true)
+    @Column(length = 20, unique = true, nullable = false)
     private String username;
 
     private String upiId;
@@ -41,14 +41,8 @@ public class User implements Serializable {
     private String googleId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email")
+    @JoinColumn(name = "auth_id", referencedColumnName = "id", unique = true, nullable = false)
     private Authentication authentication;
-
-    @Column(length = 5, nullable = false)
-    private String countryCode;
-
-    @Column(length = 15, unique = true, nullable = false)
-    private String phoneNumber;
 
     private String photoUrl;
 
