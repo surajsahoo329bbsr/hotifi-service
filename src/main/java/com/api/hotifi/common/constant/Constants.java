@@ -1,8 +1,12 @@
 package com.api.hotifi.common.constant;
 
 public class Constants {
+    public static final String APP_PACKAGE_NAME = "com.api.hotifi";
+    public static final String USER_TAG = "user";
+    public static final String AUTH_TAG = "auth";
     public static final String VALID_EMAIL_PATTERN = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$";
     public static final String VALID_OTP_PATTERN = "^[0-9]{6}$";
     public static final String VALID_PHONE_PATTERN = "^[0-9]{10,15}$";
+    public static final String VALID_USERNAME_PATTERN = "^(?=[a-zA-Z0-9._]{6,30}$)(?!.*[_.]{2})[^_.].*[^_.]$";
     //public static final String VALID_COUNTRY_CODE_PATTERN = "/^(\\+?\\d{1,3}|\\d{1,4})$/gm";
 }

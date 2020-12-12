@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.error;
 
-import com.api.hotifi.common.exception.ErrorMessages;
+import com.api.hotifi.common.exception.error.ErrorMessages;
 
 public class UserErrorMessages extends ErrorMessages {
     public static final String USER_EXISTS = "User exists";

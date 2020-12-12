@@ -1,4 +1,4 @@
-package com.api.hotifi.common.exception;
+package com.api.hotifi.common.exception.error;
 
 import java.util.List;
 

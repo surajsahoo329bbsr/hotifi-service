@@ -1,7 +1,7 @@
 package com.api.hotifi.identity.error;
 
-import com.api.hotifi.common.exception.ErrorCode;
-import com.api.hotifi.common.exception.ErrorCodes;
+import com.api.hotifi.common.exception.error.ErrorCode;
+import com.api.hotifi.common.exception.error.ErrorCodes;
 
 import java.util.Collections;
 

@@ -41,7 +41,7 @@ public class User implements Serializable {
     private String googleId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id", referencedColumnName = "id", unique = true, nullable = false)
+    @JoinColumn(name = "authentication_id", referencedColumnName = "id", unique = true, nullable = false)
     private Authentication authentication;
 
     private String photoUrl;

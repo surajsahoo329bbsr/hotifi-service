@@ -1,4 +1,4 @@
-package com.api.hotifi.common.exception;
+package com.api.hotifi.common.exception.error;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ public class ErrorResponse {
 
     private String code;
     private List<String> messages;
-
 
     public ErrorResponse(ErrorCode errorCode) {
         this.code = errorCode.getErrorCode();

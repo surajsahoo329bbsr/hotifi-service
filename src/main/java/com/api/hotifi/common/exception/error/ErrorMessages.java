@@ -1,5 +1,5 @@
 
-package com.api.hotifi.common.exception;
+package com.api.hotifi.common.exception.error;
 
 public class ErrorMessages {
     public static final String INVALID_PAYLOAD = "Request payload is malformed or invalid";

@@ -8,15 +8,11 @@ public interface IAuthenticationService {
 
     Authentication getAuthentication(String email);
 
-    void generateEmailOtpSignUp(Authentication authentication);
+    void generateEmailOtpLogin(String email);
 
-    String generateEmailOtpLogin(String email);
+    void verifyEmailOtp(String email, String otp);
 
-    boolean verifyEmailOtp(String email, String otp);
-
-    boolean verifyPhoneUser(String email, String countryCode, String phone);
-
-    void activateUserEmail(String email, boolean activateUserEmail);
+    void verifyPhoneUser(String email, String countryCode, String phone);
 
     void activateUser(String email, boolean activateUser);
 
