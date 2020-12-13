@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AuthenticationRepository extends JpaRepository<Authentication, Long> {
     Authentication findByEmail(String email);
-    Authentication findById(long id);
 }

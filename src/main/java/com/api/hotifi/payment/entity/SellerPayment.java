@@ -14,7 +14,7 @@ public class SellerPayment implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", nullable = false)

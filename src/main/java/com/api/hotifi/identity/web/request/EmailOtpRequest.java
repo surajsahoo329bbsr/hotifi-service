@@ -12,6 +12,7 @@ import javax.validation.constraints.Pattern;
 @Getter
 @Setter
 public class EmailOtpRequest {
+
     @NotBlank(message = "{email.empty}")
     @Email(message = "{invalid.email}")
     @Length(max = 255, message = "{email.invalid.length}")
@@ -19,6 +20,6 @@ public class EmailOtpRequest {
 
     @NotBlank(message = "{otp.empty}")
     @Pattern(regexp = Constants.VALID_OTP_PATTERN, message = "{otp.invalid.number}")
-    @Length(min = 6, max = 6, message = "{email.invalid.length")
     private String otp;
+
 }

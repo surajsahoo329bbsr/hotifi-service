@@ -1,11 +1,12 @@
 package com.api.hotifi.identity.web.request;
 
 import com.api.hotifi.common.constant.Constants;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.constraints.Digits;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -25,8 +26,9 @@ public class UserRequest {
     @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{user.username.invalid}")
     private String username;
 
-    @DateTimeFormat(pattern = "dd-MM-yyyy")
-    @NotNull(message = "Please provide a date.")
+    @ApiModelProperty(required = true,example = "02-01-1998")
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    @NotNull(message = "Please provide a date")
     private Date dateOfBirth;
 
     private String facebookId;
@@ -35,7 +37,7 @@ public class UserRequest {
 
     private String photoUrl;
 
-    @Digits(integer = 18, fraction = 0)
-    private long authenticationId;
+    @Min(1)
+    private Long authenticationId;
 
 }

@@ -19,7 +19,7 @@ public class PhoneRequest {
     private String email;
 
     @NotBlank(message = "{phone.cc.empty}")
-    //@Pattern(regexp = Constants.VALID_COUNTRY_CODE_PATTERN, message = "{phone.cc.invalid}")
+    @Pattern(regexp = Constants.VALID_COUNTRY_CODE_PATTERN, message = "{phone.cc.invalid}")
     private String countryCode;
 
     @NotBlank(message = "{phone.number.empty}")

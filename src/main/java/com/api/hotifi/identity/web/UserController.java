@@ -8,11 +8,14 @@ import com.api.hotifi.identity.web.request.UserRequest;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @Validated
 @RestController
@@ -26,32 +29,33 @@ public class UserController {
     @Autowired
     private IAuthenticationService authenticationService;
 
-    @PostMapping(path = "/add")
+    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest){
         userService.addUser(userRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get")
-    public ResponseEntity<?> getUserByUsername(String username){
+    @GetMapping(path = "/get/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getUserByUsername(@PathVariable(value = "username")
+            @NotBlank @Pattern(regexp = Constants.VALID_USERNAME_PATTERN) String username){
         User user = userService.getUserByUsername(username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/update")
-    public ResponseEntity<?> updateUser(long id, @RequestBody @Valid UserRequest userRequest){
-        User user = userService.updateUser(id, userRequest);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest){
+        userService.updateUser(userRequest);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/update/login")
-    public ResponseEntity<?> updateUserLogin(long id, boolean loginStatus){
+    @PutMapping(path = "/update/login/{id}/{login-status}")
+    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") Long id, @PathVariable(value = "login-status") boolean loginStatus){
         userService.updateLoginStatus(id, loginStatus);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping(path="/delete")
-    public ResponseEntity<?> deleteUser(long id, boolean deleteUser){
+    @DeleteMapping(path="/delete/{id}/{delete-user}")
+    public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id, @PathVariable(value = "delete-user") boolean deleteUser){
         userService.deleteUser(id, deleteUser);
         return new ResponseEntity<>(HttpStatus.OK);
     }

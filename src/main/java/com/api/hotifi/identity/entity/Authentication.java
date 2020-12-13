@@ -15,12 +15,12 @@ public class Authentication implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(length = 5)
+    @Column(length = 7)
     private String countryCode;
 
     @Column(length = 15, unique = true)

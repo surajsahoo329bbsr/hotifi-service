@@ -10,11 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +17,13 @@ import javax.crypto.KeyGenerator;
 import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-public class AuthenticationServiceImpl implements IAuthenticationService, UserDetailsService {
+public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Autowired
     private AuthenticationRepository authenticationRepository;
@@ -42,15 +35,18 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     public void addEmail(String email, boolean isEmailVerified) {
         try {
             Authentication authentication = new Authentication();
-            String token = UUID.randomUUID().toString();
-            log.info("Token %s", token);
             authentication.setEmail(email);
-            authentication.setToken(token);
             authentication.setEmailVerified(isEmailVerified);
+
             if (!isEmailVerified)
-                generateEmailOtpSignUp(authentication);
-            else
+                saveAuthenticationEmailOtp(authentication);
+            else{
+                String token = UUID.randomUUID().toString();
+                log.info("Token"+ token);
+                String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
+                authentication.setToken(encryptedToken);
                 authenticationRepository.save(authentication);
+            }
 
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
@@ -74,26 +70,29 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     }
 
     @Override
-    public void generateEmailOtpLogin(String email) {
+    public void generateEmailOtpSignUp(String email) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
-            if (authentication.getEmailOtp() != null) {
-                //If time limit is less than 10 minutes
-                //Generate new token
-                log.error(UserErrorMessages.OTP_ALREADY_GENERATED);
+            /*if(isLogin) {
+                if (authentication.getEmailOtp() != null)
+                    throw new Exception(UserErrorMessages.OTP_ALREADY_GENERATED);
+                boolean isAuthLegit = authentication.isEmailVerified() && authentication.isPhoneVerified() && authentication.isActivated()
+                        && !authentication.isFreezed() && !authentication.isBanned()  && !authentication.isDeleted();
+                if (!isAuthLegit)
+                    throw new Exception("Authentication is not Legit");
+                saveAuthenticationEmailOtp(authentication);
+            }*/
+            //else it is signup
+            //Since it is signup so no need for verifying legit user
+            //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
+            if(authentication.isEmailVerified())
+                throw new Exception("Email already verified. Not Generating Otp...");
+            if(authentication.getTokenCreatedAt() == null || isOtpExpired(authentication)){
+                log.info("Generating Otp...");
+                saveAuthenticationEmailOtp(authentication);
             }
-            if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
-                log.error(UserErrorMessages.USER_ALREADY_NOT_VERIFIED);
-            String emailOtp = generateOtp();
-            if (emailOtp != null) {
-                log.info("Otp " + emailOtp);
-                String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
-                Date now = new Date(System.currentTimeMillis());
-                authentication.setEmailOtp(encryptedEmailOtp);
-                authentication.setToken(UUID.randomUUID().toString());
-                authentication.setTokenCreatedAt(now);
-                authenticationRepository.save(authentication); //updating otp in password
-            }
+            else
+                log.error("Email otp already generated");
         } catch (Exception e) {
             log.error("Error ", e);
         }
@@ -108,17 +107,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
 
             if(authentication.isEmailVerified()){
                 log.error(UserErrorMessages.USER_EMAIL_ALREADY_VERIFIED);
-                throw new Exception("Exception" + UserErrorMessages.USER_ALREADY_VERIFIED);
+                throw new Exception("Exception " + UserErrorMessages.USER_ALREADY_VERIFIED);
             }
 
-            Date currentTime = new Date(System.currentTimeMillis());
-            long timeDifference = authentication.getTokenCreatedAt().getTime() - currentTime.getTime();
-            boolean isOtpExpired = TimeUnit.MILLISECONDS.toMinutes(timeDifference) % 60 >= 10; //Less than 10 minutes
-
-            if (isOtpExpired) {
+            if (isOtpExpired(authentication)) {
                 log.error("Otp Expired");
                 authentication.setEmailOtp(null);
                 authenticationRepository.save(authentication);
+                return;
             }
 
             if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
@@ -137,8 +133,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     public void verifyPhoneUser(String email, String countryCode, String phone) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
+            if(authentication == null)
+                throw new Exception("Email doesn't exist");
             if (!authentication.isEmailVerified())
                 throw new Exception("Email not verified");
+            if(authentication.isPhoneVerified())
+                throw new Exception("Phone already verified");
             authentication.setCountryCode(countryCode);
             authentication.setPhone(phone);
             authentication.setPhoneVerified(true);
@@ -148,11 +148,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
         }
     }
 
+    //for ban, deactivate, freeze and delete check user_status table for reasons to do so
+    //write logic in below methods for that
+    //It is understood that user has been created if both email and
     @Transactional
     @Override
     public void activateUser(String email, boolean activateUser) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
             if (authentication.isActivated() && activateUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_ACTIVATED);
             } else if (!authentication.isActivated() && !activateUser) {
@@ -171,6 +177,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     public void banUser(String email, boolean banUser) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
             if (authentication.isBanned() && banUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_BANNED);
             } else if (!authentication.isBanned() && !banUser) {
@@ -189,6 +198,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     public void freezeUser(String email, boolean freezeUser) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
             if (authentication.isFreezed() && freezeUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_FREEZED);
             } else if (!authentication.isFreezed() && !freezeUser) {
@@ -207,6 +219,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
     public void deleteUser(String email, boolean deleteUser) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
             if (authentication.isDeleted() && deleteUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_DELETED);
             } else if (!authentication.isDeleted() && !deleteUser) {
@@ -217,33 +232,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
             }
         } catch (Exception e) {
             log.error("Error Message ", e);
-        }
-    }
-
-    //User-defined functions
-    public void generateEmailOtpSignUp(Authentication authentication) {
-        try {
-            if (authentication.getEmailOtp() != null) {
-                //If time limit is less than 10 minutes
-                //Generate new token
-                log.error("Email otp already generated");
-                return;
-            }
-            String emailOtp = generateOtp();
-            String token = authentication.getToken();
-            if (emailOtp != null) {
-                log.info("Otp " + emailOtp);
-                log.info("Token" + token);
-                String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
-                String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
-                authentication.setToken(encryptedToken);
-                authentication.setEmailOtp(encryptedEmailOtp);
-                authenticationRepository.save(authentication); //updating otp in password
-            }
-        } catch (DataIntegrityViolationException e) {
-            log.error("Duplicate Email ", e);
-        } catch (Exception e) {
-            log.error("Error Occurred ", e);
         }
     }
 
@@ -272,7 +260,30 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
         return null;
     }
 
-    private List getAuthority() {
+    public boolean isOtpExpired(Authentication authentication){
+        Date currentTime = new Date(System.currentTimeMillis());
+        long timeDifference =  currentTime.getTime() - authentication.getTokenCreatedAt().getTime();
+        return TimeUnit.MILLISECONDS.toMinutes(timeDifference) % 60 >= 1; // If otp generated is more than 10 minutes
+    }
+
+    //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin
+    public void saveAuthenticationEmailOtp(Authentication authentication){
+        String emailOtp = generateOtp();
+        String token = UUID.randomUUID().toString();
+        if (emailOtp != null) {
+            log.info("Otp " + emailOtp);
+            log.info("Token" + token);
+            String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
+            String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
+            Date now = new Date(System.currentTimeMillis()); //set updated token created time
+            authentication.setTokenCreatedAt(now);
+            authentication.setToken(encryptedToken);
+            authentication.setEmailOtp(encryptedEmailOtp);
+            authenticationRepository.save(authentication); //updating otp in password
+        }
+    }
+
+    /*private List getAuthority() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
@@ -287,5 +298,5 @@ public class AuthenticationServiceImpl implements IAuthenticationService, UserDe
             log.error("Error occured ", e);
         }
         return null;
-    }
+    }*/
 }

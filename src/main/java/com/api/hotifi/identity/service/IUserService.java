@@ -9,10 +9,10 @@ public interface IUserService {
 
     User getUserByUsername(String username);
 
-    User updateUser(long id, UserRequest userRequest);
+    void updateUser(UserRequest userRequest);
 
-    void updateLoginStatus(long id, boolean loginStatus);
+    void updateLoginStatus(Long id, boolean loginStatus);
 
-    void deleteUser(long id, boolean deleteUser);
+    void deleteUser(Long id, boolean deleteUser);
 
 }

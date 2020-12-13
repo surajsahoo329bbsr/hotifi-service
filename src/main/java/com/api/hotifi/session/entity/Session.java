@@ -18,7 +18,7 @@ public class Session implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "speed_test_id", nullable = false)

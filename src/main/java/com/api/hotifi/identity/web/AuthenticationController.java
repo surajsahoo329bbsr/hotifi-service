@@ -34,14 +34,14 @@ public class AuthenticationController {
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/email/generate/otp/{email}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
+    @PutMapping(path = "/email/sign-up/otp/{email}")
+    public ResponseEntity<?> generateEmailOtpSignUp(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
                                                        @Email(message = "{invalid.email}") String email) {
-        authenticationService.generateEmailOtpLogin(email);
+        authenticationService.generateEmailOtpSignUp(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/email/add/{email}/{is-verified}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/email/add/{email}/{is-verified}")
     public ResponseEntity<?> addEmail(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
                                           @Email(message = "{invalid.email}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
         authenticationService.addEmail(email, isEmailVerified);
@@ -81,7 +81,7 @@ public class AuthenticationController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/user/delete/{email}/{delete-user}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/user/delete/{email}/{delete-user}")
     public ResponseEntity<?> deleteUser(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
                                             @Email(message = "{invalid.email}") String email, @PathVariable(value = "delete-user") boolean deleteUser) {
         authenticationService.deleteUser(email, deleteUser);

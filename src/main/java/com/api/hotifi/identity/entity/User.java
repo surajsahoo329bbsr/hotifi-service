@@ -24,7 +24,7 @@ public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(columnDefinition = "TINYINT(1)", nullable = false)
     private boolean isLoggedIn = true;
@@ -40,7 +40,7 @@ public class User implements Serializable {
     @Column(unique = true)
     private String googleId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "authentication_id", referencedColumnName = "id", unique = true, nullable = false)
     private Authentication authentication;
 
@@ -60,6 +60,6 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<SpeedTest> speedTests = new ArrayList<>();
 }

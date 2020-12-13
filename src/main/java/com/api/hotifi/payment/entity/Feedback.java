@@ -13,7 +13,7 @@ public class Feedback implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", referencedColumnName = "id")

@@ -8,7 +8,7 @@ public interface IAuthenticationService {
 
     Authentication getAuthentication(String email);
 
-    void generateEmailOtpLogin(String email);
+    void generateEmailOtpSignUp(String email);
 
     void verifyEmailOtp(String email, String otp);
 
