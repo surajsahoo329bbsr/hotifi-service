@@ -12,14 +12,6 @@ public interface IAuthenticationService {
 
     void verifyEmailOtp(String email, String otp);
 
-    void verifyPhoneUser(String email, String countryCode, String phone);
-
-    void activateUser(String email, boolean activateUser);
-
-    void banUser(String email, boolean banUser);
-
-    void freezeUser(String email, boolean freezeUser);
-
-    void deleteUser(String email, boolean deleteUser);
+    void verifyPhone(String email, String countryCode, String phone);
 
 }

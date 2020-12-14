@@ -34,6 +34,13 @@ public class AuthenticationController {
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
+    @PostMapping(path = "/email/add/{email}/{is-verified}")
+    public ResponseEntity<?> addEmail(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
+                                      @Email(message = "{invalid.email}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
+        authenticationService.addEmail(email, isEmailVerified);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @PutMapping(path = "/email/sign-up/otp/{email}")
     public ResponseEntity<?> generateEmailOtpSignUp(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
                                                        @Email(message = "{invalid.email}") String email) {
@@ -41,12 +48,6 @@ public class AuthenticationController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/email/add/{email}/{is-verified}")
-    public ResponseEntity<?> addEmail(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                          @Email(message = "{invalid.email}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
-        authenticationService.addEmail(email, isEmailVerified);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 
     @PutMapping(path = "/email/verify/otp", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyEmailOtp(@RequestBody @Valid EmailOtpRequest emailOtpRequest) {
@@ -56,35 +57,8 @@ public class AuthenticationController {
 
     @PutMapping(path = "/phone/verify", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyPhoneUser(@RequestBody @Valid PhoneRequest phoneRequest) {
-        authenticationService.verifyPhoneUser(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone());
+        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/user/ban/{email}/{ban-user}")
-    public ResponseEntity<?> banUser(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                         @Email(message = "{invalid.email}") String email, @PathVariable(value = "ban-user") boolean banUser) {
-        authenticationService.banUser(email, banUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PutMapping(path = "/user/activate/{email}/{activate-user}")
-    public ResponseEntity<?> activateUser(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                              @Email(message = "{invalid.email}") String email, @PathVariable(value = "activate-user") boolean activateUser) {
-        authenticationService.activateUser(email, activateUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PutMapping(path = "/user/freeze/{email}/{freeze-user}")
-    public ResponseEntity<?> freezeUser(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                            @Email(message = "{invalid.email}") String email, @PathVariable(value = "freeze-user") boolean freezeUser) {
-        authenticationService.freezeUser(email, freezeUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PutMapping(path = "/user/delete/{email}/{delete-user}")
-    public ResponseEntity<?> deleteUser(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                            @Email(message = "{invalid.email}") String email, @PathVariable(value = "delete-user") boolean deleteUser) {
-        authenticationService.deleteUser(email, deleteUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 }

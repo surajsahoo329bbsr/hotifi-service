@@ -1,13 +1,14 @@
 package com.api.hotifi.identity.service;
 
-import com.api.hotifi.common.exception.HotifiException;
-import com.api.hotifi.common.exception.error.ErrorCode;
 import com.api.hotifi.identity.entity.Authentication;
 import com.api.hotifi.identity.entity.User;
+import com.api.hotifi.identity.error.UserErrorMessages;
 import com.api.hotifi.identity.repository.AuthenticationRepository;
 import com.api.hotifi.identity.repository.UserRepository;
+import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -28,15 +29,16 @@ public class UserServiceImpl implements IUserService {
     public void addUser(UserRequest userRequest) {
         try {
             Authentication authentication = authenticationRepository.getOne(userRequest.getAuthenticationId());
-            if(!authentication.isEmailVerified() || !authentication.isPhoneVerified()){
+            if (!authentication.isEmailVerified() || !authentication.isPhoneVerified()) {
                 log.error("User not verified log");
-                throw new HotifiException("User not verified", new ErrorCode("User not verified", null, 501));
+                throw new Exception("User not verified");
             }
             User user = new User();
             authentication.setActivated(true);
+            authentication.setEmailOtp(null);
             setUser(userRequest, user, authentication);
-            authenticationRepository.save(authentication);
             userRepository.save(user);
+            authenticationRepository.save(authentication);
         } catch (DataIntegrityViolationException e) {
             log.error("Not Authenticated", e);
             throw new DataIntegrityViolationException("Not Authenticted", e);
@@ -58,14 +60,64 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    public void generateEmailOtpLogin(Long id) {
+        try {
+            User user = userRepository.getOne(id);
+            Long authenticationId = user.getAuthentication().getId();
+            Authentication authentication = authenticationRepository.getOne(authenticationId);
+
+            if (authentication.getEmailOtp() != null)
+                throw new Exception(UserErrorMessages.OTP_ALREADY_GENERATED);
+            //Here full check is done because email/phone verification can be false while updating email/phone
+            boolean isAuthLegit = authentication.isEmailVerified() && authentication.isPhoneVerified()
+                    && authentication.isActivated() && !authentication.isFreezed()
+                    && !authentication.isBanned() && !authentication.isDeleted();
+            if (!isAuthLegit)
+                throw new Exception("Authentication is not Legit");
+
+            OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository);
+
+        } catch (Exception e) {
+            log.error("Error Occured ", e);
+        }
+    }
+
+    @Override
+    public void verifyEmailOtp(Long id, String emailOtp) {
+        try {
+            User user = userRepository.getOne(id);
+            Long authenticationId = user.getAuthentication().getId();
+            Authentication authentication = authenticationRepository.getOne(authenticationId);
+            String encryptedEmailOtp = authentication.getEmailOtp();
+
+            if (OtpUtils.isEmailOtpExpired(authentication)) {
+                log.error("Otp Expired");
+                authentication.setEmailOtp(null);
+                authenticationRepository.save(authentication);
+                return;
+            }
+
+            if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
+                authentication.setEmailOtp(null);
+                authentication.setEmailVerified(true);
+                authenticationRepository.save(authentication);
+                //after successful otp verification log in
+                user.setLoggedIn(true);
+                userRepository.save(user);
+                log.info("User Email Verified");
+            }
+        } catch (Exception e) {
+            log.error("Error Occured" + e);
+        }
+    }
+
+    @Override
     @Transactional
     public void updateUser(UserRequest userUpdateRequest) {
         try {
             Long authenticationId = userUpdateRequest.getAuthenticationId();
             User user = userRepository.findByAuthenticationId(authenticationId);
-            if(user == null)
-                throw new Exception("User doesn't exist");
-            if(!isUserLegit(user))
+            if (!isUserLegit(user))
                 throw new Exception("User not legit to be updated");
             Authentication authentication = user.getAuthentication();
             setUser(userUpdateRequest, user, authentication);
@@ -80,7 +132,7 @@ public class UserServiceImpl implements IUserService {
     public void updateLoginStatus(Long id, boolean loginStatus) {
         try {
             User user = userRepository.getOne(id);
-            if(!isUserLegit(user))
+            if (!isUserLegit(user))
                 throw new Exception("User not legit to be updated");
             if (user.isLoggedIn() && loginStatus) {
                 log.error("Already logged in");
@@ -94,6 +146,73 @@ public class UserServiceImpl implements IUserService {
             }
         } catch (Exception e) {
             log.error("Error ", e);
+        }
+    }
+
+    //for ban, deactivate, freeze and delete check user_status table for reasons to do so
+    //write logic in below methods for that
+    //It is understood that user has been created if both email and
+
+    @Transactional
+    @Override
+    public void activateUser(Long id, boolean activateUser) {
+        try {
+            Authentication authentication = authenticationRepository.getOne(id);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
+            if (authentication.isActivated() && activateUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_ACTIVATED);
+            } else if (!authentication.isActivated() && !activateUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_ACTIVATED);
+            } else {
+                authentication.setActivated(activateUser);
+                authenticationRepository.save(authentication);
+            }
+        } catch (Exception e) {
+            log.error("Error Message ", e);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void freezeUser(Long id, boolean freezeUser) {
+        try {
+            Authentication authentication = authenticationRepository.getOne(id);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
+            if (authentication.isFreezed() && freezeUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_FREEZED);
+            } else if (!authentication.isFreezed() && !freezeUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_FREEZED);
+            } else {
+                authentication.setActivated(freezeUser);
+                authenticationRepository.save(authentication);
+            }
+        } catch (Exception e) {
+            log.error("Error Message ", e);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void banUser(Long id, boolean banUser) {
+        try {
+            Authentication authentication = authenticationRepository.getOne(id);
+
+            //Write logic for why to deactivate / activate user checking from user_status table
+
+            if (authentication.isBanned() && banUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_BANNED);
+            } else if (!authentication.isBanned() && !banUser) {
+                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_BANNED);
+            } else {
+                authentication.setActivated(banUser);
+                authenticationRepository.save(authentication);
+            }
+        } catch (Exception e) {
+            log.error("Error Message ", e);
         }
     }
 
@@ -124,6 +243,7 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    //user defined functions
     //setting up user's values
     public void setUser(UserRequest userRequest, User user, Authentication authentication) {
         user.setAuthentication(authentication);
@@ -139,10 +259,10 @@ public class UserServiceImpl implements IUserService {
     //returns true if user is legit
     //Not checking for verified user since while adding user task has already been completed
     //because user would not be created if email and phone have not been verified
-    public boolean isUserLegit(User user){
-        if(user == null)
+    public boolean isUserLegit(User user) {
+        if (user == null)
             return false;
-        //login check not required
+        //login check not required because if user has been created then phone and email has been already verified
         return !user.getAuthentication().isDeleted() && user.getAuthentication().isActivated() && !user.getAuthentication().isBanned() && !user.getAuthentication().isFreezed();
     }
 }

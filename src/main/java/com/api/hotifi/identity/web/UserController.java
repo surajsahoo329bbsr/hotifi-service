@@ -30,33 +30,63 @@ public class UserController {
     private IAuthenticationService authenticationService;
 
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest){
+    public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest) {
         userService.addUser(userRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(path = "/get/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUserByUsername(@PathVariable(value = "username")
-            @NotBlank @Pattern(regexp = Constants.VALID_USERNAME_PATTERN) String username){
+                                               @NotBlank @Pattern(regexp = Constants.VALID_USERNAME_PATTERN) String username) {
         User user = userService.getUserByUsername(username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @PutMapping(path = "/login/{id}")
+    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "id") Long id) {
+        userService.generateEmailOtpLogin(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/login/{id}/{email-otp}")
+    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "id") Long id, @PathVariable(value = "email-otp") String emailOtp) {
+        userService.verifyEmailOtp(id, emailOtp);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest){
+    public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest) {
         userService.updateUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping(path = "/update/login/{id}/{login-status}")
-    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") Long id, @PathVariable(value = "login-status") boolean loginStatus){
+    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
         userService.updateLoginStatus(id, loginStatus);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping(path="/delete/{id}/{delete-user}")
-    public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id, @PathVariable(value = "delete-user") boolean deleteUser){
+    @DeleteMapping(path = "/delete/{id}/{delete-user}")
+    public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id, @PathVariable(value = "delete-user") boolean deleteUser) {
         userService.deleteUser(id, deleteUser);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/activate/{id}/{activate-user}")
+    public ResponseEntity<?> activateUser(@PathVariable(value = "id") Long id, @PathVariable(value = "activate-user") boolean activateUser) {
+        userService.activateUser(id, activateUser);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/freeze/{id}/{freeze-user}")
+    public ResponseEntity<?> freezeUser(@PathVariable(value = "id") Long id, @PathVariable(value = "freeze-user") boolean freezeUser) {
+        userService.freezeUser(id, freezeUser);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/ban/{id}/{ban-user}")
+    public ResponseEntity<?> banUser(@PathVariable(value = "id") Long id, @PathVariable(value = "ban-user") boolean banUser) {
+        userService.banUser(id, banUser);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
