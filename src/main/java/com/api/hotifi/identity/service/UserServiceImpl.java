@@ -24,6 +24,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private AuthenticationRepository authenticationRepository;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     @Transactional
     public void addUser(UserRequest userRequest) {
@@ -238,6 +241,9 @@ public class UserServiceImpl implements IUserService {
             user.setGoogleId(null);
             user.setLoggedIn(false);
             userRepository.save(user);
+
+            deviceService.deleteUserDevices(id);
+
         } catch (Exception e) {
             log.error("Error ", e);
         }

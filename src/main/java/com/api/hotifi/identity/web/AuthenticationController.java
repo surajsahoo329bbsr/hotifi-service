@@ -19,8 +19,8 @@ import javax.validation.constraints.NotBlank;
 
 @Validated
 @RestController
-@Api(tags = Constants.AUTH_TAG)
-@RequestMapping(path = "/auth")
+@Api(tags = Constants.AUTHENTICAION_TAG)
+@RequestMapping(path = "/authenticate")
 public class AuthenticationController {
 
     @Autowired
@@ -47,7 +47,6 @@ public class AuthenticationController {
         authenticationService.generateEmailOtpSignUp(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 
     @PutMapping(path = "/email/verify/otp", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyEmailOtp(@RequestBody @Valid EmailOtpRequest emailOtpRequest) {

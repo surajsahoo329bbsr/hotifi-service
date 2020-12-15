@@ -5,12 +5,12 @@ import com.api.hotifi.identity.web.request.DeviceRequest;
 
 public interface IDeviceService {
 
-    void createDevice(DeviceRequest deviceRequest);
+    Device getDeviceByAndroidId(String androidId);
 
-    Device getDeviceById(Long id);
+    void addDevice(DeviceRequest deviceRequest);
 
-    void updateDevice(Long id);
+    void updateDevice(DeviceRequest deviceRequest);
 
-    void deleteDevice(Long id);
+    void deleteUserDevices(Long userId);
 
 }

@@ -7,7 +7,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -16,11 +15,14 @@ import java.util.Set;
 public class Device implements Serializable {
 
     @ManyToMany(mappedBy = "userDevices")
-    Set<User> users = new HashSet<>();
+    Set<User> users;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String androidId;
 
     @Column(nullable = false)
     private String name;

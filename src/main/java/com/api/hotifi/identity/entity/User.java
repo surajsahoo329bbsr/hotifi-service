@@ -1,6 +1,7 @@
 package com.api.hotifi.identity.entity;
 
 import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,13 +15,14 @@ import java.util.*;
 @Entity
 public class User implements Serializable {
 
+    @JsonIgnore
     @ManyToMany(cascade = {CascadeType.ALL})
     @JoinTable(
             name = "user_device",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "device_id", referencedColumnName = "id")}
     )
-    Set<Device> userDevices = new HashSet<>();
+    Set<Device> userDevices;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,5 +63,5 @@ public class User implements Serializable {
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    private List<SpeedTest> speedTests = new ArrayList<>();
+    private List<SpeedTest> speedTests;
 }

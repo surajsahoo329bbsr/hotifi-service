@@ -15,6 +15,10 @@ public class DeviceRequest {
     private Long userId;
 
     @NotBlank
+    @Length(max = 255, message = "{android.id.invalid}")
+    private String androidId;
+
+    @NotBlank
     @Length(max = 255, message = "{device.name.invalid}")
     private String deviceName;
 
