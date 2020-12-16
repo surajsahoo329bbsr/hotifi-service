@@ -24,9 +24,6 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private AuthenticationRepository authenticationRepository;
 
-    @Autowired
-    private IDeviceService deviceService;
-
     @Override
     @Transactional
     public void addUser(UserRequest userRequest) {
@@ -147,103 +144,6 @@ public class UserServiceImpl implements IUserService {
                 user.setLoggedIn(loginStatus);
                 userRepository.save(user);
             }
-        } catch (Exception e) {
-            log.error("Error ", e);
-        }
-    }
-
-    //for ban, deactivate, freeze and delete check user_status table for reasons to do so
-    //write logic in below methods for that
-    //It is understood that user has been created if both email and
-
-    @Transactional
-    @Override
-    public void activateUser(Long id, boolean activateUser) {
-        try {
-            Authentication authentication = authenticationRepository.getOne(id);
-
-            //Write logic for why to deactivate / activate user checking from user_status table
-
-            if (authentication.isActivated() && activateUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_ACTIVATED);
-            } else if (!authentication.isActivated() && !activateUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_ACTIVATED);
-            } else {
-                authentication.setActivated(activateUser);
-                authenticationRepository.save(authentication);
-            }
-        } catch (Exception e) {
-            log.error("Error Message ", e);
-        }
-    }
-
-    @Transactional
-    @Override
-    public void freezeUser(Long id, boolean freezeUser) {
-        try {
-            Authentication authentication = authenticationRepository.getOne(id);
-
-            //Write logic for why to deactivate / activate user checking from user_status table
-
-            if (authentication.isFreezed() && freezeUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_FREEZED);
-            } else if (!authentication.isFreezed() && !freezeUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_FREEZED);
-            } else {
-                authentication.setActivated(freezeUser);
-                authenticationRepository.save(authentication);
-            }
-        } catch (Exception e) {
-            log.error("Error Message ", e);
-        }
-    }
-
-    @Transactional
-    @Override
-    public void banUser(Long id, boolean banUser) {
-        try {
-            Authentication authentication = authenticationRepository.getOne(id);
-
-            //Write logic for why to deactivate / activate user checking from user_status table
-
-            if (authentication.isBanned() && banUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_BANNED);
-            } else if (!authentication.isBanned() && !banUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_BANNED);
-            } else {
-                authentication.setActivated(banUser);
-                authenticationRepository.save(authentication);
-            }
-        } catch (Exception e) {
-            log.error("Error Message ", e);
-        }
-    }
-
-    @Transactional
-    @Override
-    public void deleteUser(Long id, boolean deleteUser) {
-        try {
-            User user = userRepository.getOne(id);
-            Long authenticationId = user.getAuthentication().getId();
-            Authentication authentication = authenticationRepository.getOne(authenticationId);
-
-            if (authentication.isDeleted()) {
-                log.error("Account already deleted");
-                throw new Exception("Account already deleted");
-            }
-
-            authentication.setDeleted(true);
-            authentication.setEmail(null);
-            authentication.setPhone(null);
-            authenticationRepository.save(authentication);
-
-            user.setFacebookId(null);
-            user.setGoogleId(null);
-            user.setLoggedIn(false);
-            userRepository.save(user);
-
-            deviceService.deleteUserDevices(id);
-
         } catch (Exception e) {
             log.error("Error ", e);
         }

@@ -17,12 +17,4 @@ public interface IUserService {
 
     void updateLoginStatus(Long id, boolean loginStatus);
 
-    void deleteUser(Long id, boolean deleteUser);
-
-    void activateUser(Long id, boolean activateUser);
-
-    void banUser(Long id, boolean banUser);
-
-    void freezeUser(Long id, boolean freezeUser);
-
 }

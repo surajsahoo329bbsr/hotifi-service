@@ -66,27 +66,4 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping(path = "/delete/{id}/{delete-user}")
-    public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id, @PathVariable(value = "delete-user") boolean deleteUser) {
-        userService.deleteUser(id, deleteUser);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PutMapping(path = "/activate/{id}/{activate-user}")
-    public ResponseEntity<?> activateUser(@PathVariable(value = "id") Long id, @PathVariable(value = "activate-user") boolean activateUser) {
-        userService.activateUser(id, activateUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PutMapping(path = "/freeze/{id}/{freeze-user}")
-    public ResponseEntity<?> freezeUser(@PathVariable(value = "id") Long id, @PathVariable(value = "freeze-user") boolean freezeUser) {
-        userService.freezeUser(id, freezeUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PutMapping(path = "/ban/{id}/{ban-user}")
-    public ResponseEntity<?> banUser(@PathVariable(value = "id") Long id, @PathVariable(value = "ban-user") boolean banUser) {
-        userService.banUser(id, banUser);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 }
