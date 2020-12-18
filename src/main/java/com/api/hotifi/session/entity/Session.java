@@ -1,13 +1,12 @@
 package com.api.hotifi.session.entity;
 
-import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.payment.entity.Purchase;
+import com.api.hotifi.speed_test.entity.SpeedTest;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -48,6 +47,6 @@ public class Session implements Serializable {
     private Date endTime;
 
     @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
-    private List<Purchase> purchases = new ArrayList<>();
+    private List<Purchase> purchases;
 
 }

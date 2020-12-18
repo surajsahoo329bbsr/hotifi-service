@@ -2,13 +2,13 @@ package com.api.hotifi.speed_test.entity;
 
 import com.api.hotifi.identity.entity.User;
 import com.api.hotifi.session.entity.Session;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,14 +34,15 @@ public class SpeedTest implements Serializable {
     @Column(precision = 10, scale = 2, nullable = false)
     private double downloadSpeed;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(length = 12, nullable = false)
     private String pinCode;
 
     @OneToMany(mappedBy = "speedTest")
-    private List<Session> sessions = new ArrayList<>();
+    private List<Session> sessions;
 
 }

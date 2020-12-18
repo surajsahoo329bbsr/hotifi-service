@@ -11,12 +11,6 @@ public interface IUserStatusService {
 
     List<UserStatus> getUserStatusByUserId(Long userId);
 
-    void deleteUser(Long id);
-
-    void activateUser(Long id, boolean activateUser);
-
-    void banUser(Long id, boolean banUser);
-
     void freezeUser(Long id, boolean freezeUser);
 
 }

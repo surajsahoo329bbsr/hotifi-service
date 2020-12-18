@@ -12,7 +12,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class OtpUtils {
@@ -45,7 +44,8 @@ public class OtpUtils {
     public static boolean isEmailOtpExpired(Authentication authentication){
         Date currentTime = new Date(System.currentTimeMillis());
         long timeDifference =  currentTime.getTime() - authentication.getTokenCreatedAt().getTime();
-        return TimeUnit.MILLISECONDS.toMinutes(timeDifference) % 60 >= 1; // If otp generated is more than 10 minutes
+        long minutesDifference = timeDifference / (60L * 1000L);
+        return minutesDifference >= 10; // If otp generated is more than 10 minutes
     }
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin

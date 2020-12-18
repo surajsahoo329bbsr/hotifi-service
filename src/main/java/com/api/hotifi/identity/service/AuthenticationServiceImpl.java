@@ -134,7 +134,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
     }
 
-
     /*private List getAuthority() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }

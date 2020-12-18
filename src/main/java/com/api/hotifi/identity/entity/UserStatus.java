@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +18,8 @@ public class UserStatus implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
     private User user;
 
     @Column(length = 20, nullable = false)
@@ -34,7 +36,7 @@ public class UserStatus implements Serializable {
     private String freezeReason;
 
     @Column(columnDefinition = "INT")
-    private int freezePeriod; //In Days
+    private int freezePeriod; //In Hours
 
     private Date banCreatedAt;
 

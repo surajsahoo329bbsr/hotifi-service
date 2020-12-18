@@ -1,21 +1,21 @@
 package com.api.hotifi.identity.entity;
 
 import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 public class User implements Serializable {
 
-    @JsonIgnore
     @ManyToMany(cascade = {CascadeType.ALL})
     @JoinTable(
             name = "user_device",

@@ -41,32 +41,61 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
             if (!isUserBeingWarnedXorDeleted)
                 throw new Exception("Request must have either warning or deletion.");
+            //Get user from id
+            User user = userRepository.getOne(userStatusRequest.getUserId());
+            Long authenticationId = user.getAuthentication().getId();
+            Authentication authentication = authenticationRepository.getOne(authenticationId);
 
+            //Logic to see user if he/she has been freezed or banned
+            if(authentication.isDeleted())
+                throw new Exception("User already deleted");
+            if(authentication.isBanned())
+                throw new Exception("User already banned");
+            if(authentication.isFreezed())
+                throw new Exception("User already freezed");
+
+            //If user is not banned or deleted or freezed
             Long userId = userStatusRequest.getUserId();
             List<UserStatus> userStatuses = getUserStatusByUserId(userId);
             UserStatus userStatus = new UserStatus();
-
-            Date now = new Date(System.currentTimeMillis());
-            User user = userRepository.getOne(userStatusRequest.getUserId());
             userStatus.setUser(user);
             userStatus.setRole(userStatusRequest.getRole());
 
-            //incomplete logic to be completed...
-            if (userStatus.getDeletedReason() != null) {
-                userStatusRepository.save(userStatus);
-                deleteUser(userId);
-            } else if(userStatuses == null || userStatuses.size() < 4) {
-                userStatus.setWarningReason(userStatusRequest.getWarningReason());
+            Date now = new Date(System.currentTimeMillis());
 
-            } else if (userStatuses.size() < 7){
-                //freeze
-                //add logic
-            } else if (userStatuses.size() < 9) {
-                //ban
-                //add logic
+            if (userStatus.getDeletedReason() != null) {
+                log.info("Inside delete");
+                userStatus.setDeletedReason(userStatusRequest.getDeleteReason());
+                userStatus.setDeletedAt(now);
+                deleteUser(userId);
+            } else {
+                //else the warning reason is not null
+                userStatus.setWarningReason(userStatusRequest.getWarningReason());
+                userStatus.setWarningCreatedAt(now);
+
+                if (userStatuses != null) {
+                    if (userStatuses.size() == 10) {
+                        //freeze
+                        if (userStatusRequest.getFreezeReason() == null)
+                            throw new Exception("Freeze Reason not present.");
+                        userStatus.setFreezeReason(userStatusRequest.getFreezeReason());
+                        userStatus.setFreezeCreatedAt(now);
+                        userStatus.setFreezePeriod(24); //24 hours
+                        freezeUser(userId, true);
+                    } else if (userStatuses.size() == 15) {
+                        //ban
+                        if (userStatusRequest.getBanReason() == null)
+                            throw new Exception("Warning Reason not present.");
+                        userStatus.setBanReason(userStatusRequest.getBanReason());
+                        userStatus.setBanCreatedAt(now);
+                        banUser(userId, true);
+                    }
+                }
             }
 
+            userStatusRepository.save(userStatus);
             return getUserStatusByUserId(userId);
+
         } catch (Exception e) {
             log.error("Error Occured : ", e);
         }
@@ -85,44 +114,44 @@ public class UserStatusServiceImpl implements IUserStatusService {
     }
 
     //for ban, deactivate, freeze and delete check user_status table for reasons to do so
-    //write logic in below methods for that
-    //It is understood that user has been created if both email and
+    //UserDefined functions
 
-    @Transactional
     @Override
-    public void activateUser(Long id, boolean activateUser) {
+    @Transactional
+    public void freezeUser(Long userId, boolean freezeUser) {
         try {
-            Authentication authentication = authenticationRepository.getOne(id);
+            User user = userRepository.getOne(userId);
+            Long authenticationId = user.getAuthentication().getId();
+            Authentication authentication = authenticationRepository.getOne(authenticationId);
 
-            //Write logic for why to deactivate / activate user checking from user_status table
+            //If we are unfreezing a freezed user
+            if(!freezeUser){
+                //Logic to activate user if he/she has been freezed or banned
+                if(authentication.isDeleted())
+                    throw new Exception("User already deleted");
+                if(authentication.isBanned())
+                    throw new Exception("User already banned");
 
-            if (authentication.isActivated() && activateUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_ACTIVATED);
-            } else if (!authentication.isActivated() && !activateUser) {
-                throw new Exception(UserErrorMessages.USER_ALREADY_NOT_ACTIVATED);
-            } else {
-                authentication.setActivated(activateUser);
-                authenticationRepository.save(authentication);
+                //Check if freezed user is activating
+                if(authentication.isFreezed()){
+                    List<UserStatus> userStatuses = getUserStatusByUserId(user.getId());
+                    for(UserStatus userStatus : userStatuses){
+                        if(userStatus.getFreezeReason() != null){
+                            if(!isFreezePeriodExpired(userStatus)){
+                                log.error("Freeze period not over yet.");
+                                throw new Exception("Freeze period not over yet.");
+                            }
+                        }
+                    }
+                }
             }
-        } catch (Exception e) {
-            log.error("Error Message ", e);
-        }
-    }
-
-    @Transactional
-    @Override
-    public void freezeUser(Long id, boolean freezeUser) {
-        try {
-            Authentication authentication = authenticationRepository.getOne(id);
-
-            //Write logic for why to deactivate / activate user checking from user_status table
 
             if (authentication.isFreezed() && freezeUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_FREEZED);
             } else if (!authentication.isFreezed() && !freezeUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_NOT_FREEZED);
             } else {
-                authentication.setActivated(freezeUser);
+                authentication.setFreezed(freezeUser);
                 authenticationRepository.save(authentication);
             }
         } catch (Exception e) {
@@ -131,19 +160,22 @@ public class UserStatusServiceImpl implements IUserStatusService {
     }
 
     @Transactional
-    @Override
-    public void banUser(Long id, boolean banUser) {
+    public void banUser(Long userId, boolean banUser) {
         try {
-            Authentication authentication = authenticationRepository.getOne(id);
-
-            //Write logic for why to deactivate / activate user checking from user_status table
+            User user = userRepository.getOne(userId);
+            Long authenticationId = user.getAuthentication().getId();
+            Authentication authentication = authenticationRepository.getOne(authenticationId);
 
             if (authentication.isBanned() && banUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_BANNED);
             } else if (!authentication.isBanned() && !banUser) {
                 throw new Exception(UserErrorMessages.USER_ALREADY_NOT_BANNED);
             } else {
-                authentication.setActivated(banUser);
+                if(banUser) {
+                    user.setLoggedIn(false);
+                    userRepository.save(user);
+                }
+                authentication.setBanned(banUser);
                 authenticationRepository.save(authentication);
             }
         } catch (Exception e) {
@@ -152,10 +184,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
     }
 
     @Transactional
-    @Override
-    public void deleteUser(Long id) {
+    public void deleteUser(Long userId) {
         try {
-            User user = userRepository.getOne(id);
+            User user = userRepository.getOne(userId);
             Long authenticationId = user.getAuthentication().getId();
             Authentication authentication = authenticationRepository.getOne(authenticationId);
 
@@ -171,7 +202,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
             authenticationRepository.save(authentication);
 
             //delete user devices
-            deviceService.deleteUserDevices(id);
+            deviceService.deleteUserDevices(userId);
 
             //set user values to null
             user.setFacebookId(null);
@@ -184,29 +215,11 @@ public class UserStatusServiceImpl implements IUserStatusService {
         }
     }
 
-    /*public void setUserStatus(UserStatus userStatus, UserStatusRequest userStatusRequest) throws Exception {
+    public boolean isFreezePeriodExpired(UserStatus userStatus){
+        Date currentTime = new Date(System.currentTimeMillis());
+        long timeDifference =  currentTime.getTime() - userStatus.getFreezeCreatedAt().getTime();
+        long hoursDifference = timeDifference / (60L * 60L * 1000L);
+        return hoursDifference >= userStatus.getFreezePeriod(); // If time period has exceeded freeze period
+    }
 
-        if (userStatus == null)
-            throw new Exception("User doesn't exist");
-        Date now = new Date(System.currentTimeMillis());
-        User user = userRepository.getOne(userStatusRequest.getUserId());
-        userStatus.setUser(user);
-        userStatus.setWarningReason(userStatusRequest.getWarningReason());
-        userStatus.setRole(userStatusRequest.getRole());
-
-        boolean isAccountBeingLocked
-                = userStatusRequest.getFreezeReason() != null
-                || userStatusRequest.getBanReason() != null
-                || userStatusRequest.getDeleteReason() != null;
-
-        //if(userS)
-
-        if (userStatusRequest.getFreezeReason() != null) {
-
-        } else if (userStatusRequest.getBanReason() != null) {
-
-        } else {
-
-        }
-    }*/
 }
