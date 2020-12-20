@@ -5,6 +5,7 @@ import com.api.hotifi.identity.entity.UserStatus;
 import com.api.hotifi.identity.service.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,13 +33,13 @@ public class UserStatusController {
     }
 
     @GetMapping(path = "/get/{user-id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getUserStatusByUserId(@PathVariable(value = "user-id") Long userId) {
+    public ResponseEntity<?> getUserStatusByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         List<UserStatus> userStatuses = userStatusService.getUserStatusByUserId(userId);
         return new ResponseEntity<>(userStatuses, HttpStatus.OK);
     }
 
     @PutMapping(path = "/unfreeze/{user-id}")
-    public ResponseEntity<?> unfreezeUser(@PathVariable(value = "user-id") Long userId) {
+    public ResponseEntity<?> unfreezeUser(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         userStatusService.freezeUser(userId, false);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

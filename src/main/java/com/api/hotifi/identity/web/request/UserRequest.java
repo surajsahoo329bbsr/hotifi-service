@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -16,19 +16,19 @@ import java.util.Date;
 @Setter
 public class UserRequest {
 
-    @NotBlank(message = "Please provide first name.")
+    @NotBlank(message = "first.name.invalid")
     private String firstName;
 
-    @NotBlank(message = "Please provide last name.")
+    @NotBlank(message = "last.name.blank")
     private String lastName;
 
     @NotBlank(message = "Please provide a date of birth")
-    @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{user.username.invalid}")
+    @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}")
     private String username;
 
     @ApiModelProperty(required = true,example = "02-01-1998")
     @JsonFormat(pattern = "dd-MM-yyyy")
-    @NotNull(message = "Please provide a date")
+    @NotNull(message = "{date.of.birth.blank}")
     private Date dateOfBirth;
 
     private String facebookId;
@@ -37,7 +37,7 @@ public class UserRequest {
 
     private String photoUrl;
 
-    @Min(1)
+    @Range(min = 1, message = "{authentication.id.invalid}")
     private Long authenticationId;
 
 }

@@ -6,6 +6,7 @@ import com.api.hotifi.identity.service.IDeviceService;
 import com.api.hotifi.identity.web.request.DeviceRequest;
 import io.swagger.annotations.Api;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,8 +26,9 @@ public class DeviceController {
     private IDeviceService deviceService;
 
     @GetMapping(path = "/get/{android-id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getDeviceByAndroidId(@PathVariable(value = "android-id") @NotBlank(message = "{android.id.empty}")
-                                      @Length(max = 255, message = "{android.id.invalid}") String androidId) {
+    public ResponseEntity<?> getDeviceByAndroidId(@PathVariable(value = "android-id")
+                                                      @NotBlank(message = "{android.id.blank}")
+                                                      @Length(max = 255, message = "{android.id.invalid}") String androidId) {
         Device device = deviceService.getDeviceByAndroidId(androidId);
         return new ResponseEntity<>(device, HttpStatus.OK);
     }
@@ -44,7 +46,7 @@ public class DeviceController {
     }
 
     @DeleteMapping(path = "/delete/{user-id}")
-    public ResponseEntity<?> deleteUserDevices(@PathVariable("user-id") Long userId) {
+    public ResponseEntity<?> deleteUserDevices(@PathVariable("user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         deviceService.deleteUserDevices(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

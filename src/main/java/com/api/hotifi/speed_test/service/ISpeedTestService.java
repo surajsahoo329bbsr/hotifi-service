@@ -9,6 +9,8 @@ public interface ISpeedTestService {
 
     void addSpeedTest(SpeedTestRequest speedTestRequest);
 
+    SpeedTest getLatestSpeedTest(Long userId, String pinCode, boolean isWifi);
+
     List<SpeedTest> sortSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);
 
     List<SpeedTest> sortSpeedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);

@@ -30,16 +30,34 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
         try {
             User user = userRepository.getOne(speedTestRequest.getUserId());
+            if(user.getAuthentication().isDeleted())
+                throw new Exception("User is deleted");
             SpeedTest speedTest = new SpeedTest();
             speedTest.setNetworkName(speedTestRequest.getNetworkName());
-            speedTest.setUploadSpeed(speedTestRequest.getUploadSpeed());
             speedTest.setDownloadSpeed(speedTestRequest.getDownloadSpeed());
+            speedTest.setUploadSpeed(speedTestRequest.getUploadSpeed());
             speedTest.setPinCode(speedTestRequest.getPinCode());
             speedTest.setUser(user);
             speedTestRepository.save(speedTest);
         } catch (Exception e) {
             log.error("Error occurred", e);
         }
+    }
+
+    @Transactional
+    @Override
+    public SpeedTest getLatestSpeedTest(Long userId, String pinCode, boolean isWifi) {
+        try {
+            SpeedTest speedTest = isWifi ?
+                    speedTestRepository.findLatestWifiSpeedTest(userId, pinCode) :
+                    speedTestRepository.findLatestNonWifiSpeedTest(userId, pinCode);
+            if(speedTest == null)
+                throw new Exception("No Speed Test Record Exists");
+            return speedTest;
+        } catch (Exception e) {
+            log.error("Error occurred", e);
+        }
+        return null;
     }
 
     //For Get Speed Tests call sortByDateTime in Descending format

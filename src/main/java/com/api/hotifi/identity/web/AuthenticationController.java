@@ -6,6 +6,7 @@ import com.api.hotifi.identity.service.IAuthenticationService;
 import com.api.hotifi.identity.web.request.EmailOtpRequest;
 import com.api.hotifi.identity.web.request.PhoneRequest;
 import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,22 +29,28 @@ public class AuthenticationController {
 
     //On App start first this method will be called.
     @GetMapping(path = "/email/get/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getEmail(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                                        @Email(message = "{invalid.email}") String email) {
+    public ResponseEntity<?> getEmail(@PathVariable(value = "email")
+                                          @NotBlank(message = "{email.blank}")
+                                          @Email(message = "{email.pattern.invalid}")
+                                          @Length(max = 255, message = "{email.length.invalid}") String email) {
         Authentication authentication = authenticationService.getAuthentication(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
     @PostMapping(path = "/email/add/{email}/{is-verified}")
-    public ResponseEntity<?> addEmail(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                      @Email(message = "{invalid.email}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
+    public ResponseEntity<?> addEmail(@PathVariable(value = "email")
+                                          @NotBlank(message = "{email.blank}")
+                                          @Email(message = "{email.pattern.invalid}")
+                                          @Length(max = 255, message = "{email.length.invalid}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
         authenticationService.addEmail(email, isEmailVerified);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping(path = "/email/sign-up/otp/{email}")
-    public ResponseEntity<?> generateEmailOtpSignUp(@PathVariable(value = "email") @NotBlank(message = "{email.empty}")
-                                                       @Email(message = "{invalid.email}") String email) {
+    public ResponseEntity<?> generateEmailOtpSignUp(@PathVariable(value = "email")
+                                                        @NotBlank(message = "{email.blank}")
+                                                        @Email(message = "{email.pattern.invalid}")
+                                                        @Length(max = 255, message = "{email.length.invalid}") String email) {
         authenticationService.generateEmailOtpSignUp(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

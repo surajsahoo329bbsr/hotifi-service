@@ -13,16 +13,16 @@ import javax.validation.constraints.Pattern;
 @Setter
 public class PhoneRequest {
 
-    @NotBlank(message = "{email.empty}")
-    @Email(message = "{invalid.email}")
-    @Length(max = 255, message = "{email.invalid.length}")
+    @NotBlank(message = "{email.blank}")
+    @Email(message = "{email.pattern.invalid}")
+    @Length(max = 255, message = "{email.length.invalid}")
     private String email;
 
-    @NotBlank(message = "{phone.cc.empty}")
+    @NotBlank(message = "{phone.cc.blank}")
     @Pattern(regexp = Constants.VALID_COUNTRY_CODE_PATTERN, message = "{phone.cc.invalid}")
     private String countryCode;
 
-    @NotBlank(message = "{phone.number.empty}")
+    @NotBlank(message = "{phone.number.blank}")
     @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.number.invalid}")
     private String phone;
 

@@ -1,9 +1,12 @@
 package com.api.hotifi.speed_test.web.request;
 
+import com.api.hotifi.common.constant.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 
@@ -16,13 +19,15 @@ public class SpeedTestRequest {
     private String networkName;
 
     //both upload and download speeds in MBs
-    @Digits(integer = 15, fraction = 2)
+    @DecimalMin(value = Constants.MINIMUM_UPLOAD_SPEED, message = "{upload.speed.minimum.invalid}")
+    @Digits(integer = 15, fraction = 2, message = "{upload.speed.format.invalid}")
     private double uploadSpeed;
 
-    @Digits(integer = 15, fraction = 2)
+    @DecimalMin(value = Constants.MINIMUM_DOWNLOAD_SPEED, message = "{upload.speed.minimum.invalid}")
+    @Digits(integer = 15, fraction = 2, message = "{upload.speed.format.invalid}")
     private double downloadSpeed;
 
-    @Digits(integer = 18, fraction = 0)
+    @Range(min = 1, message = "{user.id.invalid}")
     private Long userId;
 
     @NotBlank(message = "{pincode.blank}")

@@ -3,27 +3,27 @@ package com.api.hotifi.identity.web.request;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
 public class DeviceRequest {
 
-    @Digits(integer = 18, fraction = 0)
+    @Range(min = 1, message = "{user.id.invalid}")
     private Long userId;
 
-    @NotBlank
+    @NotBlank(message = "{android.id.blank}")
     @Length(max = 255, message = "{android.id.invalid}")
     private String androidId;
 
-    @NotBlank
+    @NotBlank(message = "{device.name.blank}")
     @Length(max = 255, message = "{device.name.invalid}")
     private String deviceName;
 
-    @NotBlank
-    @Length(max = 255, message = "{device.token.invalid}")
+    @NotBlank(message = "{token.blank}")
+    @Length(max = 255, message = "{token.invalid}")
     private String token;
 
 }

@@ -6,6 +6,7 @@ import com.api.hotifi.identity.service.IAuthenticationService;
 import com.api.hotifi.identity.service.IUserService;
 import com.api.hotifi.identity.web.request.UserRequest;
 import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,19 +38,20 @@ public class UserController {
 
     @GetMapping(path = "/get/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUserByUsername(@PathVariable(value = "username")
-                                               @NotBlank @Pattern(regexp = Constants.VALID_USERNAME_PATTERN) String username) {
+                                                   @NotBlank(message = "{username.blank}")
+                                                   @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
         User user = userService.getUserByUsername(username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PutMapping(path = "/login/{id}")
-    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id) {
         userService.generateEmailOtpLogin(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping(path = "/login/{id}/{email-otp}")
-    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "id") Long id, @PathVariable(value = "email-otp") String emailOtp) {
+    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "email-otp") String emailOtp) {
         userService.verifyEmailOtp(id, emailOtp);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -61,7 +63,7 @@ public class UserController {
     }
 
     @PutMapping(path = "/update/login/{id}/{login-status}")
-    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
+    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
         userService.updateLoginStatus(id, loginStatus);
         return new ResponseEntity<>(HttpStatus.OK);
     }

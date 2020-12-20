@@ -13,13 +13,13 @@ import javax.validation.constraints.Pattern;
 @Setter
 public class EmailOtpRequest {
 
-    @NotBlank(message = "{email.empty}")
-    @Email(message = "{invalid.email}")
-    @Length(max = 255, message = "{email.invalid.length}")
+    @NotBlank(message = "{email.blank}")
+    @Email(message = "{email.pattern.invalid}")
+    @Length(max = 255, message = "{email.length.invalid}")
     private String email;
 
-    @NotBlank(message = "{otp.empty}")
-    @Pattern(regexp = Constants.VALID_OTP_PATTERN, message = "{otp.invalid.number}")
+    @NotBlank(message = "{otp.blank}")
+    @Pattern(regexp = Constants.VALID_OTP_PATTERN, message = "{otp.number.invalid}")
     private String otp;
 
 }

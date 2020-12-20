@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.service;
 
+import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entity.Authentication;
 import com.api.hotifi.identity.entity.User;
 import com.api.hotifi.identity.error.UserErrorMessages;
@@ -117,7 +118,7 @@ public class UserServiceImpl implements IUserService {
         try {
             Long authenticationId = userUpdateRequest.getAuthenticationId();
             User user = userRepository.findByAuthenticationId(authenticationId);
-            if (!isUserLegit(user))
+            if (!LegitUtils.isUserLegit(user) && user.isLoggedIn())
                 throw new Exception("User not legit to be updated");
             Authentication authentication = user.getAuthentication();
             setUser(userUpdateRequest, user, authentication);
@@ -132,8 +133,8 @@ public class UserServiceImpl implements IUserService {
     public void updateLoginStatus(Long id, boolean loginStatus) {
         try {
             User user = userRepository.getOne(id);
-            if (!isUserLegit(user))
-                throw new Exception("User not legit to be updated");
+            if (!LegitUtils.isUserLegit(user))
+                throw new Exception("User not legit to be logged in/out");
             if (user.isLoggedIn() && loginStatus) {
                 log.error("Already logged in");
                 throw new Exception("Already logged in");
@@ -162,13 +163,4 @@ public class UserServiceImpl implements IUserService {
         user.setDateOfBirth(userRequest.getDateOfBirth());
     }
 
-    //returns true if user is legit
-    //Not checking for verified user since while adding user task has already been completed
-    //because user would not be created if email and phone have not been verified
-    public boolean isUserLegit(User user) {
-        if (user == null)
-            return false;
-        //login check not required because if user has been created then phone and email has been already verified
-        return !user.getAuthentication().isDeleted() && user.getAuthentication().isActivated() && !user.getAuthentication().isBanned() && !user.getAuthentication().isFreezed();
-    }
 }
