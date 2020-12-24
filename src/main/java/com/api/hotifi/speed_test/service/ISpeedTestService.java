@@ -11,10 +11,10 @@ public interface ISpeedTestService {
 
     SpeedTest getLatestSpeedTest(Long userId, String pinCode, boolean isWifi);
 
-    List<SpeedTest> sortSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);
+    List<SpeedTest> getSortedSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);
 
-    List<SpeedTest> sortSpeedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);
+    List<SpeedTest> getSortedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending);
 
-    List<SpeedTest> sortSpeedTestByDateTime(Long userId, int pageNumber, int elements, boolean isDescending);
+    List<SpeedTest> getSortedTestByDateTime(Long userId, int pageNumber, int elements, boolean isDescending);
 
 }

@@ -35,7 +35,7 @@ public class SessionController {
                                             @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
                                             @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
                                             @PathVariable(value = "is-descending") boolean isDescending){
-        List<Session> sessions = sessionService.sortAllSessionsByStartTime(userId, pageNumber, elements, isDescending);
+        List<Session> sessions = sessionService.getSortedSessionsByStartTime(userId, pageNumber, elements, isDescending);
         return new ResponseEntity<>(sessions, HttpStatus.OK);
     }
 
@@ -44,7 +44,7 @@ public class SessionController {
                                                           @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
                                                           @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
                                                           @PathVariable(value = "is-descending") boolean isDescending){
-        List<Session> sessions = sessionService.sortAllSessionsByDataUsed(userId, pageNumber, elements, isDescending);
+        List<Session> sessions = sessionService.getSortedSessionsByDataUsed(userId, pageNumber, elements, isDescending);
         return new ResponseEntity<>(sessions, HttpStatus.OK);
     }
 }

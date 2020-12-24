@@ -63,7 +63,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     //For Get Speed Tests call sortByDateTime in Descending format
     @Transactional
     @Override
-    public List<SpeedTest> sortSpeedTestByDateTime(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedTestByDateTime(Long userId, int pageNumber, int elements, boolean isDescending) {
         try {
             Pageable sortedPageableByDateTime
                     = isDescending ?
@@ -78,7 +78,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
 
     @Transactional
     @Override
-    public List<SpeedTest> sortSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
         try {
             Pageable sortedPageableByUploadSpeed
                     = isDescending ?
@@ -93,7 +93,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
 
     @Transactional
     @Override
-    public List<SpeedTest> sortSpeedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
         try {
             Pageable sortedPageableByDownloadSpeed
                     = isDescending ?

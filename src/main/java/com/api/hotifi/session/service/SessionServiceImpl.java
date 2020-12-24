@@ -8,6 +8,7 @@ import com.api.hotifi.identity.repository.UserRepository;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.web.request.SessionRequest;
+import com.api.hotifi.session.web.response.ActiveSessionsResponse;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import com.api.hotifi.speed_test.service.ISpeedTestService;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,16 +71,36 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
+    @Transactional
     @Override
-    public List<Session> getActiveSessions(List<String> username, int pageNumber, int elements) {
+    public List<ActiveSessionsResponse> getActiveSessions(List<String> username, int pageNumber, int elements) {
+        try {
+            //Sort usernames to ensure ActiveSessionsResponse are mapped correctly
+            Collections.sort(username);
+            List<User> users = userRepository.findAllUsersByUsernames(username);
+            //TODO after transaction and feedback
+
+            List<Long> userIds = users.stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
+            Pageable speedTestPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+            List<Long> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, speedTestPageable)
+                    .stream()
+                    .map(SpeedTest::getId)
+                    .collect(Collectors.toList());
+            Pageable sessionPageable = PageRequest.of(pageNumber, elements, Sort.by("start_time").descending());
+            //return sessionRepository.findAllActiveSessionsBySpeedTestIds(speedTests, sessionPageable);
+        } catch (Exception e) {
+            log.error("Error Occured ", e);
+        }
         return null;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<Session> sortAllSessionsByStartTime(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<Session> getSortedSessionsByStartTime(Long userId, int pageNumber, int elements, boolean isDescending) {
         try {
-            List<SpeedTest> speedTests = speedTestService.sortSpeedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
+            List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
                     .stream()
                     .map(SpeedTest::getId)
@@ -98,9 +120,9 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Session> sortAllSessionsByDataUsed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<Session> getSortedSessionsByDataUsed(Long userId, int pageNumber, int elements, boolean isDescending) {
         try {
-            List<SpeedTest> speedTests = speedTestService.sortSpeedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
+            List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
                     .stream()
                     .map(SpeedTest::getId)

@@ -46,7 +46,7 @@ public class SpeedTestController {
                                                           @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
                                                           @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.sortSpeedTestByDateTime(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, pageNumber, elements, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
@@ -55,7 +55,7 @@ public class SpeedTestController {
                                                              @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
                                                              @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
                                                              @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.sortSpeedTestByUploadSpeed(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByUploadSpeed(userId, pageNumber, elements, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
@@ -64,7 +64,7 @@ public class SpeedTestController {
                                                                @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
                                                                @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.sortSpeedTestByDownloadSpeed(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedTestByDownloadSpeed(userId, pageNumber, elements, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 }

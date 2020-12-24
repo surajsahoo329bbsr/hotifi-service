@@ -15,7 +15,8 @@ public interface SessionRepository extends PagingAndSortingRepository<Session, L
     @Query(value = "SELECT * FROM session WHERE id in :ids", nativeQuery = true)
     List<Session> findAllSessionsById(@Param("ids") List<Long> sessionIds, Pageable pageable);
 
-    @Query(value = "SELECT * FROM session WHERE id in :ids AND end_time == NULL ORDER BY 1 DESC", nativeQuery = true)
-    List<Session> findAllActiveSessionsById(@Param("ids") List<Long> sessionIds, Pageable pageable);
+    //TODO SQL Query
+    @Query(value = "SELECT * FROM session WHERE speed_test_id in :speed_test_ids AND end_time == NULL ORDER BY 1 DESC", nativeQuery = true)
+    List<Session> findActiveSessionsBySpeedTestIds(@Param("speed_test_ids") List<Long> speedTestIds, Pageable pageable);
 
 }

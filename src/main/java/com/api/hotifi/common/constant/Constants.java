@@ -2,6 +2,7 @@ package com.api.hotifi.common.constant;
 
 public class Constants {
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
+    public static final String HOTIFI_UPI_ID = "hotifi@ybl"; //TODO
     public static final String WIFI_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
     public static final String WIFI_PASSWORD_ENCRYPTION_ALGORITHM = "AES";
     public static final String USER_TAG = "user";
@@ -20,4 +21,7 @@ public class Constants {
     public static final int MINIMUM_SELLING_DATA = 100;
     public static final int MINIMUM_SELLING_DATA_PRICE = 1;
     public static final int MAXIMUM_SELLING_DATA_PRICE = 40;
+    public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
+    public static final String MINIMUM_AMOUNT_PAID_INR = "1.00";
+    public static final String MAXIMUM_AMOUNT_PAID_INR = "100000.00";
 }
