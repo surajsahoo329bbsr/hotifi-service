@@ -44,10 +44,13 @@ public class Session implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date startTime = new Date(System.currentTimeMillis());
+    private Date startedAt = new Date(System.currentTimeMillis());
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date endTime;
+    private Date modifiedAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date finishedAt;
 
     @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
     private List<Purchase> purchases;

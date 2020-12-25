@@ -1,13 +1,10 @@
 package com.api.hotifi.payment.web.request;
 
-import com.api.hotifi.common.constant.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 
 @Getter
@@ -33,8 +30,4 @@ public class PurchaseRequest {
 
     @Range(min = 100, max = Integer.MAX_VALUE, message = "{data.range.invalid}")
     private int data;
-
-    @DecimalMin(value = Constants.MINIMUM_AMOUNT_PAID_INR, message = "{amount.paid.minimum.invalid}")
-    @DecimalMax(value = Constants.MAXIMUM_AMOUNT_PAID_INR, message = "{amount.paid.maximum.invalid}")
-    private double amountPaid;
 }

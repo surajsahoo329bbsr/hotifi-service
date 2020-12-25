@@ -3,8 +3,8 @@ package com.api.hotifi.session.service;
 import com.api.hotifi.common.constant.AES;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.utils.LegitUtils;
-import com.api.hotifi.identity.entity.User;
-import com.api.hotifi.identity.repository.UserRepository;
+import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.web.request.SessionRequest;
@@ -46,8 +46,8 @@ public class SessionServiceImpl implements ISessionService {
         try {
             //Do not check if user is banned or freezed, because that checking is for buyers only
             User user = userRepository.getOne(sessionRequest.getUserId());
-            if (!LegitUtils.isUserLegit(user) && user.isLoggedIn())
-                throw new Exception("User is not activated or deleted or not logged in");
+            if (!LegitUtils.isSellerLegit(user))
+                throw new Exception("Seller not legit to be updated");
 
             SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());
             if (speedTest == null && sessionRequest.isWifi())

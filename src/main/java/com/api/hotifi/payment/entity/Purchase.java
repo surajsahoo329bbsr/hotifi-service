@@ -1,7 +1,7 @@
 package com.api.hotifi.payment.entity;
 
 import com.api.hotifi.session.entity.Session;
-import com.api.hotifi.identity.entity.User;
+import com.api.hotifi.identity.entities.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,6 +48,9 @@ public class Purchase implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionStartedAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date sessionModifiedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionFinishedAt;

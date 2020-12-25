@@ -1,7 +1,7 @@
 package com.api.hotifi.speed_test.service;
 
-import com.api.hotifi.identity.entity.User;
-import com.api.hotifi.identity.repository.UserRepository;
+import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import com.api.hotifi.speed_test.web.request.SpeedTestRequest;

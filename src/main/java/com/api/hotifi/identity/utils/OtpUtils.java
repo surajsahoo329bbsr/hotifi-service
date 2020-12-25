@@ -1,7 +1,7 @@
 package com.api.hotifi.identity.utils;
 
-import com.api.hotifi.identity.entity.Authentication;
-import com.api.hotifi.identity.repository.AuthenticationRepository;
+import com.api.hotifi.identity.entities.Authentication;
+import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;

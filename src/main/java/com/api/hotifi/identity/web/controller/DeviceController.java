@@ -1,0 +1,54 @@
+package com.api.hotifi.identity.web.controller;
+
+import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.identity.entities.Device;
+import com.api.hotifi.identity.services.interfaces.IDeviceService;
+import com.api.hotifi.identity.web.request.DeviceRequest;
+import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.NotBlank;
+
+@Validated
+@RestController
+@Api(tags = Constants.DEVICE_TAG)
+@RequestMapping(path = "/device")
+public class DeviceController {
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @GetMapping(path = "/get/{android-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getDeviceByAndroidId(@PathVariable(value = "android-id")
+                                                      @NotBlank(message = "{android.id.blank}")
+                                                      @Length(max = 255, message = "{android.id.invalid}") String androidId) {
+        Device device = deviceService.getDeviceByAndroidId(androidId);
+        return new ResponseEntity<>(device, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addDevice(@RequestBody @Validated DeviceRequest deviceRequest) {
+        deviceService.addDevice(deviceRequest);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateDevice(@RequestBody @Validated DeviceRequest deviceRequest) {
+        deviceService.updateDevice(deviceRequest);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping(path = "/delete/{user-id}")
+    public ResponseEntity<?> deleteUserDevices(@PathVariable("user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
+        deviceService.deleteUserDevices(userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+}

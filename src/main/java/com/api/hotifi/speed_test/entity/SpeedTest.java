@@ -1,6 +1,6 @@
 package com.api.hotifi.speed_test.entity;
 
-import com.api.hotifi.identity.entity.User;
+import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.session.entity.Session;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
