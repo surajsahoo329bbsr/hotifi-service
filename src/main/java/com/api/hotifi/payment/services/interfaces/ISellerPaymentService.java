@@ -1,6 +1,7 @@
 package com.api.hotifi.payment.services.interfaces;
 
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 
 public interface ISellerPaymentService {
 
@@ -8,6 +9,8 @@ public interface ISellerPaymentService {
 
     void updateSellerPayment(User seller, double amountEarned);
 
-    //<Add-Response-Entity-here> updateSellerPayment(Long sellerId);
+    SellerReceiptResponse withdrawSellerPayment(Long sellerId);
+
+    //<Add-Response-Entity-here> getSellerStats(Long sellerId);
 
 }

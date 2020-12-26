@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.utils;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
@@ -45,7 +46,7 @@ public class OtpUtils {
         Date currentTime = new Date(System.currentTimeMillis());
         long timeDifference =  currentTime.getTime() - authentication.getTokenCreatedAt().getTime();
         long minutesDifference = timeDifference / (60L * 1000L);
-        return minutesDifference >= 10; // If otp generated is more than 10 minutes
+        return minutesDifference >= Constants.MAXIMUM_EMAIL_OTP_MINUTES; // If otp generated is more than 10 minutes
     }
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin

@@ -1,4 +1,4 @@
-package com.api.hotifi.payment.entity;
+package com.api.hotifi.payment.entities;
 
 import com.api.hotifi.identity.entities.User;
 import lombok.Getter;
@@ -7,6 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,12 +29,15 @@ public class SellerPayment implements Serializable {
     private double amountPaid; // Total amount to be paid to the seller
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
     private Date createdAt = new Date(System.currentTimeMillis()); // Time at which first money was deposited
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt; // Time at which money started to accumulate
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date paidAt; // Time at which amount is paid to the seller
+    private Date lastPaidAt; // Time at which money started to accumulate
 
+    @OneToMany(mappedBy = "sellerPayment", fetch = FetchType.EAGER)
+    private List<SellerReceipt> sellerReceipts;
 }

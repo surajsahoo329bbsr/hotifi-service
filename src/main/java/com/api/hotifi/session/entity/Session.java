@@ -1,6 +1,6 @@
 package com.api.hotifi.session.entity;
 
-import com.api.hotifi.payment.entity.Purchase;
+import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class Session implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date startedAt = new Date(System.currentTimeMillis());
+    private Date createdAt = new Date(System.currentTimeMillis());
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt;

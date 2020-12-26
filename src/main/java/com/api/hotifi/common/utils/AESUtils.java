@@ -1,4 +1,6 @@
-package com.api.hotifi.common.constant;
+package com.api.hotifi.common.utils;
+
+import com.api.hotifi.common.constant.Constants;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -8,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 
-public class AES {
+public class AESUtils {
 
     private static SecretKeySpec secretKey;
 

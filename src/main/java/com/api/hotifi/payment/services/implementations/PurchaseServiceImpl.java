@@ -1,12 +1,12 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.AES;
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.payment.entity.Purchase;
-import com.api.hotifi.payment.entity.SellerPayment;
+import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
@@ -121,7 +121,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
             receiptResponse.setBuyerUpiId(buyerUpiId);
             receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
-            receiptResponse.setWifiPassword(AES.decrypt(wifiPassword, Constants.WIFI_PASSWORD_SECRET_KEY));
+            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, Constants.WIFI_PASSWORD_SECRET_KEY));
 
             return receiptResponse;
         } catch (Exception e) {
@@ -137,12 +137,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
             if (purchase == null)
                 throw new Exception("Purchase doesn't exist");
-            if (purchase.getSessionStartedAt() != null)
+            if (purchase.getSessionCreatedAt() != null)
                 throw new Exception("Buyer's wifi service already started");
             if (purchase.getSessionFinishedAt() != null)
                 throw new Exception("Buyer's wifi service finished. Cannot update start time");
             Date sessionStartedAt = new Date(System.currentTimeMillis());
-            purchase.setSessionStartedAt(sessionStartedAt);
+            purchase.setSessionCreatedAt(sessionStartedAt);
             purchase.setStatus(status);
             purchaseRepository.save(purchase);
             return sessionStartedAt;
@@ -157,15 +157,24 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public int updateBuyerWifiService(Long purchaseId, int status, double dataUsed) {
         try {
             Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-            if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
 
+            if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
                 int dataBought = purchase.getData();
                 int purchaseStatus = purchase.getStatus() == 0 ? status : purchase.getStatus();
                 Date now = new Date(System.currentTimeMillis());
-
                 purchase.setDataUsed(dataUsed);
                 purchase.setAmountRefund(calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid()));
 
+                //Updating seller payment each time update is made
+                Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+                User seller = session != null ? session.getSpeedTest().getUser() : null;
+                SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
+                if (sellerPayment == null)
+                    sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
+                else
+                    sellerPaymentService.updateSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
+
+                //Comparing if data is going to be exhausted
                 if (Double.compare((double) dataBought - dataUsed, Constants.MINIMUM_DATA_THRESHOLD_MB) < 0) {
                     saveFinishWifiService(purchase, purchaseStatus, now);
                     return 2;
@@ -226,15 +235,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Pageable pageable = isDescending ?
                     PageRequest.of(pageNumber, elements, Sort.by("session_started_at").descending())
                     : PageRequest.of(pageNumber, elements, Sort.by("session_started_at"));
-            List<Purchase> purchases = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable);
-            List<WifiSummaryResponse> wifiSummaryResponses = new ArrayList<>();
-
-            for (Purchase purchase : purchases) {
-                WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase);
-                wifiSummaryResponses.add(wifiSummaryResponse);
-            }
-
-            return wifiSummaryResponses;
+            return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
         }
@@ -248,15 +249,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Pageable pageable = isDescending ?
                     PageRequest.of(pageNumber, elements, Sort.by("data_used").descending())
                     : PageRequest.of(pageNumber, elements, Sort.by("data_used"));
-            List<Purchase> purchases = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable);
-            List<WifiSummaryResponse> wifiSummaryResponses = new ArrayList<>();
-
-            for (Purchase purchase : purchases) {
-                WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase);
-                wifiSummaryResponses.add(wifiSummaryResponse);
-            }
-
-            return wifiSummaryResponses;
+            return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
         }
@@ -283,7 +276,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setSellerPhotoUrl(seller.getPhotoUrl());
         wifiSummaryResponse.setAmountPaid(purchase.getAmountPaid());
         wifiSummaryResponse.setAmountRefund(purchase.getAmountRefund());
-        wifiSummaryResponse.setSessionStartedAt(purchase.getSessionStartedAt());
+        wifiSummaryResponse.setSessionStartedAt(purchase.getSessionCreatedAt());
         wifiSummaryResponse.setSessionFinishedAt(purchase.getSessionFinishedAt());
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
@@ -303,15 +296,19 @@ public class PurchaseServiceImpl implements IPurchaseService {
         session.setModifiedAt(sessionFinishedAt);
         sessionRepository.save(session);
 
-        User seller = session.getSpeedTest().getUser();
-        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId());
-        if(sellerPayment == null) {
-            sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
-            return;
-        }
-        sellerPaymentService.updateSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
     }
 
+    private List<WifiSummaryResponse> getWifiSummaryResponses(Long buyerId, Pageable pageable) {
+        List<Purchase> purchases = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable);
+        List<WifiSummaryResponse> wifiSummaryResponses = new ArrayList<>();
+
+        for (Purchase purchase : purchases) {
+            WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase);
+            wifiSummaryResponses.add(wifiSummaryResponse);
+        }
+
+        return wifiSummaryResponses;
+    }
     //TODO payment start and end methods of RazorPay Payment Service
 
 }

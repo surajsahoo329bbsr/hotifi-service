@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
-@Api(tags = Constants.SELLER_PAYMENT_TAG)
-@RequestMapping(path = "/seller-payment")
-public class SellerPaymentController {
+@Api(tags = Constants.FEEDBACK_TAG)
+@RequestMapping(path = "/feedback")
+public class FeedbackController {
 }

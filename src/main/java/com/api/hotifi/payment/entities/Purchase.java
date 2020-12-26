@@ -1,4 +1,4 @@
-package com.api.hotifi.payment.entity;
+package com.api.hotifi.payment.entities;
 
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.identity.entities.User;
@@ -47,7 +47,7 @@ public class Purchase implements Serializable {
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date sessionStartedAt;
+    private Date sessionCreatedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionModifiedAt;

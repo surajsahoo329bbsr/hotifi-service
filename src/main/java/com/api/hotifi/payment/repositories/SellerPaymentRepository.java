@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.repositories;
 
-import com.api.hotifi.payment.entity.SellerPayment;
+import com.api.hotifi.payment.entities.SellerPayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

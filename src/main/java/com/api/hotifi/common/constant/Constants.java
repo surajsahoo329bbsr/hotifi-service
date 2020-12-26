@@ -11,6 +11,9 @@ public class Constants {
     public static final String DEVICE_TAG = "device";
     public static final String SESSION_TAG = "session";
     public static final String PURCHASE_TAG = "purchase";
+    public static final String SELLER_PAYMENT_TAG = "seller-payment";
+    public static final String SELLER_RECEIPT_TAG = "seller-receipt";
+    public static final String FEEDBACK_TAG = "feedback";
     public static final String AUTHENTICAION_TAG = "authenticate";
     public static final String VALID_OTP_PATTERN = "^[0-9]{4,6}$";
     public static final String VALID_PHONE_PATTERN = "^[0-9]{10,15}$";
@@ -24,6 +27,11 @@ public class Constants {
     public static final int MINIMUM_SELLING_DATA_PRICE = 1;
     public static final int MAXIMUM_SELLING_DATA_PRICE = 40;
     public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
+    public static final int COMMISSION_PERCENTAGE = 20;
+    public static final int MINIMUM_WITHDRAWAL_AMOUNT = 20;
+    public static final int MAXIMUM_WITHDRAWAL_AMOUNT = 10000;
+    public static final int MAXIMUM_EMAIL_OTP_MINUTES = 10;
+    public static final int MINIMUM_WITHDRAWAL_DUE_DAYS = 30;
     public static final String MINIMUM_AMOUNT_PAID_INR = "1.00";
     public static final String MAXIMUM_AMOUNT_PAID_INR = "100000.00";
     public static final String MINIMUM_DATA_USED_MB = "0.00";

@@ -1,7 +1,7 @@
 package com.api.hotifi.common.utils;
 
 import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.payment.entity.Purchase;
+import com.api.hotifi.payment.entities.Purchase;
 
 public class LegitUtils {
 
@@ -29,7 +29,7 @@ public class LegitUtils {
     public static boolean isPurchaseUpdateLegit(Purchase purchase, double dataUsed) throws Exception {
         if (purchase == null)
             throw new Exception("Purchase to be updated doesn't exist");
-        if (purchase.getSessionStartedAt() == null)
+        if (purchase.getSessionCreatedAt() == null)
             throw new Exception("Buyer's wifi service not started");
         if (purchase.getSessionFinishedAt() != null)
             throw new Exception("Buyer's wifi service already finished");

@@ -1,6 +1,6 @@
 package com.api.hotifi.session.service;
 
-import com.api.hotifi.common.constant.AES;
+import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
@@ -56,7 +56,7 @@ public class SessionServiceImpl implements ISessionService {
                 throw new Exception("User has not done speed test");
 
             //Everything is fine, so encrypt the password
-            String encryptedString = AES.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
+            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
 
             Session session = new Session();
             session.setSpeedTest(speedTest);
