@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.web.request;
 
+import com.api.hotifi.common.constant.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
@@ -28,6 +29,6 @@ public class PurchaseRequest {
     @Length(max = 255, message = "{mac.address.invalid}")
     private String macAddress;
 
-    @Range(min = 100, max = Integer.MAX_VALUE, message = "{data.range.invalid}")
+    @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{data.range.invalid}")
     private int data;
 }

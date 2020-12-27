@@ -13,4 +13,6 @@ public interface IFeedbackService {
     Feedback getPurchaseFeedback(Long purchaseId);
 
     List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int pageNumber, int elements, boolean isDescending);
+
+    String getAverageRating(Long sellerId);
 }

@@ -9,6 +9,8 @@ import java.util.List;
 
 @Repository
 public interface UserStatusRepository extends JpaRepository<UserStatus, Long> {
+
     @Query(value = "SELECT * FROM user_status u WHERE u.user_id = ?1", nativeQuery = true)
     List<UserStatus> findUserStatusByUserId(Long userId);
+
 }

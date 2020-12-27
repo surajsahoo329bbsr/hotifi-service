@@ -5,6 +5,9 @@ import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
+import com.api.hotifi.payment.entities.SellerPayment;
+import com.api.hotifi.payment.repositories.SellerPaymentRepository;
+import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.web.request.SessionRequest;
@@ -20,8 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,6 +42,12 @@ public class SessionServiceImpl implements ISessionService {
     @Autowired
     private SessionRepository sessionRepository;
 
+    @Autowired
+    private SellerPaymentRepository sellerPaymentRepository;
+
+    @Autowired
+    private IFeedbackService feedbackService;
+
     @Transactional
     @Override
     public void addSession(SessionRequest sessionRequest) {
@@ -54,6 +62,10 @@ public class SessionServiceImpl implements ISessionService {
                 throw new Exception("User has not done wifi speed test");
             if (speedTest == null && !sessionRequest.isWifi())
                 throw new Exception("User has not done speed test");
+
+            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
+            if(Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
+                throw new Exception("Please withdraw amount before starting this session");
 
             //Everything is fine, so encrypt the password
             String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
@@ -73,23 +85,43 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional
     @Override
-    public List<ActiveSessionsResponse> getActiveSessions(List<String> username, int pageNumber, int elements) {
+    public List<ActiveSessionsResponse> getActiveSessions(HashSet<String> usernames) {
         try {
-            //Sort usernames to ensure ActiveSessionsResponse are mapped correctly
-            Collections.sort(username);
-            List<User> users = userRepository.findAllUsersByUsernames(username);
-            //TODO after transaction and feedback
-
+            List<User> users = userRepository.findAllUsersByUsernames(usernames);
             List<Long> userIds = users.stream()
                     .map(User::getId)
                     .collect(Collectors.toList());
-            Pageable speedTestPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
-            List<Long> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, speedTestPageable)
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+            Map<Long, List<SpeedTest>> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, pageable)
                     .stream()
-                    .map(SpeedTest::getId)
-                    .collect(Collectors.toList());
-            Pageable sessionPageable = PageRequest.of(pageNumber, elements, Sort.by("start_time").descending());
-            //return sessionRepository.findAllActiveSessionsBySpeedTestIds(speedTests, sessionPageable);
+                    .collect(Collectors.groupingBy(speedTest -> speedTest.getUser().getId()));
+            List<ActiveSessionsResponse> activeSessionsResponses = new ArrayList<>();
+            speedTests.forEach((sellerId, speedTestList) -> {
+                List<Long> speedTestIds = speedTestList.stream()
+                        .map(SpeedTest::getId)
+                        .collect(Collectors.toList());
+                Map<User, List<Session>> sessions = sessionRepository.findActiveSessionsBySpeedTestIds(speedTestIds)
+                        .stream()
+                        .max(Comparator.comparing(Session::getId))
+                        .stream().collect(Collectors.groupingBy(session -> session.getSpeedTest().getUser()));
+                sessions.forEach((seller, sessionList) -> {
+                    //sessionList will have only 1 object as it has been filtered
+                    double availableData = sessionList.get(0).getData() - sessionList.get(0).getDataUsed();
+                    double availableDataPrice = (sessionList.get(0).getPrice() / sessionList.get(0).getData()) * availableData;
+                    double downloadSpeed = sessionList.get(0).getSpeedTest().getDownloadSpeed();
+                    double uploadSpeed = sessionList.get(0).getSpeedTest().getUploadSpeed();
+                    ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
+                    activeSessionsResponse.setUsername(seller.getUsername());
+                    activeSessionsResponse.setUserPhotoUrl(seller.getPhotoUrl());
+                    activeSessionsResponse.setData(availableData);
+                    activeSessionsResponse.setPrice(availableDataPrice);
+                    activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(seller.getId()));
+                    activeSessionsResponse.setDownloadSpeed(downloadSpeed);
+                    activeSessionsResponse.setUploadSpeed(uploadSpeed);
+                    activeSessionsResponses.add(activeSessionsResponse);
+                });
+            });
+            return activeSessionsResponses;
         } catch (Exception e) {
             log.error("Error Occured ", e);
         }

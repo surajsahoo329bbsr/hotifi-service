@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ISellerReceiptService {
 
+    //DO NOT ADD TO CONTROLLER
     SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid);
 
     SellerReceiptResponse getSellerReceipt(Long id);

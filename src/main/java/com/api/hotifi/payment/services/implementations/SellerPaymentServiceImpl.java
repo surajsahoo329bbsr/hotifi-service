@@ -30,7 +30,6 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     @Autowired
     private ISellerReceiptService sellerReceiptService;
 
-    //DO NOT ADD TO CONTROLLER
     //No need to implement try catch and condition checks since this method will be
     //called by PurchaseServiceImpl
     @Transactional
@@ -42,7 +41,6 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
         sellerPaymentRepository.save(sellerPayment);
     }
 
-    //DO NOT ADD TO CONTROLLER
     //No need to implement try catch and condition checks since this method will be
     //called by PurchaseServiceImpl
     @Transactional
@@ -66,7 +64,8 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             User seller = userRepository.findById(sellerId).orElse(null);
             if (!LegitUtils.isSellerLegit(seller))
                 throw new Exception("Seller is not legit to withdraw money");
-            double sellerAmountPaid = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+            double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+            double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim;
             Date now = new Date(System.currentTimeMillis());
 
             if (Double.compare(sellerAmountPaid, Constants.MINIMUM_WITHDRAWAL_AMOUNT) < 0) {
@@ -83,7 +82,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             sellerPayment.setModifiedAt(now);
             switch (paymentStatus) {
                 case 1:
-                    sellerPayment.setAmountEarned(0);
+                    sellerPayment.setAmountEarned(sellerWithdrawalClaim - sellerAmountPaid);
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid() + sellerAmountPaid);
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     break;

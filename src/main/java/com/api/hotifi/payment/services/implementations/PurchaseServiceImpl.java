@@ -75,7 +75,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (sellerId.equals(buyerId))
                 throw new Exception("Buyer and seller cannot be same");
 
-            double amountPaid = (session.getPrice() / session.getData()) * purchaseRequest.getData();
+            double amountPaid = Math.ceil((session.getPrice() / session.getData()) * purchaseRequest.getData());
 
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -101,8 +101,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
         return null;
     }
 
-    @Override
     @Transactional
+    @Override
     public PurchaseReceiptResponse getPurchaseReceipt(Long purchaseId) {
         try {
             Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);

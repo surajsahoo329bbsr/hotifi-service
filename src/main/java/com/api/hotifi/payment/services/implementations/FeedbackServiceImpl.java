@@ -22,8 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -67,6 +69,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
         }
     }
 
+    @Transactional
     @Override
     public Feedback getPurchaseFeedback(Long purchaseId) {
         try {
@@ -80,6 +83,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
         return null;
     }
 
+    @Transactional
     @Override
     public List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int pageNumber, int elements, boolean isDescending) {
         try {
@@ -104,7 +108,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
                     feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable) : null;
             if (feedbacks == null) return null;
             List<FeedbackResponse> feedbackResponses = new ArrayList<>();
-            for (Feedback feedback : feedbacks) {
+            feedbacks.forEach(feedback -> {
                 User user = feedback.getPurchase().getSession().getSpeedTest().getUser();
                 String sellerName = user.getFirstName() + " " + user.getLastName();
                 String sellerPhotoUrl = user.getPhotoUrl();
@@ -113,12 +117,44 @@ public class FeedbackServiceImpl implements IFeedbackService {
                 feedbackResponse.setSellerName(sellerName);
                 feedbackResponse.setSellerPhotoUrl(sellerPhotoUrl);
                 feedbackResponses.add(feedbackResponse);
-            }
+            });
             return feedbackResponses;
 
         } catch (Exception e) {
             log.error("Error occurred", e);
         }
         return null;
+    }
+
+    //No need for try catch exceptions
+    @Transactional
+    @Override
+    public String getAverageRating(Long sellerId) {
+        User seller = userRepository.findById(sellerId).orElse(null);
+        List<Long> speedTestIds = seller != null ?
+                seller.getSpeedTests()
+                        .stream().map(SpeedTest::getId)
+                        .collect(Collectors.toList()) : null;
+        List<Long> sessionIds = speedTestIds != null ?
+                sessionRepository.findSessionsBySpeedTestIds(speedTestIds)
+                        .stream().map(Session::getId)
+                        .collect(Collectors.toList()) : null;
+        List<Long> purchaseIds = sessionIds != null ?
+                purchaseRepository.findPurchasesBySessionIds(sessionIds)
+                        .stream().map(Purchase::getId)
+                        .collect(Collectors.toList()) : null;
+
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+
+        OptionalDouble optionalDoubleRating = purchaseIds == null ? OptionalDouble.empty() :
+                feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable)
+                        .stream().mapToDouble(Feedback::getRating).average();
+
+        if (optionalDoubleRating.isEmpty())
+            return null;
+
+        double rating = optionalDoubleRating.orElseThrow(IllegalStateException::new);
+        DecimalFormat decimalFormat = new DecimalFormat("#.#");
+        return decimalFormat.format(rating);
     }
 }

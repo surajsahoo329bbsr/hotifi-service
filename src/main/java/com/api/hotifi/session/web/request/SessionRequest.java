@@ -23,8 +23,8 @@ public class SessionRequest {
     @Length(max = 255, message = "{session.wifi.password.invalid}")
     private String wifiPassword;
 
-    //For unlimited data put -1, else put minimum 100
-    @Range(min = Constants.MINIMUM_SELLING_DATA, max = Integer.MAX_VALUE, message = "{session.data.invalid}")
+    //For unlimited data put 200 GB, else put minimum 100
+    @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{session.data.invalid}")
     private int data;
 
     //Unit Price, i.e. Price per GB

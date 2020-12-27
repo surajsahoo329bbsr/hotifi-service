@@ -23,16 +23,18 @@ public class Constants {
     public static final String VALID_ROLE_PATTERN = "(BUYER|SELLER|DELETE)";
     public static final String MINIMUM_UPLOAD_SPEED = "0.25";
     public static final String MINIMUM_DOWNLOAD_SPEED = "1.00";
-    public static final int MINIMUM_SELLING_DATA = 100;
+    public static final int MINIMUM_SELLING_DATA = 100; //100 MB
+    public static final int MAXIMUM_SELLING_DATA = 204800; //200 GB
     public static final int MINIMUM_SELLING_DATA_PRICE = 1;
     public static final int MAXIMUM_SELLING_DATA_PRICE = 40;
     public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
     public static final int COMMISSION_PERCENTAGE = 20;
     public static final int MINIMUM_WITHDRAWAL_AMOUNT = 20;
     public static final int MAXIMUM_WITHDRAWAL_AMOUNT = 10000;
+    public static final int MAXIMUM_SELLER_AMOUNT_EARNED = 20000;
     public static final int MAXIMUM_EMAIL_OTP_MINUTES = 10;
     public static final int MINIMUM_WITHDRAWAL_DUE_DAYS = 30;
-    public static final String MINIMUM_AMOUNT_PAID_INR = "1.00";
-    public static final String MAXIMUM_AMOUNT_PAID_INR = "100000.00";
+    public static final double MINIMUM_AMOUNT_PAID_INR = 1.00;
+    public static final double MAXIMUM_AMOUNT_PAID_INR = 8000.00;
     public static final String MINIMUM_DATA_USED_MB = "0.00";
 }

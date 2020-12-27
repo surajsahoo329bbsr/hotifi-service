@@ -52,6 +52,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         return receiptResponse;
     }
 
+    @Transactional
     @Override
     public SellerReceiptResponse getSellerReceipt(Long id) {
         try {
@@ -76,6 +77,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         return null;
     }
 
+    @Transactional
     @Override
     public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending) {
         try {
@@ -92,6 +94,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         return null;
     }
 
+    @Transactional
     @Override
     public List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending) {
         try {
