@@ -79,14 +79,14 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
 
     @Transactional
     @Override
-    public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending) {
+    public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int page, int size, boolean isDescending) {
         try {
             SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
             if (sellerPayment == null)
                 throw new Exception("No seller payment exist");
             Pageable pageable = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("created_at").descending()) :
-                    PageRequest.of(pageNumber, elements, Sort.by("created_at"));
+                    PageRequest.of(page, size, Sort.by("created_at").descending()) :
+                    PageRequest.of(page, size, Sort.by("created_at"));
             return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -96,14 +96,14 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
 
     @Transactional
     @Override
-    public List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending) {
+    public List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int page, int size, boolean isDescending) {
         try {
             SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
             if (sellerPayment == null)
                 throw new Exception("No seller payment exist");
             Pageable pageable = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("amount_paid").descending()) :
-                    PageRequest.of(pageNumber, elements, Sort.by("amount_paid"));
+                    PageRequest.of(page, size, Sort.by("amount_paid").descending()) :
+                    PageRequest.of(page, size, Sort.by("amount_paid"));
             return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);

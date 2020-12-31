@@ -14,4 +14,6 @@ public class SellerReceiptResponse {
 
     private String hotifiUpiId;
 
+    private double sellerAmountPaid;
+
 }

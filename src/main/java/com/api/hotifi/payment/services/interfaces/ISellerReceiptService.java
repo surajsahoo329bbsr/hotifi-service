@@ -13,8 +13,8 @@ public interface ISellerReceiptService {
 
     SellerReceiptResponse getSellerReceipt(Long id);
 
-    List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending);
+    List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int page, int size, boolean isDescending);
 
-    List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int pageNumber, int elements, boolean isDescending);
+    List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int page, int size, boolean isDescending);
 
 }

@@ -32,27 +32,27 @@ public class SellerReceiptController {
         return new ResponseEntity<>(sellerReceiptResponse, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/date-time/{seller-payment-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/date-time/{seller-payment-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSellerReceiptsByDateTime(@PathVariable(value = "seller-payment-id")
                                                                @Range(min = 1, message = "{seller.id.invalid}") Long sellerPaymentId,
-                                                               @PathVariable(value = "page-number")
-                                                               @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                               @PathVariable(value = "elements")
-                                                               @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                               @PathVariable(value = "page")
+                                                               @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                               @PathVariable(value = "size")
+                                                               @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByDateTime(sellerPaymentId, pageNumber, elements, isDescending);
+        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByDateTime(sellerPaymentId, page, size, isDescending);
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/amount-paid/{seller-payment-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/amount-paid/{seller-payment-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSellerReceiptsByAmountPaid(@PathVariable(value = "seller-payment-id")
                                                                @Range(min = 1, message = "{seller.id.invalid}") Long sellerPaymentId,
-                                                               @PathVariable(value = "page-number")
-                                                               @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                               @PathVariable(value = "elements")
-                                                               @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                               @PathVariable(value = "page")
+                                                               @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                               @PathVariable(value = "size")
+                                                               @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByAmountPaid(sellerPaymentId, pageNumber, elements, isDescending);
+        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByAmountPaid(sellerPaymentId, page, size, isDescending);
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }
 

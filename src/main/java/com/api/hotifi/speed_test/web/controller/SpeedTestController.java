@@ -41,30 +41,30 @@ public class SpeedTestController {
         return new ResponseEntity<>(speedTest, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/date-time/{user-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/date-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSpeedTestByDateTime(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                          @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                          @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                          @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                          @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, page, size, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/upload-speed/{user-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/upload-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSpeedTestByUploadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                             @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                             @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                             @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                             @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                              @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByUploadSpeed(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByUploadSpeed(userId, page, size, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/download-speed/{user-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/download-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSpeedTestByDownloadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                               @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                               @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                               @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                               @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedTestByDownloadSpeed(userId, pageNumber, elements, isDescending);
+        List<SpeedTest> speedTests = speedTestService.getSortedTestByDownloadSpeed(userId, page, size, isDescending);
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 }

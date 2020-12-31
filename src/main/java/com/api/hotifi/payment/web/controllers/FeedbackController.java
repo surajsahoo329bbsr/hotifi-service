@@ -37,15 +37,15 @@ public class FeedbackController {
         return new ResponseEntity<>(feedback, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/seller/feedback/{seller-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/seller/feedback/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSellerFeedbacks(@PathVariable(value = "seller-id")
                                                 @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
-                                                @PathVariable(value = "page-number")
-                                                @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                @PathVariable(value = "elements")
-                                                @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                @PathVariable(value = "page")
+                                                @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                @PathVariable(value = "size")
+                                                @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                 @PathVariable(value = "is-descending") boolean isDescending){
-        List<FeedbackResponse> feedbackResponses = feedbackService.getSellerFeedbacks(sellerId, pageNumber, elements, isDescending);
+        List<FeedbackResponse> feedbackResponses = feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending);
         return new ResponseEntity<>(feedbackResponses, HttpStatus.OK);
     }
 }

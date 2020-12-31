@@ -2,7 +2,9 @@ package com.api.hotifi.payment.services.interfaces;
 
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
+import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.WifiSummaryResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -15,6 +17,8 @@ public interface IPurchaseService {
 
     Date startBuyerWifiService(Long purchaseId, int status);
 
+    RefundReceiptResponse withdrawBuyerRefunds(Long buyerId);
+
     /*
         Below method returns the following codes
             0 if successfully updated
@@ -26,7 +30,10 @@ public interface IPurchaseService {
 
     WifiSummaryResponse finishBuyerWifiService(Long purchaseId, int status, double dataUsed);
 
-    List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int pageNumber, int elements, boolean isDescending);
+    List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending);
 
-    List<WifiSummaryResponse> getSortedWifiUsagesDataUsed(Long buyerId, int pageNumber, int elements, boolean isDescending);
+    List<WifiSummaryResponse> getSortedWifiUsagesDataUsed(Long buyerId, int page, int size, boolean isDescending);
+
+    @Transactional(readOnly = true)
+    List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending);
 }

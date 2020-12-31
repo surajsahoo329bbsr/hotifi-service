@@ -13,7 +13,7 @@ public interface ISessionService {
 
     List<ActiveSessionsResponse> getActiveSessions(HashSet<String> usernames);
 
-    List<Session> getSortedSessionsByStartTime(Long userId, int pageNumber, int elements, boolean isDescending);
+    List<Session> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending);
 
-    List<Session> getSortedSessionsByDataUsed(Long userId, int pageNumber, int elements, boolean isDescending);
+    List<Session> getSortedSessionsByDataUsed(Long userId, int page, int size, boolean isDescending);
 }

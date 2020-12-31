@@ -30,7 +30,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
         try {
             User user = userRepository.getOne(speedTestRequest.getUserId());
-            if(user.getAuthentication().isDeleted())
+            if (user.getAuthentication().isDeleted())
                 throw new Exception("User is deleted");
             SpeedTest speedTest = new SpeedTest();
             speedTest.setNetworkName(speedTestRequest.getNetworkName());
@@ -51,7 +51,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             SpeedTest speedTest = isWifi ?
                     speedTestRepository.findLatestWifiSpeedTest(userId, pinCode) :
                     speedTestRepository.findLatestNonWifiSpeedTest(userId, pinCode);
-            if(speedTest == null)
+            if (speedTest == null)
                 throw new Exception("No Speed Test Record Exists");
             return speedTest;
         } catch (Exception e) {
@@ -63,12 +63,12 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     //For Get Speed Tests call sortByDateTime in Descending format
     @Transactional
     @Override
-    public List<SpeedTest> getSortedTestByDateTime(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedTestByDateTime(Long userId, int page, int size, boolean isDescending) {
         try {
             Pageable sortedPageableByDateTime
                     = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("created_at").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("created_at"));
+                    PageRequest.of(page, size, Sort.by("created_at").descending())
+                    : PageRequest.of(page, size, Sort.by("created_at"));
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByDateTime);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);
@@ -78,12 +78,12 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
 
     @Transactional
     @Override
-    public List<SpeedTest> getSortedSpeedTestByUploadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedSpeedTestByUploadSpeed(Long userId, int page, int size, boolean isDescending) {
         try {
             Pageable sortedPageableByUploadSpeed
                     = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("upload_speed").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("upload_speed"));
+                    PageRequest.of(page, size, Sort.by("upload_speed").descending())
+                    : PageRequest.of(page, size, Sort.by("upload_speed"));
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByUploadSpeed);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);
@@ -93,12 +93,12 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
 
     @Transactional
     @Override
-    public List<SpeedTest> getSortedTestByDownloadSpeed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<SpeedTest> getSortedTestByDownloadSpeed(Long userId, int page, int size, boolean isDescending) {
         try {
             Pageable sortedPageableByDownloadSpeed
                     = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("download_speed").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("download_speed"));
+                    PageRequest.of(page, size, Sort.by("download_speed").descending())
+                    : PageRequest.of(page, size, Sort.by("download_speed"));
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByDownloadSpeed);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);

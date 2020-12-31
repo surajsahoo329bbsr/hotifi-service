@@ -9,6 +9,8 @@ import java.util.Date;
 @Setter
 public class WifiSummaryResponse {
 
+    private RefundReceiptResponse refundReceiptResponse;
+
     private String sellerPhotoUrl;
 
     private String sellerName;
@@ -23,6 +25,6 @@ public class WifiSummaryResponse {
 
     private double dataUsed;
 
-    private int dataBought;
+    private double dataBought;
 
 }

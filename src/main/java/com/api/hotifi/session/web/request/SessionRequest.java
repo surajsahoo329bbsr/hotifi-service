@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
@@ -20,7 +21,8 @@ public class SessionRequest {
     private String pinCode;
 
     @NotBlank(message = "{session.wifi.password.blank}")
-    @Length(max = 255, message = "{session.wifi.password.invalid}")
+    @Length(max = 255, message = "{session.wifi.password.length.invalid}")
+    @Pattern(regexp = Constants.WIFI_PASSWORD_PATTERN, message = "session.wifi.password.invalid")
     private String wifiPassword;
 
     //For unlimited data put 200 GB, else put minimum 100

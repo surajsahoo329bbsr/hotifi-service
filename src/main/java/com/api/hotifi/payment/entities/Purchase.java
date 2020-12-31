@@ -1,13 +1,12 @@
 package com.api.hotifi.payment.entities;
 
-import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.session.entity.Session;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Getter
@@ -21,6 +20,8 @@ public class Purchase implements Serializable {
 
     @Column(nullable = false)
     private String paymentId;
+
+    private String refundPaymentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
@@ -44,7 +45,7 @@ public class Purchase implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date createdAt = new Timestamp(System.currentTimeMillis());
+    private Date paymentDoneAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionCreatedAt;
@@ -55,9 +56,13 @@ public class Purchase implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionFinishedAt;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date refundDoneAt;
+
     @Column(precision = 10, scale = 2, nullable = false)
     private double amountPaid;
 
     @Column(precision = 10, scale = 2)
     private double amountRefund;
+
 }

@@ -14,6 +14,7 @@ import com.api.hotifi.payment.services.interfaces.ISellerPaymentService;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
+import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.WifiSummaryResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
@@ -27,9 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -75,17 +75,16 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (sellerId.equals(buyerId))
                 throw new Exception("Buyer and seller cannot be same");
 
-            double amountPaid = Math.ceil((session.getPrice() / session.getData()) * purchaseRequest.getData());
-
             Purchase purchase = new Purchase();
             purchase.setSession(session);
             purchase.setUser(buyer);
+            purchase.setPaymentDoneAt(purchaseRequest.getPaymentDoneAt());
             purchase.setPaymentId(purchaseRequest.getPaymentId());
             purchase.setStatus(purchaseRequest.getStatus());
             purchase.setMacAddress(purchaseRequest.getMacAddress());
             purchase.setData(purchaseRequest.getData());
-            purchase.setAmountPaid(amountPaid);
-            purchase.setAmountRefund(amountPaid);
+            purchase.setAmountPaid(purchaseRequest.getAmountPaid());
+            purchase.setAmountRefund(purchaseRequest.getAmountPaid());
 
             Long purchaseId = purchaseRepository.save(purchase).getId();
 
@@ -116,7 +115,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             PurchaseReceiptResponse receiptResponse = new PurchaseReceiptResponse();
             receiptResponse.setPurchaseId(purchase.getId());
             receiptResponse.setPaymentId(purchase.getPaymentId());
-            receiptResponse.setCreatedAt(purchase.getCreatedAt());
+            receiptResponse.setCreatedAt(purchase.getPaymentDoneAt());
             receiptResponse.setPurchaseStatus(purchase.getStatus());
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
             receiptResponse.setBuyerUpiId(buyerUpiId);
@@ -230,11 +229,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
     @Transactional
     @Override
-    public List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int pageNumber, int elements, boolean isDescending) {
+    public List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending) {
         try {
             Pageable pageable = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("session_started_at").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("session_started_at"));
+                    PageRequest.of(page, size, Sort.by("session_started_at").descending())
+                    : PageRequest.of(page, size, Sort.by("session_started_at"));
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -244,14 +243,91 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
     @Transactional
     @Override
-    public List<WifiSummaryResponse> getSortedWifiUsagesDataUsed(Long buyerId, int pageNumber, int elements, boolean isDescending) {
+    public List<WifiSummaryResponse> getSortedWifiUsagesDataUsed(Long buyerId, int page, int size, boolean isDescending) {
         try {
             Pageable pageable = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("data_used").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("data_used"));
+                    PageRequest.of(page, size, Sort.by("data_used").descending())
+                    : PageRequest.of(page, size, Sort.by("data_used"));
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+        }
+        return null;
+    }
+
+    @Transactional
+    @Override
+    public RefundReceiptResponse withdrawBuyerRefunds(Long buyerId) {
+        try {
+            User buyer = userRepository.findById(buyerId).orElse(null);
+            if (LegitUtils.isBuyerLegit(buyer)) {
+                Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+                double totalRefundAmount = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                        .stream().filter(purchase -> purchase.getStatus() == 4)
+                        .mapToDouble(Purchase::getAmountRefund)
+                        .sum();//TODO Status check
+
+
+                //TODO Razorpay implementation for refunds
+                String refundPaymentId = "1234";
+                Date refundDoneAt = new Date(System.currentTimeMillis());
+                List<Long> purchaseIds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                        .stream().filter(purchase -> purchase.getStatus() == 4)
+                        .map(Purchase::getId)
+                        .collect(Collectors.toList());
+                purchaseRepository.updatePurchaseRefundStatus(purchaseIds,5, refundPaymentId, refundDoneAt);
+
+                return getBuyerRefundReceipts(buyerId, 0, Integer.MAX_VALUE, true).get(0); //It is always going to return 1 record
+            }
+        } catch (Exception e) {
+            log.error("Error Occurred ", e);
+        }
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
+        try {
+            User buyer = userRepository.findById(buyerId).orElse(null);
+            if (LegitUtils.isBuyerLegit(buyer)) {
+                Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
+                        PageRequest.of(page, size, Sort.by("refund_done_at"));
+                Map<String, List<Purchase>> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                        .stream()
+                        .collect(Collectors.groupingBy(Purchase::getRefundPaymentId));
+
+                List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
+
+                purchaseReceipts.forEach((refundPaymentId, purchases) -> {
+                    //TODO update for processing payments
+                    purchases.forEach(purchase -> {
+
+                        if (purchase.getStatus() == 4) {
+                            //TODO Razorpay check for payment status, initiate payment again if failed
+                            int status = purchase.getStatus() + 1;
+                            List<Long> purchaseIds = Collections.singletonList(purchase.getId());
+                            Date refundDoneAt = new Date(System.currentTimeMillis());
+
+                            purchaseRepository.updatePurchaseRefundStatus(purchaseIds, status, refundPaymentId, refundDoneAt);
+                            purchase.setStatus(status);
+                            purchase.setRefundPaymentId(refundPaymentId);
+                            purchase.setRefundDoneAt(refundDoneAt);
+
+                        }
+
+                        RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, refundPaymentId, purchase.getRefundDoneAt(), Constants.HOTIFI_UPI_ID, purchase.getUser().getUpiId());
+                        refundReceiptResponses.add(refundReceiptResponse);
+
+                    });
+
+                });
+
+                return refundReceiptResponses;
+
+            }
+        } catch (Exception e) {
+            log.error("Error Occurred ", e);
         }
         return null;
     }
@@ -270,6 +346,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
         User seller = userRepository.findById(speedTest.getUser().getId()).orElse(null);
         assert seller != null;
 
+        RefundReceiptResponse refundReceiptResponse = withdrawBuyerRefunds(purchase.getUser().getId());
+
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
 
         wifiSummaryResponse.setSellerName(seller.getFirstName() + " " + seller.getLastName());
@@ -280,6 +358,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setSessionFinishedAt(purchase.getSessionFinishedAt());
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
+        wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
 
         return wifiSummaryResponse;
     }
@@ -309,6 +388,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         return wifiSummaryResponses;
     }
+
     //TODO payment start and end methods of RazorPay Payment Service
 
 }

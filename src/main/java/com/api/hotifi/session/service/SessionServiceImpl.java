@@ -1,7 +1,7 @@
 package com.api.hotifi.session.service;
 
-import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,8 +66,17 @@ public class SessionServiceImpl implements ISessionService {
                 throw new Exception("User has not done speed test");
 
             SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
-            if(Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
+            if (Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
                 throw new Exception("Please withdraw amount before starting this session");
+
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+            List<Long> speedTestIds = speedTestRepository.findSpeedTestsByUserId(sessionRequest.getUserId(), pageable)
+                    .stream()
+                    .map(SpeedTest::getId)
+                    .collect(Collectors.toList());
+
+            Date finishedAt = new Date(System.currentTimeMillis());
+            sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
 
             //Everything is fine, so encrypt the password
             String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
@@ -90,29 +101,33 @@ public class SessionServiceImpl implements ISessionService {
             List<User> users = userRepository.findAllUsersByUsernames(usernames);
             List<Long> userIds = users.stream()
                     .map(User::getId)
+                    .max(Comparator.comparing(Long::longValue))
+                    .stream()
                     .collect(Collectors.toList());
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
             Map<Long, List<SpeedTest>> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, pageable)
                     .stream()
                     .collect(Collectors.groupingBy(speedTest -> speedTest.getUser().getId()));
             List<ActiveSessionsResponse> activeSessionsResponses = new ArrayList<>();
+
             speedTests.forEach((sellerId, speedTestList) -> {
                 List<Long> speedTestIds = speedTestList.stream()
                         .map(SpeedTest::getId)
                         .collect(Collectors.toList());
-                Map<User, List<Session>> sessions = sessionRepository.findActiveSessionsBySpeedTestIds(speedTestIds)
+
+                Map<SpeedTest, Session> sessions = sessionRepository.findActiveSessionsBySpeedTestIds(speedTestIds)
                         .stream()
-                        .max(Comparator.comparing(Session::getId))
-                        .stream().collect(Collectors.groupingBy(session -> session.getSpeedTest().getUser()));
-                sessions.forEach((seller, sessionList) -> {
-                    //sessionList will have only 1 object as it has been filtered
-                    double availableData = sessionList.get(0).getData() - sessionList.get(0).getDataUsed();
-                    double availableDataPrice = (sessionList.get(0).getPrice() / sessionList.get(0).getData()) * availableData;
-                    double downloadSpeed = sessionList.get(0).getSpeedTest().getDownloadSpeed();
-                    double uploadSpeed = sessionList.get(0).getSpeedTest().getUploadSpeed();
+                        .collect(Collectors.toMap(Session::getSpeedTest, Function.identity(),
+                                BinaryOperator.maxBy(Comparator.comparing(Session::getId))));
+
+                sessions.forEach((seller, session) -> {
+                    double availableData = session.getData() - session.getDataUsed();
+                    double availableDataPrice = (session.getPrice() / session.getData()) * availableData;
+                    double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
+                    double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
-                    activeSessionsResponse.setUsername(seller.getUsername());
-                    activeSessionsResponse.setUserPhotoUrl(seller.getPhotoUrl());
+                    activeSessionsResponse.setUsername(seller.getUser().getUsername());
+                    activeSessionsResponse.setUserPhotoUrl(seller.getUser().getPhotoUrl());
                     activeSessionsResponse.setData(availableData);
                     activeSessionsResponse.setPrice(availableDataPrice);
                     activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(seller.getId()));
@@ -130,7 +145,7 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Session> getSortedSessionsByStartTime(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<Session> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending) {
         try {
             List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
@@ -140,8 +155,8 @@ public class SessionServiceImpl implements ISessionService {
 
             Pageable sortedPageableByStartTime
                     = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("start_time").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("start_time"));
+                    PageRequest.of(page, size, Sort.by("start_time").descending())
+                    : PageRequest.of(page, size, Sort.by("start_time"));
 
             return sessionRepository.findAllSessionsById(speedTestIds, sortedPageableByStartTime);
         } catch (Exception e) {
@@ -152,7 +167,7 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Session> getSortedSessionsByDataUsed(Long userId, int pageNumber, int elements, boolean isDescending) {
+    public List<Session> getSortedSessionsByDataUsed(Long userId, int page, int size, boolean isDescending) {
         try {
             List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
@@ -162,8 +177,8 @@ public class SessionServiceImpl implements ISessionService {
 
             Pageable sortedPageableByDataUsed
                     = isDescending ?
-                    PageRequest.of(pageNumber, elements, Sort.by("data_used").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("data_used"));
+                    PageRequest.of(page, size, Sort.by("data_used").descending())
+                    : PageRequest.of(page, size, Sort.by("data_used"));
 
             return sessionRepository.findAllSessionsById(speedTestIds, sortedPageableByDataUsed);
         } catch (Exception e) {

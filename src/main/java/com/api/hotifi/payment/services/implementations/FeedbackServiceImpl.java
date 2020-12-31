@@ -85,7 +85,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
 
     @Transactional
     @Override
-    public List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int pageNumber, int elements, boolean isDescending) {
+    public List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int page, int size, boolean isDescending) {
         try {
             User seller = userRepository.findById(sellerId).orElse(null);
             List<Long> speedTestIds = seller != null ?
@@ -101,8 +101,8 @@ public class FeedbackServiceImpl implements IFeedbackService {
                             .stream().map(Purchase::getId)
                             .collect(Collectors.toList()) : null;
 
-            Pageable pageable = isDescending ? PageRequest.of(pageNumber, elements, Sort.by("created_at").descending())
-                    : PageRequest.of(pageNumber, elements, Sort.by("created_at"));
+            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("created_at").descending())
+                    : PageRequest.of(page, size, Sort.by("created_at"));
 
             List<Feedback> feedbacks = purchaseIds != null ?
                     feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable) : null;

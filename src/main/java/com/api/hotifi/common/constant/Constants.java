@@ -4,6 +4,7 @@ public class Constants {
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
     public static final String HOTIFI_UPI_ID = "hotifi@ybl"; //TODO
     public static final String WIFI_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
+    public static final String WIFI_PASSWORD_PATTERN = "(?=^.{20}$)(?=(.*\\d){4,6})(?=(.*[A-Z]){4,6})(?=(.*[a-z]){4,6})(?=(.*[!@#$%^&*?]){6})(?!.*[\\s])^.*";
     public static final String WIFI_PASSWORD_ENCRYPTION_ALGORITHM = "AES";
     public static final String USER_TAG = "user";
     public static final String SPEED_TEST_TAG = "speed-test";
@@ -13,6 +14,7 @@ public class Constants {
     public static final String PURCHASE_TAG = "purchase";
     public static final String SELLER_PAYMENT_TAG = "seller-payment";
     public static final String SELLER_RECEIPT_TAG = "seller-receipt";
+    public static final String STATS_TAG = "stats";
     public static final String FEEDBACK_TAG = "feedback";
     public static final String AUTHENTICAION_TAG = "authenticate";
     public static final String VALID_OTP_PATTERN = "^[0-9]{4,6}$";
@@ -34,7 +36,7 @@ public class Constants {
     public static final int MAXIMUM_SELLER_AMOUNT_EARNED = 20000;
     public static final int MAXIMUM_EMAIL_OTP_MINUTES = 10;
     public static final int MINIMUM_WITHDRAWAL_DUE_DAYS = 30;
-    public static final double MINIMUM_AMOUNT_PAID_INR = 1.00;
-    public static final double MAXIMUM_AMOUNT_PAID_INR = 8000.00;
+    public static final int MINIMUM_AMOUNT_PAID_INR = 1;
+    public static final int MAXIMUM_AMOUNT_PAID_INR = 8000;
     public static final String MINIMUM_DATA_USED_MB = "0.00";
 }

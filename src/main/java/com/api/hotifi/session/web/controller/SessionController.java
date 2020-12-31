@@ -39,21 +39,21 @@ public class SessionController {
     }
 
 
-    @GetMapping(path = "/get/start-time/{user-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/start-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSessionsByStartTime(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                          @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                          @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                          @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                          @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<Session> sessions = sessionService.getSortedSessionsByStartTime(userId, pageNumber, elements, isDescending);
+        List<Session> sessions = sessionService.getSortedSessionsByStartTime(userId, page, size, isDescending);
         return new ResponseEntity<>(sessions, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/data-used/{user-id}/{page-number}/{elements}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get/data-used/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                         @PathVariable(value = "page-number") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int pageNumber,
-                                                         @PathVariable(value = "elements") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.elements.invalid}") int elements,
+                                                         @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                         @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                          @PathVariable(value = "is-descending") boolean isDescending) {
-        List<Session> sessions = sessionService.getSortedSessionsByDataUsed(userId, pageNumber, elements, isDescending);
+        List<Session> sessions = sessionService.getSortedSessionsByDataUsed(userId, page, size, isDescending);
         return new ResponseEntity<>(sessions, HttpStatus.OK);
     }
 }
