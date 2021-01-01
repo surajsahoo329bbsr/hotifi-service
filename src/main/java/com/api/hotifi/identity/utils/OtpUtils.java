@@ -2,10 +2,13 @@ package com.api.hotifi.identity.utils;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.identity.entities.Authentication;
+import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
+import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.KeyGenerator;
 import java.security.Key;
@@ -16,6 +19,9 @@ import java.util.UUID;
 
 @Slf4j
 public class OtpUtils {
+
+    @Autowired
+    private IEmailService emailService;
 
     public static String generateEmailOtp() {
         //do stuff
@@ -50,7 +56,7 @@ public class OtpUtils {
     }
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin
-    public static void saveAuthenticationEmailOtp(Authentication authentication, AuthenticationRepository authenticationRepository){
+    public static String saveAuthenticationEmailOtp(Authentication authentication, AuthenticationRepository authenticationRepository, IEmailService emailService){
         String emailOtp = generateEmailOtp();
         String token = UUID.randomUUID().toString();
         if (emailOtp != null) {
@@ -63,7 +69,18 @@ public class OtpUtils {
             authentication.setToken(encryptedToken);
             authentication.setEmailOtp(encryptedEmailOtp);
             authenticationRepository.save(authentication); //updating otp in password
+
+            //Populating email model with values
+            EmailModel emailModel = new EmailModel();
+            emailModel.setToEmail(authentication.getEmail());
+            emailModel.setFromEmail(Constants.FROM_EMAIL);
+            emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+            emailModel.setEmailOtp(emailOtp);
+            emailService.sendEmail(null, emailModel, 0);
+
+            return token;
         }
+        return null;
     }
 
 }

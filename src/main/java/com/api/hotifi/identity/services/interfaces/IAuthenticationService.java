@@ -4,11 +4,13 @@ import com.api.hotifi.identity.entities.Authentication;
 
 public interface IAuthenticationService {
 
-    void addEmail(String email, boolean isEmailVerified);
+    String addEmail(String email, boolean isEmailVerified);
 
     Authentication getAuthentication(String email);
 
-    void generateEmailOtpSignUp(String email);
+    String generateEmailOtpSignUp(String email);
+
+    String regenerateEmailOtpSignUp(String email);
 
     void verifyEmailOtp(String email, String otp);
 

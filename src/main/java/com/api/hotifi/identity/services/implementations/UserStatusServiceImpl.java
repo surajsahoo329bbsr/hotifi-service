@@ -1,13 +1,16 @@
 package com.api.hotifi.identity.services.implementations;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.entities.UserStatus;
 import com.api.hotifi.identity.errors.UserErrorMessages;
+import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.repositories.UserStatusRepository;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
+import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private IEmailService emailService;
 
     @Transactional
     @Override
@@ -210,6 +216,13 @@ public class UserStatusServiceImpl implements IUserStatusService {
             user.setGoogleId(null);
             user.setLoggedIn(false);
             userRepository.save(user);
+
+            EmailModel emailModel = new EmailModel();
+            emailModel.setToEmail(authentication.getEmail());
+            emailModel.setFromEmail(Constants.FROM_EMAIL);
+            emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+            emailService.sendEmail(user, emailModel, 2);
+
 
         } catch (Exception e) {
             log.error("Error ", e);

@@ -1,11 +1,15 @@
 package com.api.hotifi.identity.services.implementations;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorMessages;
+import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
+import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
+import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
@@ -26,6 +30,12 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private AuthenticationRepository authenticationRepository;
 
+    @Autowired
+    private IAuthenticationService authenticationService;
+
+    @Autowired
+    private IEmailService emailService;
+
     @Override
     @Transactional
     public void addUser(UserRequest userRequest) {
@@ -41,6 +51,13 @@ public class UserServiceImpl implements IUserService {
             setUser(userRequest, user, authentication);
             userRepository.save(user);
             authenticationRepository.save(authentication);
+
+            EmailModel emailModel = new EmailModel();
+            emailModel.setToEmail(authentication.getEmail());
+            emailModel.setFromEmail(Constants.FROM_EMAIL);
+            emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+            emailService.sendEmail(user, emailModel, 1);
+
         } catch (DataIntegrityViolationException e) {
             log.error("Not Authenticated", e);
             throw new DataIntegrityViolationException("Not Authenticted", e);
@@ -61,35 +78,55 @@ public class UserServiceImpl implements IUserService {
         return null;
     }
 
+    @Transactional
     @Override
-    public void generateEmailOtpLogin(Long id) {
+    public String generateEmailOtpLogin(String email) {
         try {
-            User user = userRepository.getOne(id);
-            Long authenticationId = user.getAuthentication().getId();
-            Authentication authentication = authenticationRepository.getOne(authenticationId);
-
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            User user = userRepository.findByAuthenticationId(authentication.getId());
+            if(user == null)
+                throw new Exception("User not found");
             if (authentication.getEmailOtp() != null)
                 throw new Exception(UserErrorMessages.OTP_ALREADY_GENERATED);
-            //Here full check is done because email/phone verification can be false while updating email/phone
-            boolean isAuthLegit = authentication.isEmailVerified() && authentication.isPhoneVerified()
-                    && authentication.isActivated() && !authentication.isFreezed()
-                    && !authentication.isBanned() && !authentication.isDeleted();
-            if (!isAuthLegit)
+            //If user doesn't exist no need to check legit authentication
+            if (!LegitUtils.isAuthenticationLegit(authentication))
                 throw new Exception("Authentication is not Legit");
 
-            OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository);
+            return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
 
         } catch (Exception e) {
             log.error("Error Occured ", e);
         }
+
+        return  null;
     }
 
+    @Transactional
     @Override
-    public void verifyEmailOtp(Long id, String emailOtp) {
+    public String regenerateEmailOtpLogin(String email){
         try {
-            User user = userRepository.getOne(id);
-            Long authenticationId = user.getAuthentication().getId();
-            Authentication authentication = authenticationRepository.getOne(authenticationId);
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            User user = userRepository.findByAuthenticationId(authentication.getId());
+            if(user == null)
+                throw new Exception("User not found");
+            //If user doesn't exist no need to check legit authentication
+            if (!LegitUtils.isAuthenticationLegit(authentication))
+                throw new Exception("Authentication is not Legit");
+
+            return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+
+        } catch (Exception e) {
+            log.error("Error Occured ", e);
+        }
+        return null;
+    }
+
+    @Transactional
+    @Override
+    public void verifyEmailOtp(String email, String emailOtp) {
+        try {
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            User user = userRepository.findByAuthenticationId(authentication.getId());
             String encryptedEmailOtp = authentication.getEmailOtp();
 
             if (OtpUtils.isEmailOtpExpired(authentication)) {

@@ -6,6 +6,7 @@ import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.errors.UserErrorMessages;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
+import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -14,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -23,31 +25,36 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Autowired
     private AuthenticationRepository authenticationRepository;
 
+    @Autowired
+    private IEmailService emailService;
+
     //Implements
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
-    public void addEmail(String email, boolean isEmailVerified) {
+    public String addEmail(String email, boolean isEmailVerified) {
         try {
             Authentication authentication = new Authentication();
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
 
             if (!isEmailVerified)
-                OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository);
-            else{
-                String token = UUID.randomUUID().toString();
-                log.info("Token"+ token);
-                String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
-                authentication.setToken(encryptedToken);
-                authenticationRepository.save(authentication);
-            }
+               return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+
+            String token = UUID.randomUUID().toString();
+            log.info("Token" + token);
+            String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
+            authentication.setToken(encryptedToken);
+            authenticationRepository.save(authentication);
+            return token;
 
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
         } catch (Exception e) {
             log.error("Error Occurred ", e);
         }
+
+        return null;
     }
 
     @Transactional
@@ -67,22 +74,38 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void generateEmailOtpSignUp(String email) {
+    public String generateEmailOtpSignUp(String email) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
             //Since it is signup so no need for verifying legit user
-            if(authentication.isEmailVerified())
+            if (authentication.isEmailVerified())
                 throw new Exception("Email already verified. Not Generating Otp...");
             //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
-            if(authentication.getTokenCreatedAt() == null || OtpUtils.isEmailOtpExpired(authentication)){
+            if (authentication.getTokenCreatedAt() == null || OtpUtils.isEmailOtpExpired(authentication)) {
                 log.info("Generating Otp...");
-                OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository);
-            }
-            else
+                return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
+            } else
                 log.error("Email otp already generated");
         } catch (Exception e) {
             log.error("Error ", e);
         }
+        return null;
+    }
+
+    @Transactional
+    @Override
+    public String regenerateEmailOtpSignUp(String email) {
+        try {
+            Authentication authentication = authenticationRepository.findByEmail(email);
+            //Since it is signup so no need for verifying legit user
+            if (authentication.isEmailVerified())
+                throw new Exception("Email already verified. Not Generating Otp...");
+            log.info("Generating Otp...");
+            return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
+        } catch (Exception e) {
+            log.error("Error ", e);
+        }
+        return null;
     }
 
     @Transactional
@@ -92,7 +115,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Authentication authentication = authenticationRepository.findByEmail(email);
             String encryptedEmailOtp = authentication.getEmailOtp();
 
-            if(authentication.isEmailVerified()){
+            if (authentication.isEmailVerified()) {
                 log.error(UserErrorMessages.USER_EMAIL_ALREADY_VERIFIED);
                 throw new Exception("Exception " + UserErrorMessages.USER_ALREADY_VERIFIED);
             }
@@ -120,11 +143,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public void verifyPhone(String email, String countryCode, String phone) {
         try {
             Authentication authentication = authenticationRepository.findByEmail(email);
-            if(authentication == null)
+            if (authentication == null)
                 throw new Exception("Email doesn't exist");
             if (!authentication.isEmailVerified())
                 throw new Exception("Email not verified");
-            if(authentication.isPhoneVerified())
+            if (authentication.isPhoneVerified())
                 throw new Exception("Phone already verified");
             authentication.setCountryCode(countryCode);
             authentication.setPhone(phone);

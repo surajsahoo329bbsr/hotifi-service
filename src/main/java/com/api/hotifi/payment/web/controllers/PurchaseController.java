@@ -122,4 +122,15 @@ public class PurchaseController {
         return new ResponseEntity<>(refundReceiptResponses, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/get/buyer/current-session-legit/{buyer-id}/{session-id}/{data-to-be-used}")
+    public ResponseEntity<?> isBuyerCurrentSessionLegit(@PathVariable(value = "buyer-id")
+                                                        @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId,
+                                                        @PathVariable(value = "session-id")
+                                                        @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
+                                                        @PathVariable(value = "data-to-be-used")
+                                                        @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{page.number.invalid}") int dataToBeUsed) {
+        boolean isBuyerCurrentSessionLegit = purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);
+        return new ResponseEntity<>(isBuyerCurrentSessionLegit, HttpStatus.OK);
+    }
+
 }

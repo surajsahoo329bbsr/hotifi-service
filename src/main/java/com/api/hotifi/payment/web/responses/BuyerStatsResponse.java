@@ -9,10 +9,10 @@ public class BuyerStatsResponse {
 
     public double totalPendingRefunds;
 
-    public double totalDataSold;
+    public double totalDataBought;
 
-    public double dataBoughtByWifi;
+    public double totalDataBoughtByWifi;
 
-    public double dataBoughtByMobileNetwork;
+    public double totalDataBoughtByMobile;
 
 }

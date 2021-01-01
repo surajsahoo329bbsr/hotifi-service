@@ -53,27 +53,67 @@ public class PurchaseServiceImpl implements IPurchaseService {
     @Autowired
     private ISellerPaymentService sellerPaymentService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
-    public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
-        try {
-            Long buyerId = purchaseRequest.getBuyerId();
-            Long sessionId = purchaseRequest.getSessionId();
-            User buyer = userRepository.getOne(buyerId);
+    public boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed){
+        try{
+        //check for invalid inputs and invalid razorpay payment id checks
+            User buyer = userRepository.findById(buyerId).orElse(null);
+            Session session = sessionRepository.findById(sessionId).orElse(null);
+
             if (!LegitUtils.isBuyerLegit(buyer))
                 throw new Exception("Buyer not legit to be added");
-
-            Session session = sessionRepository.findById(sessionId).orElse(null);
             if (session == null)
                 throw new Exception("Session doesn't exist");
             if (session.getFinishedAt() != null)
                 throw new Exception("Session already ended");
-            if (Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0)
-                throw new Exception("Data to be bought " + purchaseRequest.getData() + " MB > " + ((double) session.getData() - session.getDataUsed()) + " MB (available data)");
+            if (Double.compare(dataToBeUsed, (double) session.getData() - session.getDataUsed()) > 0)
+                throw new Exception("Data to be bought " + dataToBeUsed + " MB > " + ((double) session.getData() - session.getDataUsed()) + " MB (available data)");
 
             Long sellerId = session.getSpeedTest().getUser().getId();
             if (sellerId.equals(buyerId))
                 throw new Exception("Buyer and seller cannot be same");
+
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+
+            //TODO configure status
+            double totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                    .stream()
+                    .filter(purchase -> purchase.getStatus() == 4)
+                    .mapToDouble(Purchase::getAmountRefund)
+                    .sum();
+
+            if(totalPendingRefunds > Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)
+                throw new Exception("Withdraw pending refunds first to start a purchase");
+
+            return true;
+
+        }catch (Exception e){
+            log.error("Error occurred ", e);
+        }
+        return false;
+    }
+
+    @Transactional
+    @Override
+    public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
+        try {
+            //TODO check razorpay valid payment id if not valid throw exception
+            // purchaseRequest.getPaymentId() check for validation
+            Long buyerId = purchaseRequest.getBuyerId();
+            Long sessionId = purchaseRequest.getSessionId();
+            Session session = sessionRepository.findById(sessionId).orElse(null);
+            User buyer = userRepository.findById(buyerId).orElse(null);
+
+            assert session != null;
+            if (session.getFinishedAt() != null) {
+                //instead of throwing exception update the purchase status
+                //TODO inititate razorpay refund
+            }
+            if (Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
+                //instead of throwing exception update the purchase status
+                //TODO inititate razorpay refund
+            }
 
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -89,6 +129,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Long purchaseId = purchaseRepository.save(purchase).getId();
 
             //saving session data used column
+            //TODO add a condition to check if the payment status is successfully done, then update session
             session.setDataUsed(session.getDataUsed() + purchaseRequest.getData());
             sessionRepository.save(session);
 

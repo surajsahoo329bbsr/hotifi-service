@@ -1,9 +1,17 @@
 package com.api.hotifi.common.utils;
 
+import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.payment.entities.Purchase;
 
 public class LegitUtils {
+
+    public static boolean isAuthenticationLegit(Authentication authentication){
+        if(authentication == null)
+            return false;
+        return authentication.isEmailVerified() && authentication.isPhoneVerified()
+                && authentication.isActivated() && !authentication.isDeleted();
+    }
 
     public static boolean isUserLegit(User user) {
         if (user == null)

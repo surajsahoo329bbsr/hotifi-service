@@ -126,6 +126,8 @@ public class SessionServiceImpl implements ISessionService {
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
+                    activeSessionsResponse.setSessionId(session.getId());
+                    activeSessionsResponse.setSessionId(seller.getId());
                     activeSessionsResponse.setUsername(seller.getUser().getUsername());
                     activeSessionsResponse.setUserPhotoUrl(seller.getUser().getPhotoUrl());
                     activeSessionsResponse.setData(availableData);

@@ -42,8 +42,8 @@ public class AuthenticationController {
                                           @NotBlank(message = "{email.blank}")
                                           @Email(message = "{email.pattern.invalid}")
                                           @Length(max = 255, message = "{email.length.invalid}") String email, @PathVariable(value = "is-verified")boolean isEmailVerified){
-        authenticationService.addEmail(email, isEmailVerified);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        String token  = authenticationService.addEmail(email, isEmailVerified);
+        return new ResponseEntity<>(token, HttpStatus.NO_CONTENT);
     }
 
     @PutMapping(path = "/email/sign-up/otp/{email}")
@@ -51,8 +51,17 @@ public class AuthenticationController {
                                                         @NotBlank(message = "{email.blank}")
                                                         @Email(message = "{email.pattern.invalid}")
                                                         @Length(max = 255, message = "{email.length.invalid}") String email) {
-        authenticationService.generateEmailOtpSignUp(email);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        String token = authenticationService.generateEmailOtpSignUp(email);
+        return new ResponseEntity<>(token, HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/email/sign-up/resend/otp/{email}")
+    public ResponseEntity<?> regenerateEmailOtpSignUp(@PathVariable(value = "email")
+                                                    @NotBlank(message = "{email.blank}")
+                                                    @Email(message = "{email.pattern.invalid}")
+                                                    @Length(max = 255, message = "{email.length.invalid}") String email) {
+        String token = authenticationService.regenerateEmailOtpSignUp(email);
+        return new ResponseEntity<>(token, HttpStatus.NO_CONTENT);
     }
 
     @PutMapping(path = "/email/verify/otp", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
@@ -44,15 +45,21 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/login/{id}")
-    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id) {
-        userService.generateEmailOtpLogin(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PutMapping(path = "/login/send-otp/{email}")
+    public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
+        String token = userService.generateEmailOtpLogin(email);
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/login/{id}/{email-otp}")
-    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "email-otp") String emailOtp) {
-        userService.verifyEmailOtp(id, emailOtp);
+    @PutMapping(path = "/login/resend-otp/{email}")
+    public ResponseEntity<?> regenerateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
+        String token = userService.regenerateEmailOtpLogin(email);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/login/{email}/{email-otp}")
+    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") String emailOtp) {
+        userService.verifyEmailOtp(email, emailOtp);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

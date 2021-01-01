@@ -11,6 +11,9 @@ import java.util.List;
 
 public interface IPurchaseService {
 
+    @Transactional(readOnly = true)
+    boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed);
+
     PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest);
 
     PurchaseReceiptResponse getPurchaseReceipt(Long purchaseId);

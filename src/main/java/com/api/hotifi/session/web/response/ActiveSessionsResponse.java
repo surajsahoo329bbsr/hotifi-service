@@ -6,6 +6,11 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ActiveSessionsResponse {
+
+    private Long sessionId;
+
+    private Long sellerId;
+
     //No validations to be done as input has not to be given by user
     private String username;
 

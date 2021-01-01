@@ -11,13 +11,13 @@ public class SellerStatsResponse {
 
     public double totalAmountWithdrawn;
 
-    public double totalDataSold;
-
     //4.0 or 4.5 format
     public String averageRating;
 
-    public double dataSoldByWifi;
+    public double totalDataSold;
 
-    public double dataSoldByMobileNetwork;
+    public double totalDataSoldByWifi;
+
+    public double totalDataSoldByMobile;
 
 }
