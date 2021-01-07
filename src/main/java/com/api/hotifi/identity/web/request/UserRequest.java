@@ -35,6 +35,7 @@ public class UserRequest {
 
     private String googleId;
 
+    @Pattern(regexp = Constants.VALID_URL_PATTERN, message = "{photo.url.invalid}")
     private String photoUrl;
 
     @Range(min = 1, message = "{authentication.id.invalid}")

@@ -1,10 +1,12 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.identity.errors.UserErrorMessages;
+import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
@@ -39,12 +41,13 @@ public class UserServiceImpl implements IUserService {
     @Override
     @Transactional
     public void addUser(UserRequest userRequest) {
+        Authentication authentication = authenticationRepository.findById(userRequest.getAuthenticationId()).orElse(null);
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
+            throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_VERIFIED);
+
         try {
-            Authentication authentication = authenticationRepository.getOne(userRequest.getAuthenticationId());
-            if (!authentication.isEmailVerified() || !authentication.isPhoneVerified()) {
-                log.error("User not verified log");
-                throw new Exception("User not verified");
-            }
             User user = new User();
             authentication.setActivated(true);
             authentication.setEmailOtp(null);
@@ -57,12 +60,12 @@ public class UserServiceImpl implements IUserService {
             emailModel.setFromEmail(Constants.FROM_EMAIL);
             emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
             emailService.sendEmail(user, emailModel, 1);
-
         } catch (DataIntegrityViolationException e) {
             log.error("Not Authenticated", e);
-            throw new DataIntegrityViolationException("Not Authenticted", e);
+            throw new HotifiException(UserErrorCodes.USER_EXISTS);
         } catch (Exception e) {
             log.error("Error ", e);
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_USER_ERROR);
         }
     }
 
@@ -70,137 +73,106 @@ public class UserServiceImpl implements IUserService {
     @Override
     @Transactional
     public User getUserByUsername(String username) {
-        try {
-            return userRepository.findByUsername(username);
-        } catch (Exception e) {
-            log.error("Error ", e);
-        }
-        return null;
+        return userRepository.findByUsername(username);
     }
 
     @Transactional
     @Override
     public String generateEmailOtpLogin(String email) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            User user = userRepository.findByAuthenticationId(authentication.getId());
-            if(user == null)
-                throw new Exception("User not found");
-            if (authentication.getEmailOtp() != null)
-                throw new Exception(UserErrorMessages.OTP_ALREADY_GENERATED);
-            //If user doesn't exist no need to check legit authentication
-            if (!LegitUtils.isAuthenticationLegit(authentication))
-                throw new Exception("Authentication is not Legit");
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
+        //If user doesn't exist no need to check legit authentication
+        if (user == null)
+            throw new HotifiException(UserErrorCodes.USER_EXISTS);
+        if (authentication.getEmailOtp() != null)
+            throw new HotifiException(UserErrorCodes.EMAIL_OTP_ALREADY_GENERATED);
+        if (!LegitUtils.isAuthenticationLegit(authentication))
+            throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
 
-            return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
-
-        } catch (Exception e) {
-            log.error("Error Occured ", e);
-        }
-
-        return  null;
+        return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
     @Transactional
     @Override
-    public String regenerateEmailOtpLogin(String email){
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            User user = userRepository.findByAuthenticationId(authentication.getId());
-            if(user == null)
-                throw new Exception("User not found");
-            //If user doesn't exist no need to check legit authentication
-            if (!LegitUtils.isAuthenticationLegit(authentication))
-                throw new Exception("Authentication is not Legit");
+    public String regenerateEmailOtpLogin(String email) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
+        if (user == null)
+            throw new HotifiException(UserErrorCodes.USER_EXISTS);
+        if (!LegitUtils.isAuthenticationLegit(authentication))
+            throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
 
-            return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
-
-        } catch (Exception e) {
-            log.error("Error Occured ", e);
-        }
-        return null;
+        return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
-    @Transactional
+    //DO NOT ADD @Transaction
     @Override
     public void verifyEmailOtp(String email, String emailOtp) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            User user = userRepository.findByAuthenticationId(authentication.getId());
-            String encryptedEmailOtp = authentication.getEmailOtp();
-
-            if (OtpUtils.isEmailOtpExpired(authentication)) {
-                log.error("Otp Expired");
-                authentication.setEmailOtp(null);
-                authenticationRepository.save(authentication);
-                return;
-            }
-
-            if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
-                authentication.setEmailOtp(null);
-                authentication.setEmailVerified(true);
-                authenticationRepository.save(authentication);
-                //after successful otp verification log in
-                user.setLoggedIn(true);
-                userRepository.save(user);
-                log.info("User Email Verified");
-            }
-        } catch (Exception e) {
-            log.error("Error Occured" + e);
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (OtpUtils.isEmailOtpExpired(authentication)) {
+            log.error("Otp Expired");
+            authentication.setEmailOtp(null);
+            authenticationRepository.save(authentication);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
         }
+
+        User user = userRepository.findByAuthenticationId(authentication.getId());
+        String encryptedEmailOtp = authentication.getEmailOtp();
+        if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
+            authentication.setEmailOtp(null);
+            authentication.setEmailVerified(true);
+            authenticationRepository.save(authentication);
+            //after successful otp verification log in
+            user.setLoggedIn(true);
+            userRepository.save(user);
+            log.info("User Email Verified");
+        } else
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_INVALID);
     }
 
     @Override
     @Transactional
     public void updateUser(UserRequest userUpdateRequest) {
-        try {
-            Long authenticationId = userUpdateRequest.getAuthenticationId();
-            User user = userRepository.findByAuthenticationId(authenticationId);
-            if (!LegitUtils.isUserLegit(user) && user.isLoggedIn())
-                throw new Exception("User not legit to be updated");
-            Authentication authentication = user.getAuthentication();
-            setUser(userUpdateRequest, user, authentication);
-            userRepository.save(user);
-        } catch (Exception e) {
-            log.error("Error", e);
-        }
+        Long authenticationId = userUpdateRequest.getAuthenticationId();
+        User user = userRepository.findByAuthenticationId(authenticationId);
+        if (!LegitUtils.isUserLegit(user) && user.isLoggedIn())
+            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+        Authentication authentication = user.getAuthentication();
+        setUser(userUpdateRequest, user, authentication);
+        userRepository.save(user);
     }
 
     @Transactional
     @Override
     public void updateLoginStatus(Long id, boolean loginStatus) {
-        try {
-            User user = userRepository.getOne(id);
-            if (!LegitUtils.isUserLegit(user))
-                throw new Exception("User not legit to be logged in/out");
-            if (user.isLoggedIn() && loginStatus) {
-                log.error("Already logged in");
-                throw new Exception("Already logged in");
-            } else if (!user.isLoggedIn() && !loginStatus) {
-                log.error("Already logged out");
-                throw new Exception("Already logged out");
-            } else {
-                user.setLoggedIn(loginStatus);
-                userRepository.save(user);
-            }
-        } catch (Exception e) {
-            log.error("Error ", e);
+
+        User user = userRepository.findById(id).orElse(null);
+        if (!LegitUtils.isUserLegit(user))
+            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+        if (user.isLoggedIn() && loginStatus)
+            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_IN);
+        else if (!user.isLoggedIn() && !loginStatus)
+            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_OUT);
+        else {
+            user.setLoggedIn(loginStatus);
+            userRepository.save(user);
         }
     }
 
     @Transactional
     @Override
     public void updateUpiId(Long id, String upiId) {
-        try{
+
             User user = userRepository.findById(id).orElse(null);
-            if(!LegitUtils.isUserLegit(user))
-                throw new Exception("User not legit to be updated");
+            if (!LegitUtils.isUserLegit(user))
+                throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+        try {
             //TODO Upi Id Check From Razor Pay
             user.setUpiId(upiId);
             userRepository.save(user);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_USER_ERROR);
         }
     }
 

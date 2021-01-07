@@ -109,10 +109,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (session.getFinishedAt() != null) {
                 //instead of throwing exception update the purchase status
                 //TODO inititate razorpay refund
+                log.info("Razor Payment");
             }
             if (Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
                 //instead of throwing exception update the purchase status
                 //TODO inititate razorpay refund
+                log.info("Razor Refund Payment");
             }
 
             Purchase purchase = new Purchase();
@@ -374,6 +376,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     }
 
     //User defined functions
+
     private double calculateRefundAmount(double dataBought, double dataUsed, double amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
         return amountPaid - Math.floor((amountPaid / dataBought) * dataUsed);

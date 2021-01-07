@@ -6,8 +6,8 @@ import com.api.hotifi.payment.entities.Purchase;
 
 public class LegitUtils {
 
-    public static boolean isAuthenticationLegit(Authentication authentication){
-        if(authentication == null)
+    public static boolean isAuthenticationLegit(Authentication authentication) {
+        if (authentication == null)
             return false;
         return authentication.isEmailVerified() && authentication.isPhoneVerified()
                 && authentication.isActivated() && !authentication.isDeleted();

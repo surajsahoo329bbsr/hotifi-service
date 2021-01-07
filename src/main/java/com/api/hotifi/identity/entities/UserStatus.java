@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.entities;
 
+import com.api.hotifi.payment.entities.Purchase;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,11 @@ public class UserStatus implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_id", referencedColumnName = "id")
+    @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
+    private Purchase purchase;
 
     @Column(length = 20, nullable = false)
     private String role; //seller or buyer

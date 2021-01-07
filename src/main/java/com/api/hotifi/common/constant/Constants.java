@@ -2,9 +2,10 @@ package com.api.hotifi.common.constant;
 
 public class Constants {
 
-    //Configurations
+    //TODO add hotifi upi and commission
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
-    public static final String HOTIFI_UPI_ID = "hotifi@ybl"; //TODO
+    public static final String HOTIFI_UPI_ID = "hotifi@ybl";
+    public static final int COMMISSION_PERCENTAGE = 20;
 
     //TODO add Html files and it's paths and emails
     public static final String EMAIL_HOST = "";
@@ -34,6 +35,11 @@ public class Constants {
     public static final String AUTHENTICAION_TAG = "authenticate";
 
     //Patterns
+    public static final String VALID_URL_PATTERN = "((http|https)://)(www.)?"
+            + "[a-zA-Z0-9@:%._\\+~#?&//=]"
+            + "{2,256}\\.[a-z]"
+            + "{2,6}\\b([-a-zA-Z0-9@:%"
+            + "._\\+~#?&//=]*)";
     public static final String VALID_OTP_PATTERN = "^[0-9]{4,6}$";
     public static final String VALID_PHONE_PATTERN = "^[0-9]{10,15}$";
     public static final String VALID_USERNAME_PATTERN = "^(?=[a-zA-Z0-9._]{6,30}$)(?!.*[_.]{2})[^_.].*[^_.]$";
@@ -58,7 +64,8 @@ public class Constants {
     public static final int MINIMUM_WITHDRAWAL_DUE_DAYS = 30;
     public static final int MINIMUM_AMOUNT_PAID_INR = 1;
     public static final int MAXIMUM_AMOUNT_PAID_INR = 8000;
+    public static final int MINIMUM_FREEZE_PERIOD_HOURS = 24;
+    public static final int MINIMUM_WARNINGS_TO_FREEZE = 10;
+    public static final int MINIMUM_WARNINGS_TO_BAN = 15;
 
-    //Commission in percentage
-    public static final int COMMISSION_PERCENTAGE = 20;
 }

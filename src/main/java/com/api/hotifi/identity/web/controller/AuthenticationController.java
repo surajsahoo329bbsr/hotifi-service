@@ -51,7 +51,7 @@ public class AuthenticationController {
                                                         @NotBlank(message = "{email.blank}")
                                                         @Email(message = "{email.pattern.invalid}")
                                                         @Length(max = 255, message = "{email.length.invalid}") String email) {
-        String token = authenticationService.generateEmailOtpSignUp(email);
+        String token = authenticationService.generateEmailOtpSignUp(email, false);
         return new ResponseEntity<>(token, HttpStatus.NO_CONTENT);
     }
 
@@ -60,7 +60,7 @@ public class AuthenticationController {
                                                     @NotBlank(message = "{email.blank}")
                                                     @Email(message = "{email.pattern.invalid}")
                                                     @Length(max = 255, message = "{email.length.invalid}") String email) {
-        String token = authenticationService.regenerateEmailOtpSignUp(email);
+        String token = authenticationService.generateEmailOtpSignUp(email, true);
         return new ResponseEntity<>(token, HttpStatus.NO_CONTENT);
     }
 

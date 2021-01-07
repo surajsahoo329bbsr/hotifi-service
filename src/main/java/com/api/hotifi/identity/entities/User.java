@@ -3,6 +3,7 @@ package com.api.hotifi.identity.entities;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -46,6 +47,7 @@ public class User implements Serializable {
     @JoinColumn(name = "authentication_id", referencedColumnName = "id", unique = true, nullable = false)
     private Authentication authentication;
 
+    @Length(max = 2043, message = "{photo.url.max.length}")
     private String photoUrl;
 
     @Column(nullable = false)

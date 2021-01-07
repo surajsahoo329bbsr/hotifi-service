@@ -1,7 +1,10 @@
 package com.api.hotifi.identity.services.implementations;
 
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Device;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.DeviceErrorCodes;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.DeviceRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
@@ -27,8 +30,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Transactional
     @Override
     public void addDevice(DeviceRequest deviceRequest) {
+        User user = userRepository.findById(deviceRequest.getUserId()).orElse(null);
+        if (user == null) throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
         try {
-            User user = userRepository.getOne(deviceRequest.getUserId());
             Set<User> users = new HashSet<>();
             users.add(user);
             Device device = new Device();
@@ -48,25 +52,19 @@ public class DeviceServiceImpl implements IDeviceService {
                 users.add(user);
                 userRepository.save(user);
             }
-
         } catch (DataIntegrityViolationException e) {
             log.error("Data Integrity Error occured", e);
+            throw new HotifiException(DeviceErrorCodes.DEVICE_ALREADY_ADDED);
         } catch (Exception e) {
             log.error("Error occured", e);
+            throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
         }
     }
 
     @Transactional
     @Override
     public Device getDeviceByAndroidId(String androidId) {
-        try {
-            //since we need data of device only, user's data should not be shown for security
-            //add logic for removing part of json
-            return deviceRepository.findByAndroidId(androidId);
-        } catch (Exception e) {
-            log.error("Error occured", e);
-        }
-        return null;
+        return deviceRepository.findByAndroidId(androidId);
     }
 
     @Transactional
@@ -84,10 +82,9 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setTokenCreatedAt(now);
             device.setUsers(users);
             deviceRepository.save(device);
-        } catch (DataIntegrityViolationException e) {
-            log.error("Data Integrity Error occured", e);
         } catch (Exception e) {
             log.error("Error occured", e);
+            throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
         }
     }
 
@@ -97,10 +94,10 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             User user = userRepository.getOne(userId);
             Set<Device> devices = user.getUserDevices();
-            //deletes all devices in Db of single user
-            deviceRepository.deleteInBatch(devices);
+            deviceRepository.deleteInBatch(devices); //deletes all devices in Db of single user
         } catch (Exception e) {
             log.error("Error Occurred ", e);
+            throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
         }
     }
 }

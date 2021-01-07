@@ -16,6 +16,9 @@ public class UserStatusRequest {
     @Range(min = 1, message = "{user.id.invalid}")
     private Long userId;
 
+    @Range(min = 1, message = "{purchase.id.invalid}")
+    private Long purchaseId;
+
     @NotBlank(message = "{role.name.blank}")
     @Pattern(regexp = Constants.VALID_ROLE_PATTERN, message = "{role.name.invalid}")
     private String role;

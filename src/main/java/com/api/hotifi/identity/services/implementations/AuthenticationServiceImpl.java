@@ -1,8 +1,8 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.exception.HotifiException;
-import com.api.hotifi.common.exception.error.ErrorCode;
 import com.api.hotifi.identity.entities.Authentication;
+import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorMessages;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
@@ -28,7 +28,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Autowired
     private IEmailService emailService;
 
-    //Implements
+    @Transactional
+    @Override
+    public Authentication getAuthentication(String email) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        return authentication;
+    }
+
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
@@ -39,7 +47,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             authentication.setEmailVerified(isEmailVerified);
 
             if (!isEmailVerified)
-               return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+                return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
 
             String token = UUID.randomUUID().toString();
             log.info("Token" + token);
@@ -50,128 +58,79 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_EXISTS);
         } catch (Exception e) {
             log.error("Error Occurred ", e);
+            throw new HotifiException(AuthenticationErrorCodes.UNEXPECTED_AUTHENTICATION_ERROR);
         }
 
-        return null;
     }
+
 
     @Transactional
     @Override
-    public Authentication getAuthentication(String email) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            if (authentication == null) {
-                throw new HotifiException("Email doesn't exist", new ErrorCode("Email doesn't exist", null, 500));
-            }
-            return authentication;
-        } catch (Exception e) {
-            log.error("Error occured ", e);
-        }
-        return null;
+    public String generateEmailOtpSignUp(String email, boolean regenerateEmailOtp) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        //Since it is signup so no need for verifying legit user
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        if (authentication.isEmailVerified())
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
+        if (authentication.getTokenCreatedAt() != null && !OtpUtils.isEmailOtpExpired(authentication) && regenerateEmailOtp)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_ALREADY_GENERATED);
+
+        //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
+        log.info("Generating Otp...");
+        return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
+
     }
 
-    @Transactional
-    @Override
-    public String generateEmailOtpSignUp(String email) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            //Since it is signup so no need for verifying legit user
-            if (authentication.isEmailVerified())
-                throw new Exception("Email already verified. Not Generating Otp...");
-            //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
-            if (authentication.getTokenCreatedAt() == null || OtpUtils.isEmailOtpExpired(authentication)) {
-                log.info("Generating Otp...");
-                return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
-            } else
-                log.error("Email otp already generated");
-        } catch (Exception e) {
-            log.error("Error ", e);
-        }
-        return null;
-    }
-
-    @Transactional
-    @Override
-    public String regenerateEmailOtpSignUp(String email) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            //Since it is signup so no need for verifying legit user
-            if (authentication.isEmailVerified())
-                throw new Exception("Email already verified. Not Generating Otp...");
-            log.info("Generating Otp...");
-            return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
-        } catch (Exception e) {
-            log.error("Error ", e);
-        }
-        return null;
-    }
-
-    @Transactional
+    //@Transaction cannot be added here
     @Override
     public void verifyEmailOtp(String email, String emailOtp) {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            String encryptedEmailOtp = authentication.getEmailOtp();
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        String encryptedEmailOtp = authentication.getEmailOtp();
+        if (authentication.isEmailVerified())
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
 
-            if (authentication.isEmailVerified()) {
-                log.error(UserErrorMessages.USER_EMAIL_ALREADY_VERIFIED);
-                throw new Exception("Exception " + UserErrorMessages.USER_ALREADY_VERIFIED);
-            }
+        if (OtpUtils.isEmailOtpExpired(authentication)) {
+            log.error("Otp Expired");
+            authentication.setEmailOtp(null);
+            authenticationRepository.save(authentication);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
+        }
 
-            if (OtpUtils.isEmailOtpExpired(authentication)) {
-                log.error("Otp Expired");
-                authentication.setEmailOtp(null);
-                authenticationRepository.save(authentication);
-                return;
-            }
-
-            if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
-                authentication.setEmailOtp(null);
-                authentication.setEmailVerified(true);
-                authenticationRepository.save(authentication);
-                log.info("User Email Verified");
-            }
-        } catch (Exception e) {
-            log.error("Error Occured" + e);
+        if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
+            authentication.setEmailOtp(null);
+            authentication.setEmailVerified(true);
+            authenticationRepository.save(authentication);
+            log.info("User Email Verified");
+        } else {
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_INVALID);
         }
     }
 
     @Transactional
     @Override
     public void verifyPhone(String email, String countryCode, String phone) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        if (!authentication.isEmailVerified())
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
+        if (authentication.isPhoneVerified())
+            throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
         try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            if (authentication == null)
-                throw new Exception("Email doesn't exist");
-            if (!authentication.isEmailVerified())
-                throw new Exception("Email not verified");
-            if (authentication.isPhoneVerified())
-                throw new Exception("Phone already verified");
             authentication.setCountryCode(countryCode);
             authentication.setPhone(phone);
             authentication.setPhoneVerified(true);
             authenticationRepository.save(authentication);
+        } catch (DataIntegrityViolationException e) {
+            throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_EXISTS);
         } catch (Exception e) {
-            log.error("Error occurred ", e);
+            throw new HotifiException(AuthenticationErrorCodes.UNEXPECTED_AUTHENTICATION_ERROR);
         }
     }
-
-    /*private List getAuthority() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        try {
-            Authentication authentication = authenticationRepository.findByEmail(email);
-            if (authentication == null)
-                throw new UsernameNotFoundException("Invalid username or password.");
-            return new User(authentication.getEmail(), authentication.getToken(), getAuthority());
-        } catch (Exception e) {
-            log.error("Error occured ", e);
-        }
-        return null;
-    }*/
 }
