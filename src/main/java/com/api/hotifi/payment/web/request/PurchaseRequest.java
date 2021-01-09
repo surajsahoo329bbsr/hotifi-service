@@ -20,9 +20,6 @@ public class PurchaseRequest {
     @Range(min = 1, message = "{session.id.invalid}")
     private Long sessionId;
 
-    @Range(min = 0, max = Integer.MAX_VALUE, message = "{status.id.invalid}")
-    private int status;
-
     @Range(min = 1, message = "{status.id.invalid}")
     private Long buyerId;
 

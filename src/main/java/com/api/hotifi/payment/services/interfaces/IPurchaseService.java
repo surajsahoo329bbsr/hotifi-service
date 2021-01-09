@@ -18,7 +18,7 @@ public interface IPurchaseService {
 
     PurchaseReceiptResponse getPurchaseReceipt(Long purchaseId);
 
-    Date startBuyerWifiService(Long purchaseId, int status);
+    Date startBuyerWifiService(Long purchaseId);
 
     RefundReceiptResponse withdrawBuyerRefunds(Long buyerId);
 
@@ -29,9 +29,9 @@ public interface IPurchaseService {
             2 if buyer's wifi service is to be stopped
             -1 if exception occurs
     */
-    int updateBuyerWifiService(Long purchaseId, int status, double dataUsed);
+    int updateBuyerWifiService(Long purchaseId, double dataUsed);
 
-    WifiSummaryResponse finishBuyerWifiService(Long purchaseId, int status, double dataUsed);
+    WifiSummaryResponse finishBuyerWifiService(Long purchaseId, double dataUsed);
 
     List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending);
 

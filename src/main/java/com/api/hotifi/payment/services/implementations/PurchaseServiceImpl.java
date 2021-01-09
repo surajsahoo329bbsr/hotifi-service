@@ -1,12 +1,19 @@
 package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
+import com.api.hotifi.payment.error.PurchaseErrorCodes;
+import com.api.hotifi.payment.processor.PaymentProcessor;
+import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
+import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
+import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
@@ -30,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -37,121 +45,124 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private SpeedTestRepository speedTestRepository;
-
     @Autowired
     private SessionRepository sessionRepository;
-
     @Autowired
     private PurchaseRepository purchaseRepository;
-
     @Autowired
     private SellerPaymentRepository sellerPaymentRepository;
-
     @Autowired
     private ISellerPaymentService sellerPaymentService;
 
     @Transactional(readOnly = true)
     @Override
-    public boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed){
-        try{
+    public boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed) {
         //check for invalid inputs and invalid razorpay payment id checks
-            User buyer = userRepository.findById(buyerId).orElse(null);
-            Session session = sessionRepository.findById(sessionId).orElse(null);
+        User buyer = userRepository.findById(buyerId).orElse(null);
+        Session session = sessionRepository.findById(sessionId).orElse(null);
 
-            if (!LegitUtils.isBuyerLegit(buyer))
-                throw new Exception("Buyer not legit to be added");
-            if (session == null)
-                throw new Exception("Session doesn't exist");
-            if (session.getFinishedAt() != null)
-                throw new Exception("Session already ended");
-            if (Double.compare(dataToBeUsed, (double) session.getData() - session.getDataUsed()) > 0)
-                throw new Exception("Data to be bought " + dataToBeUsed + " MB > " + ((double) session.getData() - session.getDataUsed()) + " MB (available data)");
+        if (!LegitUtils.isBuyerLegit(buyer))
+            throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
+        if (session == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+        if (session.getFinishedAt() != null)
+            throw new HotifiException(PurchaseErrorCodes.SESSION_ALREADY_ENDED);
+        if (Double.compare(dataToBeUsed, (double) session.getData() - session.getDataUsed()) > 0)
+            throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
 
-            Long sellerId = session.getSpeedTest().getUser().getId();
-            if (sellerId.equals(buyerId))
-                throw new Exception("Buyer and seller cannot be same");
+        Long sellerId = session.getSpeedTest().getUser().getId();
+        if (sellerId.equals(buyerId))
+            throw new HotifiException(PurchaseErrorCodes.BUYER_SELLER_SAME);
 
-            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
-            //TODO configure status
-            double totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                    .stream()
-                    .filter(purchase -> purchase.getStatus() == 4)
-                    .mapToDouble(Purchase::getAmountRefund)
-                    .sum();
+        double totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                .stream()
+                .filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() &&
+                        purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_FAILED.value())
+                .mapToDouble(Purchase::getAmountRefund)
+                .sum();
 
-            if(totalPendingRefunds > Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)
-                throw new Exception("Withdraw pending refunds first to start a purchase");
+        if (totalPendingRefunds > Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)
+            throw new HotifiException(PurchaseErrorCodes.WITHDRAW_PENDING_REFUNDS);
 
-            return true;
-
-        }catch (Exception e){
-            log.error("Error occurred ", e);
-        }
-        return false;
+        return true;
     }
 
     @Transactional
     @Override
     public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
+
         try {
-            //TODO check razorpay valid payment id if not valid throw exception
-            // purchaseRequest.getPaymentId() check for validation
             Long buyerId = purchaseRequest.getBuyerId();
             Long sessionId = purchaseRequest.getSessionId();
             Session session = sessionRepository.findById(sessionId).orElse(null);
             User buyer = userRepository.findById(buyerId).orElse(null);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
 
-            assert session != null;
-            if (session.getFinishedAt() != null) {
-                //instead of throwing exception update the purchase status
-                //TODO inititate razorpay refund
-                log.info("Razor Payment");
-            }
-            if (Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
-                //instead of throwing exception update the purchase status
-                //TODO inititate razorpay refund
-                log.info("Razor Refund Payment");
-            }
-
+            BuyerPaymentCodes buyerPaymentCodes = BuyerPaymentCodes.fromInt(paymentProcessor.getBuyerPaymentStatus(purchaseRequest.getPaymentId()).getPurchase().getStatus());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
             purchase.setUser(buyer);
             purchase.setPaymentDoneAt(purchaseRequest.getPaymentDoneAt());
             purchase.setPaymentId(purchaseRequest.getPaymentId());
-            purchase.setStatus(purchaseRequest.getStatus());
+            purchase.setStatus(buyerPaymentCodes.value() * paymentProcessor.getPaymentMethodCodes().getUpiPaymentMethod().value());
             purchase.setMacAddress(purchaseRequest.getMacAddress());
             purchase.setData(purchaseRequest.getData());
             purchase.setAmountPaid(purchaseRequest.getAmountPaid());
             purchase.setAmountRefund(purchaseRequest.getAmountPaid());
 
+            boolean updateSessionFlag = true;
+
+            //If payment failed or processing do not update session value
+            if (buyerPaymentCodes.value() <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
+                updateSessionFlag = false;
+                //If seller has ended it's session while purchasing, inititate refund if payment is successful
+            else if (session != null && session.getFinishedAt() != null && buyer != null) {
+                if (buyerPaymentCodes.value() == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() % paymentProcessor.getPaymentMethodCodes().value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRequest.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
+                    purchase.setStatus(receiptResponse.getPurchase().getStatus());
+                    purchase.setRefundDoneAt(receiptResponse.getRefundDoneAt());
+                    purchase.setRefundPaymentId(receiptResponse.getRefundPaymentId());
+                    updateSessionFlag = false;
+                    log.info("Razor Refund Payment");
+                }
+            } else if (session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
+                if (buyerPaymentCodes.value() == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() % paymentProcessor.getPaymentMethodCodes().value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRequest.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
+                    purchase.setStatus(receiptResponse.getPurchase().getStatus());
+                    purchase.setRefundDoneAt(receiptResponse.getRefundDoneAt());
+                    purchase.setRefundPaymentId(receiptResponse.getRefundPaymentId());
+                    updateSessionFlag = false;
+                    log.info("Razor Refund Payment");
+                }
+            }
+
             Long purchaseId = purchaseRepository.save(purchase).getId();
 
             //saving session data used column
-            //TODO add a condition to check if the payment status is successfully done, then update session
-            session.setDataUsed(session.getDataUsed() + purchaseRequest.getData());
-            sessionRepository.save(session);
+            if (session != null && updateSessionFlag) {
+                session.setDataUsed(session.getDataUsed() + purchaseRequest.getData());
+                sessionRepository.save(session);
+            }
 
             return getPurchaseReceipt(purchaseId);
 
         } catch (Exception e) {
             log.error("Error occurred", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return null;
     }
 
     @Transactional
     @Override
     public PurchaseReceiptResponse getPurchaseReceipt(Long purchaseId) {
+        Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
+        if (purchase == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
         try {
-            Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-
-            if (purchase == null)
-                throw new Exception("Purchase doesn't exist");
-
             String buyerUpiId = purchase.getUser().getUpiId();
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             String wifiPassword = session != null ? session.getWifiPassword() : null;
@@ -164,45 +175,51 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setBuyerUpiId(buyerUpiId);
             receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
             receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, Constants.WIFI_PASSWORD_SECRET_KEY));
-
+            if (purchase.getRefundPaymentId() != null) {
+                receiptResponse.setRefundDoneAt(purchase.getRefundDoneAt());
+                receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());
+                receiptResponse.setWifiPassword(null);
+            }
             return receiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return null;
     }
 
     @Transactional
     @Override
-    public Date startBuyerWifiService(Long purchaseId, int status) {
+    public Date startBuyerWifiService(Long purchaseId) {
+        Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
+        if (purchase == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+        if (purchase.getSessionCreatedAt() != null)
+            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);
+        if (purchase.getSessionFinishedAt() != null)
+            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
+        if (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         try {
-            Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-            if (purchase == null)
-                throw new Exception("Purchase doesn't exist");
-            if (purchase.getSessionCreatedAt() != null)
-                throw new Exception("Buyer's wifi service already started");
-            if (purchase.getSessionFinishedAt() != null)
-                throw new Exception("Buyer's wifi service finished. Cannot update start time");
             Date sessionStartedAt = new Date(System.currentTimeMillis());
             purchase.setSessionCreatedAt(sessionStartedAt);
-            purchase.setStatus(status);
+            purchase.setStatus(BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE)));
             purchaseRepository.save(purchase);
             return sessionStartedAt;
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return null;
     }
 
     @Transactional
     @Override
-    public int updateBuyerWifiService(Long purchaseId, int status, double dataUsed) {
+    public int updateBuyerWifiService(Long purchaseId, double dataUsed) {
         try {
             Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
 
             if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
                 int dataBought = purchase.getData();
-                int purchaseStatus = purchase.getStatus() == 0 ? status : purchase.getStatus();
+                int purchaseStatus = BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE));
                 Date now = new Date(System.currentTimeMillis());
                 purchase.setDataUsed(dataUsed);
                 purchase.setAmountRefund(calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid()));
@@ -218,7 +235,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
                 //Comparing if data is going to be exhausted
                 if (Double.compare((double) dataBought - dataUsed, Constants.MINIMUM_DATA_THRESHOLD_MB) < 0) {
-                    saveFinishWifiService(purchase, purchaseStatus, now);
+                    log.info("Finish wifi service");
                     return 2;
                 }
 
@@ -230,44 +247,37 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 purchase.setSessionModifiedAt(now);
                 purchase.setStatus(purchaseStatus);
                 purchaseRepository.save(purchase);
-
+                return 0;
             }
 
-            return 0;
+            return -1;
 
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return -1;
     }
 
     @Override
     @Transactional
-    public WifiSummaryResponse finishBuyerWifiService(Long purchaseId, int status, double dataUsed) {
-        try {
-            Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-            if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
-                int dataBought = purchase.getData();
-                if (Double.compare(dataUsed, dataBought) > 0)
-                    throw new Exception("Data used " + dataUsed + " MB cannot be greater than data bought " + dataBought);
-                if (Double.compare(dataUsed, purchase.getDataUsed()) < 0)
-                    throw new Exception("New Data used " + dataUsed + " MB cannot be less than data used " + purchase.getDataUsed());
+    public WifiSummaryResponse finishBuyerWifiService(Long purchaseId, double dataUsed) {
 
-                int purchaseStatus = purchase.getStatus() == 0 ? status : purchase.getStatus();
-                Date sessionFinishedAt = new Date(System.currentTimeMillis());
-                double amountRefund = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+        Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
 
-                purchase.setDataUsed(dataUsed);
-                purchase.setAmountRefund(amountRefund);
-                saveFinishWifiService(purchase, purchaseStatus, sessionFinishedAt);
+        if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
+            int dataBought = purchase.getData();
+            Date sessionFinishedAt = new Date(System.currentTimeMillis());
+            double amountRefund = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(amountRefund, purchase.getUser().getUpiId(), purchase.getUser().getAuthentication().getEmail());
+            purchase.setStatus(refundReceiptResponse.getPurchase().getStatus() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE)));
+            purchase.setDataUsed(dataUsed);
+            purchase.setAmountRefund(amountRefund);
+            saveFinishWifiService(purchase, purchase.getStatus(), sessionFinishedAt);
+            return getBuyerWifiSummary(purchase, true);
+        } else
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
 
-                return getBuyerWifiSummary(purchase);
-            }
-
-        } catch (Exception e) {
-            log.error("Error Occurred ", e);
-        }
-        return null;
     }
 
     @Transactional
@@ -280,8 +290,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return null;
     }
 
     @Transactional
@@ -294,85 +304,68 @@ public class PurchaseServiceImpl implements IPurchaseService {
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-        return null;
     }
 
     @Transactional
     @Override
     public RefundReceiptResponse withdrawBuyerRefunds(Long buyerId) {
-        try {
-            User buyer = userRepository.findById(buyerId).orElse(null);
-            if (LegitUtils.isBuyerLegit(buyer)) {
-                Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-                double totalRefundAmount = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                        .stream().filter(purchase -> purchase.getStatus() == 4)
-                        .mapToDouble(Purchase::getAmountRefund)
-                        .sum();//TODO Status check
+        User buyer = userRepository.findById(buyerId).orElse(null);
+        if (LegitUtils.isBuyerLegit(buyer)) {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+            Stream<Purchase> purchaseStream = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
+            double totalRefundAmount = purchaseStream.filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.REFUND_FAILED.value())
+                    .mapToDouble(Purchase::getAmountRefund)
+                    .sum();
 
+            List<Long> purchaseIds = purchaseStream.filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.REFUND_FAILED.value())
+                    .map(Purchase::getId)
+                    .collect(Collectors.toList());
 
-                //TODO Razorpay implementation for refunds
-                String refundPaymentId = "1234";
-                Date refundDoneAt = new Date(System.currentTimeMillis());
-                List<Long> purchaseIds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                        .stream().filter(purchase -> purchase.getStatus() == 4)
-                        .map(Purchase::getId)
-                        .collect(Collectors.toList());
-                purchaseRepository.updatePurchaseRefundStatus(purchaseIds,5, refundPaymentId, refundDoneAt);
+            RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(totalRefundAmount, buyer.getUpiId(), buyer.getAuthentication().getEmail());
 
-                return getBuyerRefundReceipts(buyerId, 0, Integer.MAX_VALUE, true).get(0); //It is always going to return 1 record
-            }
-        } catch (Exception e) {
-            log.error("Error Occurred ", e);
-        }
-        return null;
+            String refundPaymentId = buyerRefund.getRefundPaymentId();
+            Date refundDoneAt = buyerRefund.getRefundDoneAt();
+
+            purchaseRepository.updatePurchaseRefundStatus(purchaseIds, BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value(), refundPaymentId, refundDoneAt);
+
+            return getBuyerRefundReceipts(buyerId, 0, Integer.MAX_VALUE, true).get(0); //It is always going to return 1 record
+        } else
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
-        try {
-            User buyer = userRepository.findById(buyerId).orElse(null);
-            if (LegitUtils.isBuyerLegit(buyer)) {
-                Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
-                        PageRequest.of(page, size, Sort.by("refund_done_at"));
-                Map<String, List<Purchase>> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                        .stream()
-                        .collect(Collectors.groupingBy(Purchase::getRefundPaymentId));
+        User buyer = userRepository.findById(buyerId).orElse(null);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+        if (LegitUtils.isBuyerLegit(buyer)) {
+            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
+                    PageRequest.of(page, size, Sort.by("refund_done_at"));
+            Map<String, List<Purchase>> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+                    .stream()
+                    .collect(Collectors.groupingBy(Purchase::getRefundPaymentId));
+            List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
+            purchaseReceipts.forEach((refundPaymentId, purchases) -> purchases.forEach(purchase -> {
+                if (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_PROCESSING.value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(refundPaymentId);
+                    int status = receiptResponse.getPurchase().getStatus();
+                    List<Long> purchaseIds = Collections.singletonList(purchase.getId());
+                    Date refundDoneAt = receiptResponse.getRefundDoneAt();
 
-                List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
-
-                purchaseReceipts.forEach((refundPaymentId, purchases) -> {
-                    //TODO update for processing payments
-                    purchases.forEach(purchase -> {
-
-                        if (purchase.getStatus() == 4) {
-                            //TODO Razorpay check for payment status, initiate payment again if failed
-                            int status = purchase.getStatus() + 1;
-                            List<Long> purchaseIds = Collections.singletonList(purchase.getId());
-                            Date refundDoneAt = new Date(System.currentTimeMillis());
-
-                            purchaseRepository.updatePurchaseRefundStatus(purchaseIds, status, refundPaymentId, refundDoneAt);
-                            purchase.setStatus(status);
-                            purchase.setRefundPaymentId(refundPaymentId);
-                            purchase.setRefundDoneAt(refundDoneAt);
-
-                        }
-
-                        RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, refundPaymentId, purchase.getRefundDoneAt(), Constants.HOTIFI_UPI_ID, purchase.getUser().getUpiId());
-                        refundReceiptResponses.add(refundReceiptResponse);
-
-                    });
-
-                });
-
-                return refundReceiptResponses;
-
-            }
-        } catch (Exception e) {
-            log.error("Error Occurred ", e);
-        }
-        return null;
+                    purchaseRepository.updatePurchaseRefundStatus(purchaseIds, status, refundPaymentId, refundDoneAt);
+                    purchase.setStatus(status);
+                    purchase.setRefundPaymentId(refundPaymentId);
+                    purchase.setRefundDoneAt(refundDoneAt);
+                }
+                RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, refundPaymentId, purchase.getRefundDoneAt(), Constants.HOTIFI_UPI_ID, purchase.getUser().getUpiId());
+                refundReceiptResponses.add(refundReceiptResponse);
+            }));
+            return refundReceiptResponses;
+        } else
+            throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
     }
 
     //User defined functions
@@ -382,18 +375,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
         return amountPaid - Math.floor((amountPaid / dataBought) * dataUsed);
     }
 
-    private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase) {
+    private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
-        assert session != null;
-        SpeedTest speedTest = speedTestRepository.findById(session.getSpeedTest().getId()).orElse(null);
-        assert speedTest != null;
-        User seller = userRepository.findById(speedTest.getUser().getId()).orElse(null);
-        assert seller != null;
+        SpeedTest speedTest = session != null ? speedTestRepository.findById(session.getSpeedTest().getId()).orElse(null) : null;
+        User seller = speedTest != null ? userRepository.findById(speedTest.getUser().getId()).orElse(null) : null;
 
-        RefundReceiptResponse refundReceiptResponse = withdrawBuyerRefunds(purchase.getUser().getId());
+        if (seller == null)
+            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
 
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+
+        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? withdrawBuyerRefunds(purchase.getUser().getId()) : paymentProcessor.getBuyerPaymentStatus(purchase.getPaymentId());
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
-
         wifiSummaryResponse.setSellerName(seller.getFirstName() + " " + seller.getLastName());
         wifiSummaryResponse.setSellerPhotoUrl(seller.getPhotoUrl());
         wifiSummaryResponse.setAmountPaid(purchase.getAmountPaid());
@@ -403,36 +396,29 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
         wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
-
         return wifiSummaryResponse;
     }
 
     private void saveFinishWifiService(Purchase purchase, int purchaseStatus, Date sessionFinishedAt) {
-        //TODO logic to update purchase status
         purchase.setStatus(purchaseStatus);
         purchase.setSessionFinishedAt(sessionFinishedAt);
         purchaseRepository.save(purchase);
-
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
-        assert session != null;
+        if (session == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
         session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
         session.setModifiedAt(sessionFinishedAt);
         sessionRepository.save(session);
-
     }
 
     private List<WifiSummaryResponse> getWifiSummaryResponses(Long buyerId, Pageable pageable) {
         List<Purchase> purchases = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable);
         List<WifiSummaryResponse> wifiSummaryResponses = new ArrayList<>();
-
         for (Purchase purchase : purchases) {
-            WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase);
+            WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase, false);
             wifiSummaryResponses.add(wifiSummaryResponse);
         }
-
         return wifiSummaryResponses;
     }
-
-    //TODO payment start and end methods of RazorPay Payment Service
 
 }

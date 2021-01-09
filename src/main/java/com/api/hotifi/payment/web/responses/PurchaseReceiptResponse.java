@@ -29,4 +29,8 @@ public class PurchaseReceiptResponse {
 
     private String wifiPassword;
 
+    private String refundPaymentId;
+
+    private Date refundDoneAt;
+
 }

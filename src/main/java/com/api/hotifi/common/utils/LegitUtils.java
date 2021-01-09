@@ -1,8 +1,10 @@
 package com.api.hotifi.common.utils;
 
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.error.PurchaseErrorCodes;
 
 public class LegitUtils {
 
@@ -34,17 +36,17 @@ public class LegitUtils {
         return !user.getAuthentication().isDeleted() && user.isLoggedIn() && user.getAuthentication().isActivated() && user.getUpiId() != null;
     }
 
-    public static boolean isPurchaseUpdateLegit(Purchase purchase, double dataUsed) throws Exception {
+    public static boolean isPurchaseUpdateLegit(Purchase purchase, double dataUsed) {
         if (purchase == null)
-            throw new Exception("Purchase to be updated doesn't exist");
+            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
         if (purchase.getSessionCreatedAt() == null)
-            throw new Exception("Buyer's wifi service not started");
+            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_NOT_STARTED);
         if (purchase.getSessionFinishedAt() != null)
-            throw new Exception("Buyer's wifi service already finished");
+            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
         if (Double.compare(dataUsed, purchase.getData()) > 0)
-            throw new Exception("Data used " + dataUsed + " MB cannot be greater than data bought " + purchase.getData());
+            throw new HotifiException(PurchaseErrorCodes.DATA_USED_EXCEEDS_DATA_BOUGHT);
         if (Double.compare(dataUsed, purchase.getDataUsed()) < 0)
-            throw new Exception("New Data used " + dataUsed + " MB cannot be less than data used " + purchase.getDataUsed());
+            throw new HotifiException(PurchaseErrorCodes.DATA_TO_UPDATE_DECEEDS_DATA_USED);
         return true;
     }
 }

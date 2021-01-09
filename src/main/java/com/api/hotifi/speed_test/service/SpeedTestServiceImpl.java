@@ -1,8 +1,12 @@
 package com.api.hotifi.speed_test.service;
 
+import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.api.hotifi.speed_test.error.SpeedTestErrorCodes;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +32,10 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     @Transactional
     @Override
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
+        User user = userRepository.findById(speedTestRequest.getUserId()).orElse(null);
+        if (LegitUtils.isUserLegit(user) && user.isLoggedIn())
+            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         try {
-            User user = userRepository.getOne(speedTestRequest.getUserId());
-            if (user.getAuthentication().isDeleted())
-                throw new Exception("User is deleted");
             SpeedTest speedTest = new SpeedTest();
             speedTest.setNetworkName(speedTestRequest.getNetworkName());
             speedTest.setDownloadSpeed(speedTestRequest.getDownloadSpeed());
@@ -41,23 +45,19 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             speedTestRepository.save(speedTest);
         } catch (Exception e) {
             log.error("Error occurred", e);
+            throw new HotifiException(SpeedTestErrorCodes.UNEXPECTED_SPEED_TEST_ERROR);
         }
     }
 
     @Transactional
     @Override
     public SpeedTest getLatestSpeedTest(Long userId, String pinCode, boolean isWifi) {
-        try {
-            SpeedTest speedTest = isWifi ?
-                    speedTestRepository.findLatestWifiSpeedTest(userId, pinCode) :
-                    speedTestRepository.findLatestNonWifiSpeedTest(userId, pinCode);
-            if (speedTest == null)
-                throw new Exception("No Speed Test Record Exists");
-            return speedTest;
-        } catch (Exception e) {
-            log.error("Error occurred", e);
-        }
-        return null;
+        SpeedTest speedTest = isWifi ?
+                speedTestRepository.findLatestWifiSpeedTest(userId, pinCode) :
+                speedTestRepository.findLatestNonWifiSpeedTest(userId, pinCode);
+        if (speedTest == null)
+            throw new HotifiException(SpeedTestErrorCodes.NO_SPEED_TEST_RECORD_EXISTS);
+        return speedTest;
     }
 
     //For Get Speed Tests call sortByDateTime in Descending format
@@ -72,8 +72,8 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByDateTime);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);
+            throw new HotifiException(SpeedTestErrorCodes.UNEXPECTED_SPEED_TEST_ERROR);
         }
-        return null;
     }
 
     @Transactional
@@ -87,8 +87,8 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByUploadSpeed);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);
+            throw new HotifiException(SpeedTestErrorCodes.UNEXPECTED_SPEED_TEST_ERROR);
         }
-        return null;
     }
 
     @Transactional
@@ -102,8 +102,8 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             return speedTestRepository.findSpeedTestsByUserId(userId, sortedPageableByDownloadSpeed);
         } catch (Exception e) {
             log.error("Exception occurred : " + e);
+            throw new HotifiException(SpeedTestErrorCodes.UNEXPECTED_SPEED_TEST_ERROR);
         }
-        return null;
     }
 
 }

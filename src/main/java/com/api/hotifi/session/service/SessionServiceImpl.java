@@ -1,6 +1,7 @@
 package com.api.hotifi.session.service;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
@@ -9,6 +10,7 @@ import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.session.entity.Session;
+import com.api.hotifi.session.error.SessionErrorCodes;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
@@ -53,22 +55,23 @@ public class SessionServiceImpl implements ISessionService {
     @Transactional
     @Override
     public void addSession(SessionRequest sessionRequest) {
+
+        User user = userRepository.findById(sessionRequest.getUserId()).orElse(null);
+        if (!LegitUtils.isSellerLegit(user))
+            throw new HotifiException(SessionErrorCodes.SELLER_NOT_LEGIT);
+
+        SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());
+        if (speedTest == null && sessionRequest.isWifi())
+            throw new HotifiException(SessionErrorCodes.WIFI_SPEED_TEST_ABSENT);
+        if (speedTest == null && !sessionRequest.isWifi())
+            throw new HotifiException(SessionErrorCodes.SPEED_TEST_ABSENT);
+
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
+        if (Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
+            throw new HotifiException(SessionErrorCodes.WITHDRAW_SELLER_AMOUNT);
+
         try {
             //Do not check if user is banned or freezed, because that checking is for buyers only
-            User user = userRepository.getOne(sessionRequest.getUserId());
-            if (!LegitUtils.isSellerLegit(user))
-                throw new Exception("Seller not legit to be updated");
-
-            SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());
-            if (speedTest == null && sessionRequest.isWifi())
-                throw new Exception("User has not done wifi speed test");
-            if (speedTest == null && !sessionRequest.isWifi())
-                throw new Exception("User has not done speed test");
-
-            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
-            if (Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
-                throw new Exception("Please withdraw amount before starting this session");
-
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
             List<Long> speedTestIds = speedTestRepository.findSpeedTestsByUserId(sessionRequest.getUserId(), pageable)
                     .stream()
@@ -80,17 +83,15 @@ public class SessionServiceImpl implements ISessionService {
 
             //Everything is fine, so encrypt the password
             String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
-
             Session session = new Session();
             session.setSpeedTest(speedTest);
             session.setData(sessionRequest.getData());
             session.setWifiPassword(encryptedString);
             session.setPrice(sessionRequest.getPrice());
-
             sessionRepository.save(session);
-
         } catch (Exception e) {
             log.error("Error Occurred ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
     }
 
@@ -141,8 +142,8 @@ public class SessionServiceImpl implements ISessionService {
             return activeSessionsResponses;
         } catch (Exception e) {
             log.error("Error Occured ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
-        return null;
     }
 
     @Transactional(readOnly = true)
@@ -163,8 +164,8 @@ public class SessionServiceImpl implements ISessionService {
             return sessionRepository.findAllSessionsById(speedTestIds, sortedPageableByStartTime);
         } catch (Exception e) {
             log.error("Exception ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
-        return null;
     }
 
     @Transactional(readOnly = true)
@@ -185,8 +186,8 @@ public class SessionServiceImpl implements ISessionService {
             return sessionRepository.findAllSessionsById(speedTestIds, sortedPageableByDataUsed);
         } catch (Exception e) {
             log.error("Exception ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
-        return null;
     }
 
 }

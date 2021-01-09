@@ -22,4 +22,7 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode NO_USER_EXISTS = new ErrorCode("14", Collections.singletonList(getMessage("NO_USER_EXISTS", UserErrorMessages.NO_USER_EXISTS)), 400);
     public static final ErrorCode USER_NOT_LEGIT = new ErrorCode("15", Collections.singletonList(getMessage("USER_NOT_LEGIT", UserErrorMessages.USER_NOT_LEGIT)), 400);
     public static final ErrorCode EMAIL_OTP_ALREADY_GENERATED = new ErrorCode("00", Collections.singletonList(getMessage("EMAIL_OTP_ALREADY_GENERATED", UserErrorMessages.EMAIL_OTP_ALREADY_GENERATED)), 400);
+    public static final ErrorCode UNEXPECTED_EMAIL_OTP_ERROR = new ErrorCode("16", Collections.singletonList(getMessage("UNEXPECTED_EMAIL_OTP_ERROR", UserErrorMessages.UNEXPECTED_EMAIL_OTP_ERROR)), 400);
+    public static final ErrorCode UNEXPECTED_STATS_ERROR = new ErrorCode("17", Collections.singletonList(getMessage("UNEXPECTED_STATS_ERROR", UserErrorMessages.UNEXPECTED_STATS_ERROR)), 500);
+    public static final ErrorCode INVALID_UPI_ID = new ErrorCode("18", Collections.singletonList(getMessage("INVALID_UPI_ID", UserErrorMessages.INVALID_UPI_ID)), 500);
 }

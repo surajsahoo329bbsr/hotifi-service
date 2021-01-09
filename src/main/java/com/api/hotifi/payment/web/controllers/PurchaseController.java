@@ -45,10 +45,8 @@ public class PurchaseController {
     @PutMapping(path = "/buyer/start/wifi-service/{purchase-id}/{status}")
     public ResponseEntity<?> startBuyerWifiService(
             @PathVariable(value = "purchase-id")
-            @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
-            @PathVariable(value = "status")
-            @Range(min = 1, message = "{purchase.id.invalid}") int status) {
-        Date wifiStartTime = purchaseService.startBuyerWifiService(purchaseId, status);
+            @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
+        Date wifiStartTime = purchaseService.startBuyerWifiService(purchaseId);
         return new ResponseEntity<>(wifiStartTime, HttpStatus.OK);
     }
 
@@ -56,11 +54,9 @@ public class PurchaseController {
     public ResponseEntity<?> updateBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
-            @PathVariable(value = "status")
-            @Range(min = 1, message = "{purchase.id.invalid}") int status,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        int updateStatus = purchaseService.updateBuyerWifiService(purchaseId, status, dataUsed);
+        int updateStatus = purchaseService.updateBuyerWifiService(purchaseId,dataUsed);
         return new ResponseEntity<>(updateStatus, HttpStatus.OK);
     }
 
@@ -68,11 +64,9 @@ public class PurchaseController {
     public ResponseEntity<?> finishBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
-            @PathVariable(value = "status")
-            @Range(min = 1, message = "{purchase.id.invalid}") int status,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        WifiSummaryResponse wifiSummaryResponse = purchaseService.finishBuyerWifiService(purchaseId, status, dataUsed);
+        WifiSummaryResponse wifiSummaryResponse = purchaseService.finishBuyerWifiService(purchaseId, dataUsed);
         return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
     }
 

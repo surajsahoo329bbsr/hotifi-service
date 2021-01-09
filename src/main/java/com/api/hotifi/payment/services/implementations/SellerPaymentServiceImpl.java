@@ -1,10 +1,13 @@
 package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.SellerPayment;
+import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
+import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.ISellerPaymentService;
 import com.api.hotifi.payment.services.interfaces.ISellerReceiptService;
@@ -57,39 +60,40 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     @Transactional
     @Override
     public SellerReceiptResponse withdrawSellerPayment(Long sellerId) {
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
+        if (sellerPayment == null)
+            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (!LegitUtils.isSellerLegit(seller))
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
+
+        double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+        double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim;
+        Date now = new Date(System.currentTimeMillis());
+
+        if (Double.compare(sellerAmountPaid, Constants.MINIMUM_WITHDRAWAL_AMOUNT) < 0) {
+            Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
+            if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
+                throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
+            throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
+        }
+
         try {
-            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
-            if (sellerPayment == null)
-                throw new Exception("Seller Payment doesn't exist");
-            User seller = userRepository.findById(sellerId).orElse(null);
-            if (!LegitUtils.isSellerLegit(seller))
-                throw new Exception("Seller is not legit to withdraw money");
-            double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
-            double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim;
-            Date now = new Date(System.currentTimeMillis());
-
-            if (Double.compare(sellerAmountPaid, Constants.MINIMUM_WITHDRAWAL_AMOUNT) < 0) {
-                Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
-                if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
-                    throw new Exception("Please withdraw after " + (now.getTime() - lastPaidAt.getTime()) + " milliseconds");
-                throw new Exception("Minimum withdrawal is " + Constants.MINIMUM_WITHDRAWAL_AMOUNT);
-            }
-
             SellerReceiptResponse sellerReceiptResponse = sellerReceiptService.addSellerReceipt(seller, sellerPayment, sellerAmountPaid);
             //Following lines will continue after successful-1, processing-2, failure-3 payment
-            int paymentStatus = sellerReceiptResponse.getSellerReceipt().getStatus();
+            SellerPaymentCodes sellerPaymentCodes = SellerPaymentCodes.fromInt(sellerReceiptResponse.getSellerReceipt().getStatus());
             Date lastPaidAt = sellerReceiptResponse.getSellerReceipt().getPaidAt();
             sellerPayment.setModifiedAt(now);
-            switch (paymentStatus) {
-                case 1:
+            switch (sellerPaymentCodes) {
+                case PAYMENT_SUCCESSFUL:
                     sellerPayment.setAmountEarned(sellerWithdrawalClaim - sellerAmountPaid);
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid() + sellerAmountPaid);
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     break;
-                case 2:
+                case PAYMENT_PROCESSING:
                     //TODO RazorPay's processing status
                     break;
-                case 3:
+                case PAYMENT_FAILED:
                     //TODO RazorPay's failure status
                     break;
             }
@@ -97,8 +101,8 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             return sellerReceiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
         }
-        return null;
     }
 
 }

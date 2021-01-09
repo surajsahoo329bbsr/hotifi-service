@@ -1,7 +1,9 @@
 package com.api.hotifi.identity.utils;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
@@ -44,8 +46,8 @@ public class OtpUtils {
             return String.valueOf(timeOtp.generateOneTimePassword(key, Instant.now()));
         } catch (Exception e) {
             log.error("Error ", e);
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_EMAIL_OTP_ERROR);
         }
-        return null;
     }
 
     public static boolean isEmailOtpExpired(Authentication authentication){
@@ -57,9 +59,9 @@ public class OtpUtils {
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin
     public static String saveAuthenticationEmailOtp(Authentication authentication, AuthenticationRepository authenticationRepository, IEmailService emailService){
-        String emailOtp = generateEmailOtp();
-        String token = UUID.randomUUID().toString();
-        if (emailOtp != null) {
+        try {
+            String emailOtp = generateEmailOtp();
+            String token = UUID.randomUUID().toString();
             log.info("Otp " + emailOtp);
             log.info("Token" + token);
             String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
@@ -79,8 +81,9 @@ public class OtpUtils {
             emailService.sendEmail(null, emailModel, 0);
 
             return token;
+        } catch (Exception e){
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_EMAIL_OTP_ERROR);
         }
-        return null;
     }
 
 }

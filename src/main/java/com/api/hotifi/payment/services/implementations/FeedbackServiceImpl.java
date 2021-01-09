@@ -1,9 +1,11 @@
 package com.api.hotifi.payment.services.implementations;
 
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Feedback;
 import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.error.FeedbackErrorCodes;
 import com.api.hotifi.payment.repositories.FeedbackRepository;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
@@ -50,10 +52,10 @@ public class FeedbackServiceImpl implements IFeedbackService {
     @Transactional
     @Override
     public void addFeedback(FeedbackRequest feedbackRequest) {
+        Purchase purchase = purchaseRepository.findById(feedbackRequest.getPurchaseId()).orElse(null);
+        if (purchase == null)
+            throw new HotifiException(FeedbackErrorCodes.NO_PURCHASE_NO_FEEDBACK);
         try {
-            Purchase purchase = purchaseRepository.findById(feedbackRequest.getPurchaseId()).orElse(null);
-            if (purchase == null)
-                throw new Exception("Purchase doesn't exist where feedback is to be given");
             Feedback feedback = new Feedback();
             feedback.setComment(feedbackRequest.getComment());
             feedback.setRating(feedbackRequest.getRating());
@@ -64,23 +66,20 @@ public class FeedbackServiceImpl implements IFeedbackService {
             feedbackRepository.save(feedback);
         } catch (DataIntegrityViolationException e) {
             log.error("Feedback already given ", e);
+            throw new HotifiException(FeedbackErrorCodes.FEEDBACK_ALREADY_GIVEN);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(FeedbackErrorCodes.UNEXPECTED_FEEDBACK_ERROR);
         }
     }
 
     @Transactional
     @Override
     public Feedback getPurchaseFeedback(Long purchaseId) {
-        try {
-            Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-            if (purchase == null)
-                throw new Exception("Purchase doesn't exist to display feedback");
-            return feedbackRepository.findFeedbackByPurchaseId(purchaseId);
-        } catch (Exception e) {
-            log.error("Error occurred", e);
-        }
-        return null;
+        Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
+        if (purchase == null)
+            throw new HotifiException(FeedbackErrorCodes.NO_FEEDBACK_EXISTS_FOR_NO_PURCHASE);
+        return feedbackRepository.findFeedbackByPurchaseId(purchaseId);
     }
 
     @Transactional
@@ -122,8 +121,8 @@ public class FeedbackServiceImpl implements IFeedbackService {
 
         } catch (Exception e) {
             log.error("Error occurred", e);
+            throw new HotifiException(FeedbackErrorCodes.UNEXPECTED_FEEDBACK_ERROR);
         }
-        return null;
     }
 
     //No need for try catch exceptions

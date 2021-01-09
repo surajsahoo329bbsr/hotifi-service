@@ -68,4 +68,11 @@ public class Constants {
     public static final int MINIMUM_WARNINGS_TO_FREEZE = 10;
     public static final int MINIMUM_WARNINGS_TO_BAN = 15;
 
+    //Status codes
+    public static final int BUYER_PAYMENT_START_VALUE_CODE = 100;
+    public static final int SELLER_PAYMENT_START_VALUE_CODE = 1000;
+    public static final int UPI_PAYMENT_START_VALUE_CODE = 1;
+    public static final int PAYMENT_METHOD_START_VALUE_CODE = 1;
+    public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
+
 }

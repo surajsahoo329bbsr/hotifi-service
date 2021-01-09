@@ -1,9 +1,15 @@
 package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.entities.SellerReceipt;
+import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
+import com.api.hotifi.payment.processor.PaymentProcessor;
+import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
+import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
+import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.services.interfaces.ISellerReceiptService;
@@ -17,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -36,32 +41,38 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     @Transactional
     @Override
     public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid) {
-        //TODO Razor Pay payment implementation
-        //after razor pay payment
-        SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
-        SellerReceipt sellerReceipt = new SellerReceipt();
-        sellerReceipt.setSellerPayment(sellerPayment);
-        //status - successful-1, processing-2, failure-3
-        sellerReceipt.setAmountPaid(sellerAmountPaid); //TODO set amount paid from razor pay
-        sellerReceipt.setStatus(1); //TODO set payment status from razor pay
-        sellerReceipt.setPaidAt(new Date(System.currentTimeMillis())); //TODO set payment date from razor pay
-        sellerReceipt.setTransactionId("1234589"); //TODO set payment id from razor pay
-        receiptResponse.setSellerReceipt(sellerReceipt);
-        receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
-        receiptResponse.setSellerUpiId(seller.getUpiId());
-        return receiptResponse;
+        try {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPaymnet(sellerAmountPaid, seller.getUpiId(), seller.getAuthentication().getEmail());
+
+            SellerReceipt sellerReceipt = new SellerReceipt();
+            sellerReceipt.setSellerPayment(sellerPayment);
+            sellerReceipt.setAmountPaid(receiptResponse.getSellerAmountPaid());
+            sellerReceipt.setStatus(Constants.SELLER_PAYMENT_START_VALUE_CODE + receiptResponse.getSellerReceipt().getStatus());
+            sellerReceipt.setPaidAt(receiptResponse.getSellerReceipt().getPaidAt());
+            sellerReceipt.setTransactionId(receiptResponse.getSellerReceipt().getTransactionId());
+            receiptResponse.setSellerReceipt(sellerReceipt);
+            receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
+            receiptResponse.setSellerUpiId(seller.getUpiId());
+
+            return receiptResponse;
+        } catch (Exception e){
+            log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
+        }
     }
 
     @Transactional
     @Override
     public SellerReceiptResponse getSellerReceipt(Long id) {
+        SellerReceipt sellerReceipt = sellerReceiptRepository.findById(id).orElse(null);
+        if (sellerReceipt == null)
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_RECEIPT_NOT_FOUND);
         try {
-            SellerReceipt sellerReceipt = sellerReceiptRepository.findById(id).orElse(null);
-            if (sellerReceipt == null)
-                throw new Exception("Seller Receipt not found");
-            if (sellerReceipt.getStatus() == 2) {
-                //which means payment is processing...
-                sellerReceipt.setStatus(1); //TODO set status after reading from razor pay
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
+                SellerReceiptResponse receiptResponse = paymentProcessor.getSellerPaymentStatus(sellerReceipt.getTransactionId());
+                sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
                 sellerReceiptRepository.save(sellerReceipt);
             }
             SellerPayment sellerPayment = sellerReceipt.getSellerPayment();
@@ -73,25 +84,25 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             return receiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
         }
-        return null;
     }
 
     @Transactional
     @Override
     public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int page, int size, boolean isDescending) {
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
+        if (sellerPayment == null)
+            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         try {
-            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
-            if (sellerPayment == null)
-                throw new Exception("No seller payment exist");
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("created_at").descending()) :
                     PageRequest.of(page, size, Sort.by("created_at"));
             return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
         }
-        return null;
     }
 
     @Transactional
@@ -100,36 +111,42 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         try {
             SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
             if (sellerPayment == null)
-                throw new Exception("No seller payment exist");
+                throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("amount_paid").descending()) :
                     PageRequest.of(page, size, Sort.by("amount_paid"));
             return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
         }
-        return null;
     }
 
     //User defined functions
-    private List<SellerReceiptResponse> getSellerReceipts(Long sellerPaymentId, Pageable pageable, SellerPayment sellerPayment) throws Exception{
+    private List<SellerReceiptResponse> getSellerReceipts(Long sellerPaymentId, Pageable pageable, SellerPayment sellerPayment) {
         List<SellerReceipt> sellerReceipts = sellerReceiptRepository.findSellerReceipts(sellerPaymentId, pageable);
         SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
         if (sellerReceipts == null)
-            throw new Exception("Seller Receipt not found");
-        List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
-        for (SellerReceipt sellerReceipt : sellerReceipts) {
-            if (sellerReceipt.getStatus() == 2) {
-                //which means payment is processing...
-                sellerReceipt.setStatus(1); //TODO set status after reading from razor pay
-                sellerReceiptRepository.save(sellerReceipt);
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_RECEIPT_NOT_FOUND);
+        try {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
+            for (SellerReceipt sellerReceipt : sellerReceipts) {
+                if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
+                    SellerReceiptResponse receipt = paymentProcessor.getSellerPaymentStatus(sellerReceipt.getTransactionId());
+                    sellerReceipt.setStatus(receipt.getSellerReceipt().getStatus());
+                    sellerReceiptRepository.save(sellerReceipt);
+                }
+                String sellerUpiId = sellerPayment.getSeller().getUpiId();
+                receiptResponse.setSellerReceipt(sellerReceipt);
+                receiptResponse.setSellerUpiId(sellerUpiId);
+                receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
+                sellerReceiptResponses.add(receiptResponse);
             }
-            String sellerUpiId = sellerPayment.getSeller().getUpiId();
-            receiptResponse.setSellerReceipt(sellerReceipt);
-            receiptResponse.setSellerUpiId(sellerUpiId);
-            receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
-            sellerReceiptResponses.add(receiptResponse);
+            return  sellerReceiptResponses;
+        } catch (Exception e){
+            log.error("Error occurred", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
         }
-        return  sellerReceiptResponses;
     }
 }

@@ -1,11 +1,16 @@
 package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
+import com.api.hotifi.payment.error.PurchaseErrorCodes;
+import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
+import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
@@ -53,7 +58,7 @@ public class StatsServiceImpl implements IStatsService {
             if (LegitUtils.isUserLegit(buyer)) {
                 Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
                 Stream<Purchase> purchaseStream = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
-                double totalPendingRefunds = purchaseStream.filter(purchase -> purchase.getStatus() == 4) //TODO add status check
+                double totalPendingRefunds = purchaseStream.filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.REFUND_FAILED.value())
                         .mapToDouble(Purchase::getAmountRefund)
                         .sum();
                 double totalDataBought = purchaseStream.mapToDouble(Purchase::getAmountRefund).sum();
@@ -62,23 +67,24 @@ public class StatsServiceImpl implements IStatsService {
                         .sum();
                 double totalDataBoughtByMobile = totalDataBought - totalDataBoughtByWifi;
                 return new BuyerStatsResponse(totalPendingRefunds, totalDataBought, totalDataBoughtByWifi, totalDataBoughtByMobile);
-            }
+            } else
+                throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
         } catch (Exception e) {
             log.error("Error Occurred", e);
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_STATS_ERROR);
         }
-        return null;
     }
 
     @Transactional(readOnly = true)
     @Override
     public SellerStatsResponse getSellerStats(Long sellerId) {
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (!LegitUtils.isSellerLegit(seller))
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
+        if (sellerPayment == null)
+            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         try {
-            User seller = userRepository.findById(sellerId).orElse(null);
-            if (!LegitUtils.isSellerLegit(seller))
-                throw new Exception("Seller is not legit to withdraw money");
-            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
-            if (sellerPayment == null)
-                throw new Exception("Seller Payment doesn't exist");
             double totalEarnings = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
             double totalAmountWithdrawn = sellerPayment.getAmountPaid();
             String averageRating = feedbackService.getAverageRating(sellerId);
@@ -99,7 +105,7 @@ public class StatsServiceImpl implements IStatsService {
             return new SellerStatsResponse(totalEarnings, totalAmountWithdrawn, averageRating,totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
         } catch (Exception e) {
             log.error("Error Occurred", e);
+            throw new HotifiException(UserErrorCodes.UNEXPECTED_STATS_ERROR);
         }
-        return null;
     }
 }
