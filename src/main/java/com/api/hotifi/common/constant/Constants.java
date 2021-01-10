@@ -7,6 +7,11 @@ public class Constants {
     public static final String HOTIFI_UPI_ID = "hotifi@ybl";
     public static final int COMMISSION_PERCENTAGE = 20;
 
+    //Razorpay Configuration
+    public static final String RAZOR_PAY_KEY_ID = "";
+    public static final String RAZOR_PAY_KEY_SECRET = "";
+
+
     //TODO add Html files and it's paths and emails
     public static final String EMAIL_HOST = "";
     public static final int EMAIL_PORT = 8080;

@@ -8,7 +8,6 @@ import com.api.hotifi.payment.entities.SellerReceipt;
 import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
-import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.repositories.SellerReceiptRepository;
@@ -42,8 +41,8 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     @Override
     public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid) {
         try {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
-            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPaymnet(sellerAmountPaid, seller.getUpiId(), seller.getAuthentication().getEmail());
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
+            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getUpiId(), seller.getAuthentication().getEmail());
 
             SellerReceipt sellerReceipt = new SellerReceipt();
             sellerReceipt.setSellerPayment(sellerPayment);
@@ -69,7 +68,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         if (sellerReceipt == null)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_RECEIPT_NOT_FOUND);
         try {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
                 SellerReceiptResponse receiptResponse = paymentProcessor.getSellerPaymentStatus(sellerReceipt.getTransactionId());
                 sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
@@ -129,7 +128,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         if (sellerReceipts == null)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_RECEIPT_NOT_FOUND);
         try {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
             for (SellerReceipt sellerReceipt : sellerReceipts) {
                 if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {

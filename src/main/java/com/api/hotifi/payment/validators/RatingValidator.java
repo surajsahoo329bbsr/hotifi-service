@@ -1,4 +1,4 @@
-package com.api.hotifi.payment.validator;
+package com.api.hotifi.payment.validators;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

@@ -17,7 +17,6 @@ import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
-import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,7 +169,7 @@ public class UserServiceImpl implements IUserService {
         if (!LegitUtils.isUserLegit(user))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         try {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             if(!paymentProcessor.isUpiIdValid(user.getUpiId()))
                 throw new HotifiException(UserErrorCodes.INVALID_UPI_ID);
             user.setUpiId(upiId);

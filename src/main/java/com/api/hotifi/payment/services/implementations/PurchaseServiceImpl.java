@@ -14,6 +14,7 @@ import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
 import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
+import com.api.hotifi.payment.processor.codes.UpiPaymentCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
@@ -95,34 +96,67 @@ public class PurchaseServiceImpl implements IPurchaseService {
     @Override
     public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
 
-        try {
-            Long buyerId = purchaseRequest.getBuyerId();
-            Long sessionId = purchaseRequest.getSessionId();
-            Session session = sessionRepository.findById(sessionId).orElse(null);
-            User buyer = userRepository.findById(buyerId).orElse(null);
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+        Long buyerId = purchaseRequest.getBuyerId();
+        Long sessionId = purchaseRequest.getSessionId();
+        Session session = sessionRepository.findById(sessionId).orElse(null);
+        User buyer = userRepository.findById(buyerId).orElse(null);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
-            BuyerPaymentCodes buyerPaymentCodes = BuyerPaymentCodes.fromInt(paymentProcessor.getBuyerPaymentStatus(purchaseRequest.getPaymentId()).getPurchase().getStatus());
+        switch (PaymentMethodCodes.valueOf(purchaseRequest.getPaymentMethod())) {
+            case UPI_PAYMENT:
+                if (purchaseRequest.getUpiApp() == null)
+                    throw new HotifiException(PurchaseErrorCodes.UPI_APP_NULL_ERROR);
+                switch (UpiPaymentCodes.valueOf(purchaseRequest.getUpiApp())) {
+                    case GOOGLE_PAY:
+                        paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.UPI_PAYMENT, UpiPaymentCodes.GOOGLE_PAY);
+                        break;
+                    case PHONE_PE:
+                        paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.UPI_PAYMENT, UpiPaymentCodes.PHONE_PE);
+                        break;
+                    case PAYTM:
+                        paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.UPI_PAYMENT, UpiPaymentCodes.PAYTM);
+                        break;
+                    case OTHERS:
+                        paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.UPI_PAYMENT, UpiPaymentCodes.OTHERS);
+                        break;
+                }
+                break;
+            case NETBANKING_PAYMENT:
+                paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.NETBANKING_PAYMENT);
+                break;
+            case DEBIT_CARD_PAYMENT:
+                paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.DEBIT_CARD_PAYMENT);
+                break;
+            case CREDIT_CARD_PAYMENT:
+                paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.CREDIT_CARD_PAYMENT);
+                break;
+        }
+
+        try {
+            int amountPaid = 0;
+            if (session != null)
+                amountPaid = (int) Math.floor(session.getPrice() / session.getData() * purchaseRequest.getData());
+            Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
             purchase.setUser(buyer);
-            purchase.setPaymentDoneAt(purchaseRequest.getPaymentDoneAt());
-            purchase.setPaymentId(purchaseRequest.getPaymentId());
-            purchase.setStatus(buyerPaymentCodes.value() * paymentProcessor.getPaymentMethodCodes().getUpiPaymentMethod().value());
+            purchase.setPaymentDoneAt(getBuyerPurchase.getPaymentDoneAt());
+            purchase.setPaymentId(getBuyerPurchase.getPaymentId());
+            purchase.setStatus(getBuyerPurchase.getStatus());
             purchase.setMacAddress(purchaseRequest.getMacAddress());
             purchase.setData(purchaseRequest.getData());
-            purchase.setAmountPaid(purchaseRequest.getAmountPaid());
-            purchase.setAmountRefund(purchaseRequest.getAmountPaid());
+            purchase.setAmountPaid(amountPaid);
+            purchase.setAmountRefund(amountPaid);
 
             boolean updateSessionFlag = true;
 
             //If payment failed or processing do not update session value
-            if (buyerPaymentCodes.value() <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
+            if (getBuyerPurchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
                 updateSessionFlag = false;
                 //If seller has ended it's session while purchasing, inititate refund if payment is successful
             else if (session != null && session.getFinishedAt() != null && buyer != null) {
-                if (buyerPaymentCodes.value() == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() % paymentProcessor.getPaymentMethodCodes().value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRequest.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
+                if (getBuyerPurchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(getBuyerPurchase.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
                     purchase.setStatus(receiptResponse.getPurchase().getStatus());
                     purchase.setRefundDoneAt(receiptResponse.getRefundDoneAt());
                     purchase.setRefundPaymentId(receiptResponse.getRefundPaymentId());
@@ -130,8 +164,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
                     log.info("Razor Refund Payment");
                 }
             } else if (session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
-                if (buyerPaymentCodes.value() == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() % paymentProcessor.getPaymentMethodCodes().value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRequest.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
+                if (getBuyerPurchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(getBuyerPurchase.getAmountPaid(), buyer.getUpiId(), buyer.getAuthentication().getEmail());
                     purchase.setStatus(receiptResponse.getPurchase().getStatus());
                     purchase.setRefundDoneAt(receiptResponse.getRefundDoneAt());
                     purchase.setRefundPaymentId(receiptResponse.getRefundPaymentId());
@@ -263,7 +297,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public WifiSummaryResponse finishBuyerWifiService(Long purchaseId, double dataUsed) {
 
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
         if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
             int dataBought = purchase.getData();
@@ -313,7 +347,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public RefundReceiptResponse withdrawBuyerRefunds(Long buyerId) {
         User buyer = userRepository.findById(buyerId).orElse(null);
         if (LegitUtils.isBuyerLegit(buyer)) {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
             Stream<Purchase> purchaseStream = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
             double totalRefundAmount = purchaseStream.filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.REFUND_FAILED.value())
@@ -340,7 +374,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     @Override
     public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
         User buyer = userRepository.findById(buyerId).orElse(null);
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
         if (LegitUtils.isBuyerLegit(buyer)) {
             Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
                     PageRequest.of(page, size, Sort.by("refund_done_at"));
@@ -383,7 +417,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (seller == null)
             throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
 
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentMethodCodes.UPI_PAYMENT_METHOD, PaymentGatewayCodes.RAZORPAY);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
         RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? withdrawBuyerRefunds(purchase.getUser().getId()) : paymentProcessor.getBuyerPaymentStatus(purchase.getPaymentId());
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();

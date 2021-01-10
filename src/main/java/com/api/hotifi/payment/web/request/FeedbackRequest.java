@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.web.request;
 
-import com.api.hotifi.payment.validator.Rating;
+import com.api.hotifi.payment.validators.Rating;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;

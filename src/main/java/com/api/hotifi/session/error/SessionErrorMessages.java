@@ -6,4 +6,5 @@ public class SessionErrorMessages {
     public static final String WIFI_SPEED_TEST_ABSENT = "Wifi speed test is not completed";
     public static final String SPEED_TEST_ABSENT = "Speed test is not completed";
     public static final String WITHDRAW_SELLER_AMOUNT = "Please withdraw amount before starting this session";
+    public static final String NOTIFY_BUYERS_TO_FINISH_SESSION = "Please send notification to your buyers to finish session";
 }

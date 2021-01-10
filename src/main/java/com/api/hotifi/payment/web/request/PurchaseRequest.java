@@ -1,13 +1,14 @@
 package com.api.hotifi.payment.web.request;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.payment.validators.PaymentMethod;
+import com.api.hotifi.payment.validators.UpiApp;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotBlank;
-import java.util.Date;
 
 @Getter
 @Setter
@@ -27,12 +28,12 @@ public class PurchaseRequest {
     @Length(max = 255, message = "{mac.address.invalid}")
     private String macAddress;
 
-    @NotBlank(message = "{payment.datetime.blank}")
-    private Date paymentDoneAt;
+    @PaymentMethod
+    private String paymentMethod;
+
+    @UpiApp
+    private String upiApp;
 
     @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{data.range.invalid}")
     private int data;
-
-    @Range(min = Constants.MINIMUM_AMOUNT_PAID_INR, max = Constants.MAXIMUM_AMOUNT_PAID_INR, message = "{amont.paid.invalid.range}")
-    private int amountPaid;
 }

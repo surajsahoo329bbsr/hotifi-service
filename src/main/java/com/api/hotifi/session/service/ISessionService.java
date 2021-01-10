@@ -1,19 +1,27 @@
 package com.api.hotifi.session.service;
 
 import com.api.hotifi.session.entity.Session;
+import com.api.hotifi.session.model.Buyer;
 import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
+import com.api.hotifi.session.web.response.SessionSummaryResponse;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public interface ISessionService {
 
-    void addSession(SessionRequest sessionRequest);
+    Session addSession(SessionRequest sessionRequest);
 
-    List<ActiveSessionsResponse> getActiveSessions(HashSet<String> usernames);
+    List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames);
 
-    List<Session> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending);
+    List<Buyer> getBuyers(Long sessionId, boolean isActive);
 
-    List<Session> getSortedSessionsByDataUsed(Long userId, int page, int size, boolean isDescending);
+    void sendNotificationsToFinishSession(Long sessionId);
+
+    SessionSummaryResponse getSessionSummary(Long sessionId, boolean isForceStop);
+
+    List<SessionSummaryResponse> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending);
+
+    List<SessionSummaryResponse> getSortedSessionsByDataUsed(Long userId, int page, int size, boolean isDescending);
 }

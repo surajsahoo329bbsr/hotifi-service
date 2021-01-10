@@ -8,9 +8,9 @@ import java.util.TreeMap;
 public enum UpiPaymentCodes {
 
     GOOGLE_PAY,
-    PAYTM,
     PHONE_PE,
-    BHIM_UPI;
+    PAYTM,
+    OTHERS;
 
     private static final Map<Integer, UpiPaymentCodes> upiPaymentMap = new TreeMap<>();
 
