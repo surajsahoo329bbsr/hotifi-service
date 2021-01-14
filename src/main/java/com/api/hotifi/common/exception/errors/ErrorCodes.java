@@ -21,7 +21,7 @@ public class ErrorCodes {
     // 401
     public static final ErrorCode FORBIDDEN = new ErrorCode("01", Collections.singletonList(getMessage("FORBIDDEN", ErrorMessages.FORBIDDEN)), 401);
 
-    private static String getLocalizedMessage(String key) {
+    public static String getLocalizedMessage(String key) {
         ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
         return resourceBundle.getString(key);
     }

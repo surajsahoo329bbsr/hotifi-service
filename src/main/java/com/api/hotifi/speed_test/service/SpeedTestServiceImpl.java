@@ -33,7 +33,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     @Override
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
         User user = userRepository.findById(speedTestRequest.getUserId()).orElse(null);
-        if (LegitUtils.isUserLegit(user) && user.isLoggedIn())
+        if (!LegitUtils.isUserLegit(user) && !(user != null && user.isLoggedIn()))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         try {
             SpeedTest speedTest = new SpeedTest();

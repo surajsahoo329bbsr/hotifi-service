@@ -16,6 +16,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUsername(String username);
 
+    Boolean existsByUsername(String username);
+
+    Boolean existsByFacebookId(String facebookId);
+
+    Boolean existsByGoogleId(String googleId);
+
     @Query(value = "SELECT * FROM user WHERE username IN :usernames", nativeQuery = true)
     List<User> findAllUsersByUsernames(@Param("usernames") Set<String> usernames);
 

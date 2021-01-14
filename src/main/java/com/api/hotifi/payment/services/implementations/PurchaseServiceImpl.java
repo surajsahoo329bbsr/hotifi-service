@@ -135,7 +135,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         try {
             int amountPaid = 0;
             if (session != null)
-                amountPaid = (int) Math.floor(session.getPrice() / session.getData() * purchaseRequest.getData());
+                amountPaid = (int) Math.ceil(session.getPrice() / session.getData() * purchaseRequest.getData());
             Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -231,13 +231,14 @@ public class PurchaseServiceImpl implements IPurchaseService {
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);
         if (purchase.getSessionFinishedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
-        if (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
-            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
+        if (purchase.getStatus() <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
+            throw new HotifiException(PurchaseErrorCodes.PAYMENT_NOT_SUCCESSFUL);
         try {
             Date sessionStartedAt = new Date(System.currentTimeMillis());
             purchase.setSessionCreatedAt(sessionStartedAt);
-            purchase.setStatus(BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE)));
-            purchaseRepository.save(purchase);
+            purchase.setSessionModifiedAt(sessionStartedAt);
+            purchase.setStatus(BuyerPaymentCodes.START_WIFI_SERVICE.value() % Constants.BUYER_PAYMENT_START_VALUE_CODE + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE)));
+            saveSessionWithWifiService(purchase, false);
             return sessionStartedAt;
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -253,7 +254,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
             if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
                 int dataBought = purchase.getData();
-                int purchaseStatus = BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE));
+                int purchaseStatus = BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value() % Constants.BUYER_PAYMENT_START_VALUE_CODE + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE));
                 Date now = new Date(System.currentTimeMillis());
                 purchase.setDataUsed(dataUsed);
                 purchase.setAmountRefund(calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid()));
@@ -307,7 +308,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus() + (purchase.getStatus() - (purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE)));
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(amountRefund);
-            saveFinishWifiService(purchase, purchase.getStatus(), sessionFinishedAt);
+            purchase.setSessionFinishedAt(sessionFinishedAt);
+            saveSessionWithWifiService(purchase, true);
             return getBuyerWifiSummary(purchase, true);
         } else
             throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
@@ -433,15 +435,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
         return wifiSummaryResponse;
     }
 
-    private void saveFinishWifiService(Purchase purchase, int purchaseStatus, Date sessionFinishedAt) {
-        purchase.setStatus(purchaseStatus);
-        purchase.setSessionFinishedAt(sessionFinishedAt);
+    private void saveSessionWithWifiService(Purchase purchase, boolean isFinished) {
+        purchase.setStatus(purchase.getStatus());
+        purchase.setSessionFinishedAt(purchase.getSessionFinishedAt());
         purchaseRepository.save(purchase);
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
-        session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
-        session.setModifiedAt(sessionFinishedAt);
+        if(isFinished)
+            session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
+        else
+            session.setDataUsed(purchase.getData());
+        session.setModifiedAt(purchase.getSessionModifiedAt());
         sessionRepository.save(session);
     }
 

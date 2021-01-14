@@ -2,6 +2,7 @@ package com.api.hotifi.session.web.controller;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.session.entity.Session;
+import com.api.hotifi.session.model.Buyer;
 import com.api.hotifi.session.service.ISessionService;
 import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
@@ -38,6 +39,25 @@ public class SessionController {
         List<ActiveSessionsResponse> activeSessionsResponses = sessionService.getActiveSessions(usernames);
         return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
     }
+
+    @GetMapping(path = "/get/buyers/{session-id}/{is-active}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "session-id") boolean isActive) {
+        List<Buyer> getBuyers = sessionService.getBuyers(sessionId, isActive);
+        return new ResponseEntity<>(getBuyers, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/put/buyers/notify-finish-session/{session-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId) {
+        sessionService.sendNotificationsToFinishSession(sessionId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/get/buyers/session/summary/{session-id}/{is-active}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "session-id") boolean isForceStop) {
+        SessionSummaryResponse sessionSummaryResponse = sessionService.getSessionSummary(sessionId, isForceStop);
+        return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);
+    }
+
 
 
     @GetMapping(path = "/get/start-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)

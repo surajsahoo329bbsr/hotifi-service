@@ -16,7 +16,7 @@ public interface PurchaseRepository extends PagingAndSortingRepository<Purchase,
     @Query(value = "SELECT * FROM purchase WHERE buyer_id = ?1", nativeQuery = true)
     List<Purchase> findPurchasesByBuyerId(Long buyerId, Pageable pageable);
 
-    @Query(value = "SELECT * FROM purchase WHERE session_id IN : session_ids", nativeQuery = true)
+    @Query(value = "SELECT * FROM purchase WHERE session_id IN :session_ids", nativeQuery = true)
     List<Purchase> findPurchasesBySessionIds(@Param("session_ids") List<Long> sessionIds);
 
     @Query(value = "UPDATE purchase SET status = ?1, refund_payment_id = ?2, refund_done_at = ?3 WHERE id IN : purchase_ids", nativeQuery = true)

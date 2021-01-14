@@ -4,7 +4,7 @@ import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.identity.errors.UserErrorCodes;
+import com.api.hotifi.identity.errors.UserStatusErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
@@ -71,7 +71,7 @@ public class StatsServiceImpl implements IStatsService {
                 throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
         } catch (Exception e) {
             log.error("Error Occurred", e);
-            throw new HotifiException(UserErrorCodes.UNEXPECTED_STATS_ERROR);
+            throw new HotifiException(UserStatusErrorCodes.UNEXPECTED_USER_STATUS_ERROR);
         }
     }
 
@@ -105,7 +105,7 @@ public class StatsServiceImpl implements IStatsService {
             return new SellerStatsResponse(totalEarnings, totalAmountWithdrawn, averageRating,totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
         } catch (Exception e) {
             log.error("Error Occurred", e);
-            throw new HotifiException(UserErrorCodes.UNEXPECTED_STATS_ERROR);
+            throw new HotifiException(UserStatusErrorCodes.UNEXPECTED_USER_STATUS_ERROR);
         }
     }
 }

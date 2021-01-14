@@ -47,6 +47,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
     @Override
     public List<UserStatus> addUserStatus(UserStatusRequest userStatusRequest) {
 
+
         //Request must be of user being warned or deleted
         boolean isUserBeingWarnedXorDeleted = userStatusRequest.getWarningReason() != null ^ userStatusRequest.getDeleteReason() != null;
 

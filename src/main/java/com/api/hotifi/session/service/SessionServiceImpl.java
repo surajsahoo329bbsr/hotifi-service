@@ -77,7 +77,7 @@ public class SessionServiceImpl implements ISessionService {
             throw new HotifiException(SessionErrorCodes.SPEED_TEST_ABSENT);
 
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
-        if (Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
+        if (sellerPayment != null && Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
             throw new HotifiException(SessionErrorCodes.WITHDRAW_SELLER_AMOUNT);
 
         try {
@@ -87,6 +87,8 @@ public class SessionServiceImpl implements ISessionService {
                     .stream()
                     .map(SpeedTest::getId)
                     .collect(Collectors.toList());
+
+            //speedTestIds.forEach(id -> log.info("Id : "+ id));
 
             Date finishedAt = new Date(System.currentTimeMillis());
             sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
@@ -110,10 +112,9 @@ public class SessionServiceImpl implements ISessionService {
     public List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames) {
         try {
             List<User> users = userRepository.findAllUsersByUsernames(usernames);
+            //users.forEach(s -> log.info("username : "+s.getUsername()));
             List<Long> userIds = users.stream()
                     .map(User::getId)
-                    .max(Comparator.comparing(Long::longValue))
-                    .stream()
                     .collect(Collectors.toList());
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
             Map<Long, List<SpeedTest>> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, pageable)
@@ -122,6 +123,7 @@ public class SessionServiceImpl implements ISessionService {
             List<ActiveSessionsResponse> activeSessionsResponses = new ArrayList<>();
 
             speedTests.forEach((sellerId, speedTestList) -> {
+                //Long sellerId = entry.getKey();
                 List<Long> speedTestIds = speedTestList.stream()
                         .map(SpeedTest::getId)
                         .collect(Collectors.toList());

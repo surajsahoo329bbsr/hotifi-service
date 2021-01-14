@@ -69,18 +69,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public String generateEmailOtpSignUp(String email, boolean regenerateEmailOtp) {
+    public String regenerateEmailOtpSignUp(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         //Since it is signup so no need for verifying legit user
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
-        if (authentication.getTokenCreatedAt() != null && !OtpUtils.isEmailOtpExpired(authentication) && regenerateEmailOtp)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_ALREADY_GENERATED);
 
         //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
-        log.info("Generating Otp...");
+        log.info("Regenerating Otp...");
         return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
 
     }

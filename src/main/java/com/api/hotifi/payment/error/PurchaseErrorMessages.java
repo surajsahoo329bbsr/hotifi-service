@@ -16,4 +16,5 @@ public class PurchaseErrorMessages {
     public static final String BUYER_WIFI_SERVICE_ALREADY_FINISHED = "Buyer's wifi service already finished.";
     public static final String PURCHASE_UPDATE_NOT_LEGIT = "Purchase update not legit";
     public static final String UPI_APP_NULL_ERROR =  "Upi App is null";
+    public static final String PAYMENT_NOT_SUCCESSFUL = "Payment is not successful";
 }

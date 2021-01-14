@@ -15,6 +15,6 @@ public interface FeedbackRepository extends PagingAndSortingRepository<Feedback,
     @Query(value = "SELECT * FROM feedback WHERE purchase_id = ?1", nativeQuery = true)
     Feedback findFeedbackByPurchaseId(Long purchaseId);
 
-    @Query(value = "SELECT * FROM feedback WHERE purchase_id IN : purchase_ids", nativeQuery = true)
+    @Query(value = "SELECT * FROM feedback WHERE purchase_id IN :purchase_ids", nativeQuery = true)
     List<Feedback> findFeedbacksByPurchaseIds(@Param("purchase_ids") List<Long> purchaseIds, Pageable pageable);
 }

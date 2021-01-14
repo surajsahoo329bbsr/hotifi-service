@@ -48,7 +48,12 @@ public class UserServiceImpl implements IUserService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_VERIFIED);
-
+        if(userRepository.existsByFacebookId(userRequest.getFacebookId()))
+            throw new HotifiException(UserErrorCodes.FACEBOOK_USER_EXISTS);
+        if(userRepository.existsByGoogleId(userRequest.getGoogleId()))
+            throw new HotifiException(UserErrorCodes.GOOGLE_USER_EXISTS);
+        if(userRepository.existsByUsername(userRequest.getUsername()))
+            throw new HotifiException(UserErrorCodes.USERNAME_EXISTS);
         try {
             User user = new User();
             authentication.setActivated(true);
@@ -63,7 +68,6 @@ public class UserServiceImpl implements IUserService {
             emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
             emailService.sendEmail(user, emailModel, 1);
         } catch (DataIntegrityViolationException e) {
-            log.error("Not Authenticated", e);
             throw new HotifiException(UserErrorCodes.USER_EXISTS);
         } catch (Exception e) {
             log.error("Error ", e);
@@ -137,7 +141,7 @@ public class UserServiceImpl implements IUserService {
     public void updateUser(UserRequest userUpdateRequest) {
         Long authenticationId = userUpdateRequest.getAuthenticationId();
         User user = userRepository.findByAuthenticationId(authenticationId);
-        if (!LegitUtils.isUserLegit(user) && user.isLoggedIn())
+        if (!LegitUtils.isUserLegit(user) && !user.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         Authentication authentication = user.getAuthentication();
         setUser(userUpdateRequest, user, authentication);

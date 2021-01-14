@@ -1,17 +1,10 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.model.EmailModel;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.simplejavamail.api.email.Email;
-import org.simplejavamail.api.mailer.Mailer;
-import org.simplejavamail.api.mailer.config.TransportStrategy;
-import org.simplejavamail.email.EmailBuilder;
-import org.simplejavamail.mailer.MailerBuilder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -26,8 +19,7 @@ public class EmailServiceImpl implements IEmailService {
             String subject;
             File file;
             Document document;
-
-            switch (emailService){
+            /*switch (emailService){
                 case 0:
                     file = new File(Constants.EMAIL_OTP_HTML_PATH);
                     document = Jsoup.parse(file, "UTF-8");
@@ -65,7 +57,7 @@ public class EmailServiceImpl implements IEmailService {
                     .async()
                     .buildMailer();
 
-            mailer.sendMail(email);
+            mailer.sendMail(email);*/
             log.info("Email Sent");
         }
         catch (Exception e){
