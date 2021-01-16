@@ -71,16 +71,12 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void updateDevice(DeviceRequest deviceRequest) {
         try {
-            Optional<User> optionalUsers = userRepository.findById(deviceRequest.getUserId());
             Device device = deviceRepository.findByAndroidId(deviceRequest.getAndroidId());
-            Set<User> users = optionalUsers.map(Collections::singleton).orElse(Collections.emptySet());
             Date now = new Date(System.currentTimeMillis());
-            //Device model name
             device.setName(deviceRequest.getDeviceName());
             device.setAndroidId(deviceRequest.getAndroidId());
             device.setToken(deviceRequest.getToken());
             device.setTokenCreatedAt(now);
-            device.setUsers(users);
             deviceRepository.save(device);
         } catch (Exception e) {
             log.error("Error occured", e);
@@ -92,9 +88,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void deleteUserDevices(Long userId) {
         try {
-            User user = userRepository.getOne(userId);
-            Set<Device> devices = user.getUserDevices();
-            deviceRepository.deleteInBatch(devices); //deletes all devices in Db of single user
+            User user = userRepository.findById(userId).orElse(null);
+            Set<Device> devices = user != null ? user.getUserDevices() : null;
+            if (devices != null) deviceRepository.deleteInBatch(devices); //deletes all devices in Db of single user
         } catch (Exception e) {
             log.error("Error Occurred ", e);
             throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);

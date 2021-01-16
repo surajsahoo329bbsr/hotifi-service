@@ -121,10 +121,11 @@ public class UserStatusServiceImpl implements IUserStatusService {
     @Override
     @Transactional
     public void freezeUser(Long userId, boolean freezeUser) {
-        User user = userRepository.getOne(userId);
-        Long authenticationId = user.getAuthentication().getId();
-        Authentication authentication = authenticationRepository.getOne(authenticationId);
-
+        User user = userRepository.findById(userId).orElse(null);
+        Long authenticationId = user != null ? user.getAuthentication().getId() : null;
+        Authentication authentication = authenticationId != null ? authenticationRepository.findById(authenticationId).orElse(null) : null;
+        if(authentication == null)
+            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
         //If we are unfreezing a freezed user
         if (!freezeUser) {
             //Logic to activate user if he/she has been freezed or banned

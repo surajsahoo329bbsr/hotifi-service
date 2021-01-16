@@ -35,7 +35,8 @@ public class User implements Serializable {
     @Column(length = 20, unique = true, nullable = false)
     private String username;
 
-    private String upiId;
+    @Column(unique = true)
+    private String linkedAccountId;
 
     @Column(unique = true)
     private String facebookId;

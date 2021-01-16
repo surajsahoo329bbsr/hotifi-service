@@ -4,6 +4,7 @@ import com.api.hotifi.common.constant.Constants;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 public enum PaymentGatewayCodes {
 
@@ -15,10 +16,10 @@ public enum PaymentGatewayCodes {
     private static final int START_VALUE = Constants.PAYMENT_GATEWAY_START_VALUE_CODE;
 
     static {
-        for (int i = 0; i < values().length; i++) {
+        IntStream.range(0, values().length).forEach(i -> {
             values()[i].value = START_VALUE + i;
             paymentGatewayMap.put(values()[i].value, values()[i]);
-        }
+        });
     }
 
     private int value;

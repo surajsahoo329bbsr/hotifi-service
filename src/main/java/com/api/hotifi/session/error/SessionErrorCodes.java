@@ -12,4 +12,6 @@ public class SessionErrorCodes extends ErrorCodes {
     public static ErrorCode SPEED_TEST_ABSENT = new ErrorCode("03", Collections.singletonList(getMessage("SPEED_TEST_ABSENT", SessionErrorMessages.SPEED_TEST_ABSENT)), 500);
     public static ErrorCode WITHDRAW_SELLER_AMOUNT = new ErrorCode("04", Collections.singletonList(getMessage("WITHDRAW_SELLER_AMOUNT", SessionErrorMessages.WITHDRAW_SELLER_AMOUNT)), 500);
     public static ErrorCode NOTIFY_BUYERS_TO_FINISH_SESSION = new ErrorCode("05", Collections.singletonList(getMessage("NOTIFY_BUYERS_TO_FINISH_SESSION", SessionErrorMessages.NOTIFY_BUYERS_TO_FINISH_SESSION)), 500);
+    public static ErrorCode SESSION_ALREADY_FINISHED = new ErrorCode("06", Collections.singletonList(getMessage("SESSION_ALREADY_FINISHED", SessionErrorMessages.SESSION_ALREADY_FINISHED)), 500);
+
 }

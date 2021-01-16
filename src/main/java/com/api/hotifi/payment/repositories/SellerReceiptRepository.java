@@ -14,4 +14,6 @@ public interface SellerReceiptRepository extends PagingAndSortingRepository<Sell
     @Query(value = "SELECT * FROM seller_receipt WHERE seller_payment_id = ?1", nativeQuery = true)
     List<SellerReceipt> findSellerReceipts(Long sellerPaymentId, Pageable pageable);
 
+    SellerReceipt findByPaymentId(String paymentId);
+
 }

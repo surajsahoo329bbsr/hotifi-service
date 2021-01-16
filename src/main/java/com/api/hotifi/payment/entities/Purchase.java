@@ -2,6 +2,7 @@ package com.api.hotifi.payment.entities;
 
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.session.entity.Session;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +24,7 @@ public class Purchase implements Serializable {
 
     private String refundPaymentId;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
@@ -30,6 +32,7 @@ public class Purchase implements Serializable {
     @Column(columnDefinition = "INT", nullable = false)
     private int status;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "buyer_id", nullable = false)
     private User user;
@@ -43,6 +46,7 @@ public class Purchase implements Serializable {
     @Column(precision = 15, scale = 3, nullable = false)
     private double dataUsed;
 
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date paymentDoneAt;
@@ -55,6 +59,9 @@ public class Purchase implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sessionFinishedAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date refundStartedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date refundDoneAt;

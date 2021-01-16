@@ -99,8 +99,8 @@ public class PurchaseController {
     @PutMapping(path = "/withdraw/buyer/refunds/{buyer-id}")
     public ResponseEntity<?> withdrawBuyerRefunds(@PathVariable(value = "buyer-id")
                                                   @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId) {
-        RefundReceiptResponse refundReceiptResponse = purchaseService.withdrawBuyerRefunds(buyerId);
-        return new ResponseEntity<>(refundReceiptResponse, HttpStatus.OK);
+        purchaseService.withdrawBuyerRefunds(buyerId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(path = "/get/buyer/refunds/receipts/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)

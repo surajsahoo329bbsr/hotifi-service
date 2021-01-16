@@ -19,6 +19,6 @@ public interface IUserService {
 
     void updateLoginStatus(Long id, boolean loginStatus);
 
-    void updateUpiId(Long id, String upiId);
+    void updateLinkedAccountId(Long id, String linkedAccountId);
 
 }

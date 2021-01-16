@@ -42,17 +42,17 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid) {
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getUpiId(), seller.getAuthentication().getEmail());
+            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getLinkedAccountId(), seller.getAuthentication().getEmail());
 
             SellerReceipt sellerReceipt = new SellerReceipt();
             sellerReceipt.setSellerPayment(sellerPayment);
-            sellerReceipt.setAmountPaid(receiptResponse.getSellerAmountPaid());
-            sellerReceipt.setStatus(Constants.SELLER_PAYMENT_START_VALUE_CODE + receiptResponse.getSellerReceipt().getStatus());
-            sellerReceipt.setPaidAt(receiptResponse.getSellerReceipt().getPaidAt());
-            sellerReceipt.setTransactionId(receiptResponse.getSellerReceipt().getTransactionId());
+            sellerReceipt.setAmountPaid(receiptResponse.getSellerReceipt().getAmountPaid());
+            sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
+            sellerReceipt.setCreatedAt(receiptResponse.getSellerReceipt().getCreatedAt());
+            sellerReceipt.setPaymentId(receiptResponse.getSellerReceipt().getPaymentId());
             receiptResponse.setSellerReceipt(sellerReceipt);
-            receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
-            receiptResponse.setSellerUpiId(seller.getUpiId());
+            receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+            receiptResponse.setSellerLinkedAccountId(seller.getLinkedAccountId());
 
             return receiptResponse;
         } catch (Exception e){
@@ -70,16 +70,16 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
-                SellerReceiptResponse receiptResponse = paymentProcessor.getSellerPaymentStatus(sellerReceipt.getTransactionId());
+                SellerReceiptResponse receiptResponse = paymentProcessor.getSellerPaymentStatus(sellerReceiptRepository, sellerReceipt.getPaymentId());
                 sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
                 sellerReceiptRepository.save(sellerReceipt);
             }
             SellerPayment sellerPayment = sellerReceipt.getSellerPayment();
-            String sellerUpiId = sellerPayment.getSeller().getUpiId();
+            String linkedAccountId = sellerPayment.getSeller().getLinkedAccountId();
             SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
             receiptResponse.setSellerReceipt(sellerReceipt);
-            receiptResponse.setSellerUpiId(sellerUpiId);
-            receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
+            receiptResponse.setSellerLinkedAccountId(linkedAccountId);
+            receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
             return receiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -132,14 +132,14 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
             for (SellerReceipt sellerReceipt : sellerReceipts) {
                 if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
-                    SellerReceiptResponse receipt = paymentProcessor.getSellerPaymentStatus(sellerReceipt.getTransactionId());
+                    SellerReceiptResponse receipt = paymentProcessor.getSellerPaymentStatus(sellerReceiptRepository, sellerReceipt.getPaymentId());
                     sellerReceipt.setStatus(receipt.getSellerReceipt().getStatus());
                     sellerReceiptRepository.save(sellerReceipt);
                 }
-                String sellerUpiId = sellerPayment.getSeller().getUpiId();
+                String linkedAccountId = sellerPayment.getSeller().getLinkedAccountId();
                 receiptResponse.setSellerReceipt(sellerReceipt);
-                receiptResponse.setSellerUpiId(sellerUpiId);
-                receiptResponse.setHotifiUpiId(Constants.HOTIFI_UPI_ID);
+                receiptResponse.setSellerLinkedAccountId(linkedAccountId);
+                receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponses.add(receiptResponse);
             }
             return  sellerReceiptResponses;

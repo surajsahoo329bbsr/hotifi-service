@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public class Feedback implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", referencedColumnName = "id", unique = true, nullable = false)
     private Purchase purchase;
@@ -27,7 +29,7 @@ public class Feedback implements Serializable {
     private String comment;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.TIME)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date(System.currentTimeMillis());
 
     @Column(columnDefinition = "TINYINT(1)", nullable = false)

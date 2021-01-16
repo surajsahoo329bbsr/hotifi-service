@@ -75,12 +75,11 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping(path = "/update/user/{id}/{upi-id}")
-    public ResponseEntity<?> updateUpiId(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id,
-                                         @PathVariable(value = "upi-id") @NotBlank(message = "{upi.id.blank}") @Pattern(regexp = Constants.VALID_UPI_ID_PATTERN, message = "{upi.id.invalid}") String upiId) {
-        userService.updateUpiId(id, upiId);
+    @PutMapping(path = "/update/user/{id}/{linked-account-id}")
+    public ResponseEntity<?> updateLinkedAccountId(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id,
+                                                   @PathVariable(value = "linked-account-id") @NotBlank(message = "{linked.account.id.blank}") String linkedAccountId) {
+        userService.updateLinkedAccountId(id, linkedAccountId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 
 }

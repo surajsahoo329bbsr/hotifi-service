@@ -6,6 +6,7 @@ import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Device;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
@@ -67,7 +68,7 @@ public class SessionServiceImpl implements ISessionService {
     public Session addSession(SessionRequest sessionRequest) {
 
         User user = userRepository.findById(sessionRequest.getUserId()).orElse(null);
-        if (!LegitUtils.isSellerLegit(user))
+        if (!LegitUtils.isSellerLegit(user, false))
             throw new HotifiException(SessionErrorCodes.SELLER_NOT_LEGIT);
 
         SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());
@@ -107,6 +108,7 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
+
     @Transactional
     @Override
     public List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames) {
@@ -133,19 +135,19 @@ public class SessionServiceImpl implements ISessionService {
                         .collect(Collectors.toMap(Session::getSpeedTest, Function.identity(),
                                 BinaryOperator.maxBy(Comparator.comparing(Session::getId))));
 
-                sessions.forEach((seller, session) -> {
+                sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
-                    double availableDataPrice = (session.getPrice() / session.getData()) * availableData;
+                    double availableDataPrice = Math.ceil((session.getPrice() / session.getData()) * availableData);
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
                     activeSessionsResponse.setSessionId(session.getId());
-                    activeSessionsResponse.setSessionId(seller.getId());
-                    activeSessionsResponse.setUsername(seller.getUser().getUsername());
-                    activeSessionsResponse.setUserPhotoUrl(seller.getUser().getPhotoUrl());
+                    activeSessionsResponse.setSellerId(speedTest.getUser().getId());
+                    activeSessionsResponse.setUsername(speedTest.getUser().getUsername());
+                    activeSessionsResponse.setUserPhotoUrl(speedTest.getUser().getPhotoUrl());
                     activeSessionsResponse.setData(availableData);
                     activeSessionsResponse.setPrice(availableDataPrice);
-                    activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(seller.getId()));
+                    activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(speedTest.getUser().getId()));
                     activeSessionsResponse.setDownloadSpeed(downloadSpeed);
                     activeSessionsResponse.setUploadSpeed(uploadSpeed);
                     activeSessionsResponses.add(activeSessionsResponse);
@@ -170,11 +172,11 @@ public class SessionServiceImpl implements ISessionService {
             List<Purchase> purchases = isActive ?
                     purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                             .stream()
-                            .filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value() && purchase.getSessionFinishedAt() == null)
+                            .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value() && purchase.getSessionFinishedAt() == null)
                             .collect(Collectors.toList()) :
                     purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                             .stream()
-                            .filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                            .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                             .collect(Collectors.toList());
             purchases.forEach(purchase -> {
                 Buyer buyer = new Buyer();
@@ -213,26 +215,47 @@ public class SessionServiceImpl implements ISessionService {
 
     }
 
+    @Transactional
     @Override
-    public SessionSummaryResponse getSessionSummary(Long sessionId, boolean isForceStop) {
+    public void finishSession(Long sessionId, boolean isForceStop){
         Session session = sessionRepository.findById(sessionId).orElse(null);
         List<Buyer> buyers = getBuyers(sessionId, true);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+        if(session.getFinishedAt() != null)
+            throw new HotifiException(SessionErrorCodes.SESSION_ALREADY_FINISHED);
         if (!isForceStop && buyers != null && buyers.size() > 0)
             throw new HotifiException(SessionErrorCodes.NOTIFY_BUYERS_TO_FINISH_SESSION);
+
+        User buyer = userRepository.findById(session.getSpeedTest().getUser().getId()).orElse(null);
+        if(LegitUtils.isBuyerLegit(buyer)){
+            session.setFinishedAt(new Date(System.currentTimeMillis()));
+            sessionRepository.save(session);
+        } else{
+            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+        }
+
+    }
+
+    @Override
+    public SessionSummaryResponse getSessionSummary(Long sessionId) {
+        Session session = sessionRepository.findById(sessionId).orElse(null);
+        if (session == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
         try {
+            Date finishedAt = new Date(System.currentTimeMillis());
+            List<Buyer> buyers = getBuyers(sessionId, false);
             double totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
                     .sum();
-            int netEarnings = (int) Math.ceil(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+            int netEarnings = (int) Math.floor(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());
-            sessionSummaryResponse.setSessionFinishedAt(session.getFinishedAt());
-            sessionSummaryResponse.setBuyers(getBuyers(sessionId, false));
+            sessionSummaryResponse.setSessionFinishedAt(finishedAt);
+            sessionSummaryResponse.setBuyers(buyers);
             sessionSummaryResponse.setTotalData(session.getData());
             sessionSummaryResponse.setTotalDataSold(session.getDataUsed());
             sessionSummaryResponse.setTotalEarnings(totalEarnings);
@@ -245,9 +268,9 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<SessionSummaryResponse> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending) {
+    public List<SessionSummaryResponse> getSortedSessionsByStartTime(Long sellerId, int page, int size, boolean isDescending) {
         try {
-            List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
+            List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByDateTime(sellerId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
                     .stream()
                     .map(SpeedTest::getId)
@@ -255,10 +278,10 @@ public class SessionServiceImpl implements ISessionService {
 
             Pageable sortedPageableByStartTime
                     = isDescending ?
-                    PageRequest.of(page, size, Sort.by("start_time").descending())
-                    : PageRequest.of(page, size, Sort.by("start_time"));
+                    PageRequest.of(page, size, Sort.by("created_at").descending())
+                    : PageRequest.of(page, size, Sort.by("created_at"));
 
-            return getSummaryResponses(speedTestIds, sortedPageableByStartTime);
+            return getSessionSummaryResponses(speedTestIds, sortedPageableByStartTime);
 
         } catch (Exception e) {
             log.error("Exception ", e);
@@ -268,9 +291,9 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<SessionSummaryResponse> getSortedSessionsByDataUsed(Long userId, int page, int size, boolean isDescending) {
+    public List<SessionSummaryResponse> getSortedSessionsByDataUsed(Long sellerId, int page, int size, boolean isDescending) {
         try {
-            List<SpeedTest> speedTests = speedTestService.getSortedTestByDateTime(userId, 0, Integer.MAX_VALUE, isDescending);
+            List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByDateTime(sellerId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
                     .stream()
                     .map(SpeedTest::getId)
@@ -281,23 +304,23 @@ public class SessionServiceImpl implements ISessionService {
                     PageRequest.of(page, size, Sort.by("data_used").descending())
                     : PageRequest.of(page, size, Sort.by("data_used"));
 
-            return getSummaryResponses(speedTestIds, sortedPageableByDataUsed);
+            return getSessionSummaryResponses(speedTestIds, sortedPageableByDataUsed);
         } catch (Exception e) {
             log.error("Exception ", e);
             throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
     }
 
-    public List<SessionSummaryResponse> getSummaryResponses(List<Long> speedTestIds, Pageable pageable) {
-        List<Session> sessions = sessionRepository.findAllSessionsById(speedTestIds, pageable);
+    public List<SessionSummaryResponse> getSessionSummaryResponses(List<Long> speedTestIds, Pageable pageable) {
+        List<Session> sessions = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageable);
         List<SessionSummaryResponse> sessionSummaryResponses = new ArrayList<>();
         sessions.forEach(session -> {
             double totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
                     .sum();
-            int netEarnings = (int) Math.ceil(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+            int netEarnings = (int) Math.floor(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());

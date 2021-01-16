@@ -23,9 +23,7 @@ public class PurchaseReceiptResponse {
 
     private String paymentId;
 
-    private String hotifiUpiId;
-
-    private String buyerUpiId;
+    private String hotifiBankAccount;
 
     private String wifiPassword;
 

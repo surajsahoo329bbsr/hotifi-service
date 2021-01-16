@@ -42,6 +42,7 @@ public class SpeedTest implements Serializable {
     @Column(length = 12, nullable = false)
     private String pinCode;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "speedTest")
     private List<Session> sessions;
 

@@ -41,40 +41,46 @@ public class SessionController {
     }
 
     @GetMapping(path = "/get/buyers/{session-id}/{is-active}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "session-id") boolean isActive) {
+    public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "is-active") boolean isActive) {
         List<Buyer> getBuyers = sessionService.getBuyers(sessionId, isActive);
         return new ResponseEntity<>(getBuyers, HttpStatus.OK);
     }
 
     @PutMapping(path = "/put/buyers/notify-finish-session/{session-id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId) {
+    public ResponseEntity<?> sendNotificationsToFinishSession(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId) {
         sessionService.sendNotificationsToFinishSession(sessionId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/buyers/session/summary/{session-id}/{is-active}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "session-id") boolean isForceStop) {
-        SessionSummaryResponse sessionSummaryResponse = sessionService.getSessionSummary(sessionId, isForceStop);
+    @GetMapping(path = "/get/buyers/session/finish/{session-id}/{is-force-stop}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> finishSession(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId, @PathVariable(value = "is-force-stop") boolean isForceStop) {
+        sessionService.finishSession(sessionId, isForceStop);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/get/buyers/session/summary/{session-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId) {
+        SessionSummaryResponse sessionSummaryResponse = sessionService.getSessionSummary(sessionId);
         return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);
     }
 
 
 
-    @GetMapping(path = "/get/start-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getSortedSessionsByStartTime(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
+    @GetMapping(path = "/get/start-time/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getSortedSessionsByStartTime(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
                                                           @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SessionSummaryResponse> sessionSummaryResponses = sessionService.getSortedSessionsByStartTime(userId, page, size, isDescending);
+        List<SessionSummaryResponse> sessionSummaryResponses = sessionService.getSortedSessionsByStartTime(sellerId, page, size, isDescending);
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/data-used/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
+    @GetMapping(path = "/get/data-used/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "seller-id") @Range(min = 1, message = "{selelr.id.invalid}") Long sellerId,
                                                          @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                          @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                          @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SessionSummaryResponse> sessionSummaryResponses = sessionService.getSortedSessionsByDataUsed(userId, page, size, isDescending);
+        List<SessionSummaryResponse> sessionSummaryResponses = sessionService.getSortedSessionsByDataUsed(sellerId, page, size, isDescending);
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
 }

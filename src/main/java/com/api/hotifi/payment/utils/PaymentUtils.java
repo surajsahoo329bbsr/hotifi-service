@@ -20,6 +20,12 @@ public class PaymentUtils {
     public static boolean isSellerPaymentDue(Date currentTime, Date lastPaidAt){
         long timeDifference =  currentTime.getTime() - lastPaidAt.getTime();
         long daysDifference = timeDifference / (24 * 60 * 60 * 1000);
-        return daysDifference >= Constants.MINIMUM_WITHDRAWAL_DUE_DAYS; // If otp generated is more than 10 minutes
+        return daysDifference >= Constants.MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS;
+    }
+
+    public static boolean isBuyerRefundDue(Date currentTime, Date lastPaidAt){
+        long timeDifference =  currentTime.getTime() - lastPaidAt.getTime();
+        long hoursDifference = timeDifference / (60 * 60 * 1000);
+        return hoursDifference >= Constants.MAXIMUM_BUYER_REFUND_DUE_HOURS;
     }
 }

@@ -20,7 +20,7 @@ public interface IPurchaseService {
 
     Date startBuyerWifiService(Long purchaseId);
 
-    RefundReceiptResponse withdrawBuyerRefunds(Long buyerId);
+    void withdrawBuyerRefunds(Long buyerId);
 
     /*
         Below method returns the following codes

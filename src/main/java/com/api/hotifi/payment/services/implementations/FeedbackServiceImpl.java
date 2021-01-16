@@ -86,13 +86,14 @@ public class FeedbackServiceImpl implements IFeedbackService {
     @Override
     public List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int page, int size, boolean isDescending) {
         try {
+            Pageable sessionPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
             User seller = userRepository.findById(sellerId).orElse(null);
             List<Long> speedTestIds = seller != null ?
                     seller.getSpeedTests()
                             .stream().map(SpeedTest::getId)
                             .collect(Collectors.toList()) : null;
             List<Long> sessionIds = speedTestIds != null ?
-                    sessionRepository.findSessionsBySpeedTestIds(speedTestIds)
+                    sessionRepository.findSessionsBySpeedTestIds(speedTestIds, sessionPageable)
                             .stream().map(Session::getId)
                             .collect(Collectors.toList()) : null;
             List<Long> purchaseIds = sessionIds != null ?
@@ -130,12 +131,14 @@ public class FeedbackServiceImpl implements IFeedbackService {
     @Override
     public String getAverageRating(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
+        Pageable sessionPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+
         List<Long> speedTestIds = seller != null ?
                 seller.getSpeedTests()
                         .stream().map(SpeedTest::getId)
                         .collect(Collectors.toList()) : null;
         List<Long> sessionIds = speedTestIds != null ?
-                sessionRepository.findSessionsBySpeedTestIds(speedTestIds)
+                sessionRepository.findSessionsBySpeedTestIds(speedTestIds, sessionPageable)
                         .stream().map(Session::getId)
                         .collect(Collectors.toList()) : null;
         List<Long> purchaseIds = sessionIds != null ?

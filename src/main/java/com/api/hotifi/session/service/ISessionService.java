@@ -19,7 +19,9 @@ public interface ISessionService {
 
     void sendNotificationsToFinishSession(Long sessionId);
 
-    SessionSummaryResponse getSessionSummary(Long sessionId, boolean isForceStop);
+    void finishSession(Long sessionId, boolean isForceStop);
+
+    SessionSummaryResponse getSessionSummary(Long sessionId);
 
     List<SessionSummaryResponse> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending);
 

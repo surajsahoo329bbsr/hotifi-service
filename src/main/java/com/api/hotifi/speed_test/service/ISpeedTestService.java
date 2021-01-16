@@ -15,6 +15,6 @@ public interface ISpeedTestService {
 
     List<SpeedTest> getSortedTestByDownloadSpeed(Long userId, int page, int size, boolean isDescending);
 
-    List<SpeedTest> getSortedTestByDateTime(Long userId, int page, int size, boolean isDescending);
+    List<SpeedTest> getSortedSpeedTestByDateTime(Long userId, int page, int size, boolean isDescending);
 
 }

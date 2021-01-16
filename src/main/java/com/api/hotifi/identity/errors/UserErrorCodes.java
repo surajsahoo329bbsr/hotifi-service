@@ -36,6 +36,6 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode NO_USER_EXISTS = new ErrorCode("18", Collections.singletonList(getMessage("NO_USER_EXISTS", UserErrorMessages.NO_USER_EXISTS)), 400);
     public static final ErrorCode USER_NOT_LEGIT = new ErrorCode("19", Collections.singletonList(getMessage("USER_NOT_LEGIT", UserErrorMessages.USER_NOT_LEGIT)), 400);
     public static final ErrorCode EMAIL_OTP_ALREADY_GENERATED = new ErrorCode("20", Collections.singletonList(getMessage("EMAIL_OTP_ALREADY_GENERATED", UserErrorMessages.EMAIL_OTP_ALREADY_GENERATED)), 400);
-    public static final ErrorCode INVALID_UPI_ID = new ErrorCode("21", Collections.singletonList(getMessage("INVALID_UPI_ID", UserErrorMessages.INVALID_UPI_ID)), 500);
-    public static final ErrorCode USER_UPI_ID_NOT_ADDED = new ErrorCode("22", Collections.singletonList(getMessage("USER_UPI_ID_NOT_ADDED", UserErrorMessages.USER_UPI_NOT_ADDED)), 500);
+    public static final ErrorCode INVALID_LINKED_ACCOUNT_ID = new ErrorCode("21", Collections.singletonList(getMessage("INVALID_LINKED_ACCOUNT_ID", UserErrorMessages.INVALID_LINKED_ACCOUNT_ID)), 500);
+    public static final ErrorCode USER_LINKED_ACCOUNT_ID_NULL = new ErrorCode("22", Collections.singletonList(getMessage("USER_LINKED_ACCOUNT_ID_NULL", UserErrorMessages.USER_LINKED_ACCOUNT_ID_NULL)), 500);
 }

@@ -10,10 +10,8 @@ public class SellerReceiptResponse {
 
     private SellerReceipt sellerReceipt;
 
-    private String sellerUpiId;
+    private String sellerLinkedAccountId;
 
-    private String hotifiUpiId;
-
-    private double sellerAmountPaid;
+    private String hotifiBankAccount;
 
 }

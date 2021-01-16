@@ -1,7 +1,7 @@
 package com.api.hotifi.identity.entities;
 
 import com.api.hotifi.payment.entities.Purchase;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,14 +18,18 @@ public class UserStatus implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
+    //Uncomment below to load json for Purchase in UserStatus
+    //@JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
     private User user;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", referencedColumnName = "id")
-    @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
+    //Uncomment below to load json for Purchase in UserStatus
+    //@JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
     private Purchase purchase;
 
     @Column(length = 20, nullable = false)

@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ import java.util.Set;
 @Entity
 public class Device implements Serializable {
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "userDevices")
     Set<User> users;
 

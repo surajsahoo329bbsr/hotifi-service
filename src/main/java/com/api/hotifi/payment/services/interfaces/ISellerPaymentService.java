@@ -13,6 +13,4 @@ public interface ISellerPaymentService {
 
     SellerReceiptResponse withdrawSellerPayment(Long sellerId);
 
-    //<Add-Response-Entity-here> getSellerStats(Long sellerId);
-
 }

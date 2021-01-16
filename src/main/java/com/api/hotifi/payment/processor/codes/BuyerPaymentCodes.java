@@ -4,6 +4,7 @@ import com.api.hotifi.common.constant.Constants;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 public enum BuyerPaymentCodes {
 
@@ -13,6 +14,7 @@ public enum BuyerPaymentCodes {
     START_WIFI_SERVICE,
     UPDATE_WIFI_SERVICE,
     FINISH_WIFI_SERVICE,
+    REFUND_STARTED,
     REFUND_FAILED,
     REFUND_PROCESSING,
     REFUND_SUCCESSFUL;
@@ -22,10 +24,10 @@ public enum BuyerPaymentCodes {
     private static final int START_VALUE = Constants.BUYER_PAYMENT_START_VALUE_CODE;
 
     static {
-        for (int i = 0; i < values().length; i++) {
+        IntStream.range(0, values().length).forEach(i -> {
             values()[i].value = START_VALUE + i;
             buyerPaymentMap.put(values()[i].value, values()[i]);
-        }
+        });
     }
 
     private int value;

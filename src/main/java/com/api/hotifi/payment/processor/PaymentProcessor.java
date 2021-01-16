@@ -3,16 +3,22 @@ package com.api.hotifi.payment.processor;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerReceipt;
+import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
 import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
-import com.api.hotifi.payment.processor.codes.UpiPaymentCodes;
+import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
+import com.api.hotifi.payment.repositories.PurchaseRepository;
+import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,15 +27,14 @@ public class PaymentProcessor {
 
     private PaymentMethodCodes paymentMethodCodes;
 
-    private UpiPaymentCodes upiPaymentCodes;
-
     private PaymentGatewayCodes paymentGatewayCodes;
 
     private List<Integer> buyerPaymentCodesList = new ArrayList<>(Arrays.asList(
             100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
             200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
             300, 301, 302, 303, 304, 305, 306, 307, 308, 309,
-            400, 401, 402, 403, 404, 405, 406, 407, 408, 409));
+            400, 401, 402, 403, 404, 405, 406, 407, 408, 409,
+            500, 501, 502, 503, 504, 505, 506, 507, 508, 509));
 
     /*private List<Integer> buyerRefundCodesList = new ArrayList<>(Arrays.asList(
             107, 108, 109,
@@ -41,7 +46,8 @@ public class PaymentProcessor {
             1000, 1001, 1002, 1003,
             2000, 2001, 2002, 2003,
             3000, 3001, 3002, 3003,
-            4000, 4001, 4002, 4003));
+            4000, 4001, 4002, 4003,
+            5000, 5001, 5002, 5003));
 
     public PaymentProcessor(PaymentGatewayCodes paymentGatewayCodes) {
         this.paymentGatewayCodes = paymentGatewayCodes;
@@ -52,18 +58,12 @@ public class PaymentProcessor {
         this.paymentMethodCodes = paymentMethodCodes;
     }
 
-    public PaymentProcessor(PaymentGatewayCodes paymentGatewayCodes, PaymentMethodCodes paymentMethodCodes, UpiPaymentCodes upiPaymentCodes) {
-        this.paymentGatewayCodes = paymentGatewayCodes;
-        this.paymentMethodCodes = paymentMethodCodes;
-        this.upiPaymentCodes = upiPaymentCodes;
-    }
-
     //TODO given methods are for test purpose only. Add respective payment gateway codes...
-    public boolean isUpiIdValid(String upiId) {
+    public boolean isLinkedAccountIdValid(String linkedAccountId) {
         //TODO add UpiId verification codes
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
+                log.info("TODO RAZORPAY PAYMENT");
                 return true;
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");
@@ -78,11 +78,13 @@ public class PaymentProcessor {
     public Purchase getBuyerPurchase(String paymentId) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
+                log.info("TODO RAZORPAY PAYMENT");
                 Purchase purchase = new Purchase();
-                purchase.setStatus(upiPaymentCodes.value() * Constants.BUYER_PAYMENT_START_VALUE_CODE);
-                purchase.setPaymentId(paymentId);
-                purchase.setPaymentDoneAt(new Date(System.currentTimeMillis()));
+                //TODO add status, for testing all payments are successful
+                Date now = new Date(System.currentTimeMillis());
+                purchase.setStatus(paymentMethodCodes.value() + BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value());
+                purchase.setPaymentId(paymentId + now);
+                purchase.setPaymentDoneAt(now);
                 return purchase;
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");
@@ -94,15 +96,16 @@ public class PaymentProcessor {
         return null;
     }
 
-    public RefundReceiptResponse getBuyerPaymentStatus(String paymentId) {
+    public RefundReceiptResponse getBuyerPaymentStatus(PurchaseRepository purchaseRepository, String paymentId, boolean isRefundToBeStarted) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
-                Purchase purchase = new Purchase();
-                int index = new Random().nextInt(buyerPaymentCodesList.size());
-                purchase.setStatus(buyerPaymentCodesList.get(index));
-                log.info("status : " + buyerPaymentCodesList.get(index));
-                return new RefundReceiptResponse(purchase, "ref_4512", new Date(System.currentTimeMillis()), Constants.HOTIFI_UPI_ID, null);
+                log.info("TODO RAZORPAY PAYMENT");
+                Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
+                if (isRefundToBeStarted)
+                    purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.REFUND_STARTED.value());
+                else
+                    purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.REFUND_SUCCESSFUL.value());
+                return new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");
                 break;
@@ -113,16 +116,15 @@ public class PaymentProcessor {
         return null;
     }
 
-    public SellerReceiptResponse getSellerPaymentStatus(String paymentId) {
+    public SellerReceiptResponse getSellerPaymentStatus(SellerReceiptRepository sellerReceiptRepository, String paymentId) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
-                SellerReceipt sellerReceipt = new SellerReceipt();
-                int index = new Random().nextInt(sellerPaymentCodesList.size());
-                sellerReceipt.setStatus(sellerPaymentCodesList.get(index));
-                log.info("status : " + sellerPaymentCodesList.get(index));
+                log.info("TODO RAZORPAY PAYMENT");
+                SellerReceipt sellerReceipt = sellerReceiptRepository.findByPaymentId(paymentId);
+                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_SUCCESSFUL.value());
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
                 sellerReceiptResponse.setSellerReceipt(sellerReceipt);
+                sellerReceiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
                 return sellerReceiptResponse;
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");
@@ -134,15 +136,15 @@ public class PaymentProcessor {
         return null;
     }
 
-    public RefundReceiptResponse startBuyerRefund(double refundAmount, String upiId, String email) {
+    public RefundReceiptResponse startBuyerRefund(PurchaseRepository purchaseRepository, double refundAmount, String paymentId, String email) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
-                Purchase purchase = new Purchase();
-                int index = new Random().nextInt(buyerPaymentCodesList.size());
-                purchase.setStatus(buyerPaymentCodesList.get(index));
-                log.info("status : " + buyerPaymentCodesList.get(index));
-                return new RefundReceiptResponse(purchase, "ref_1234", new Date(System.currentTimeMillis()), Constants.HOTIFI_UPI_ID, null);
+                log.info("TODO RAZORPAY PAYMENT");
+                Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
+                Date refundStartedAt = new Date(System.currentTimeMillis());
+                purchase.setRefundStartedAt(refundStartedAt);
+                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.REFUND_STARTED.value());
+                return new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");
                 break;
@@ -153,13 +155,17 @@ public class PaymentProcessor {
         return null;
     }
 
-    public SellerReceiptResponse startSellerPayment(double refundAmount, String upiId, String email) {
+    public SellerReceiptResponse startSellerPayment(double sellerPendingAmount, String linkedAccountId, String email) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
-                log.info("TODO RAZORAPAY PAYMENT");
+                log.info("TODO RAZORPAY PAYMENT");
                 SellerReceipt sellerReceipt = new SellerReceipt();
-                int index = new Random().nextInt(sellerPaymentCodesList.size());
-                sellerReceipt.setStatus(sellerPaymentCodesList.get(index));
+                Date now = new Date(System.currentTimeMillis());
+                //TODO transfer money to seller's account using razorpay's linkedAccountId
+                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_STARTED.value());
+                sellerReceipt.setCreatedAt(now);
+                sellerReceipt.setAmountPaid(sellerPendingAmount);
+                sellerReceipt.setPaymentId("pay_1234" + now);
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
                 sellerReceiptResponse.setSellerReceipt(sellerReceipt);
                 return sellerReceiptResponse;

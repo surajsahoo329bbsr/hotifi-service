@@ -9,6 +9,7 @@ import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
 import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
+import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.services.interfaces.ISellerPaymentService;
 import com.api.hotifi.payment.services.interfaces.ISellerReceiptService;
 import com.api.hotifi.payment.utils.PaymentUtils;
@@ -26,6 +27,9 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
 
     @Autowired
     private SellerPaymentRepository sellerPaymentRepository;
+
+    @Autowired
+    private SellerReceiptRepository sellerReceiptRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -49,10 +53,11 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     @Transactional
     @Override
     public void updateSellerPayment(User seller, double amountEarned) {
-        SellerPayment sellerPayment = sellerPaymentRepository.getOne(seller.getId());
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId());
+        if(sellerPayment == null)
+            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         Date now = new Date(System.currentTimeMillis());
-        double newAmountEarned = sellerPayment.getAmountEarned() + amountEarned;
-        sellerPayment.setAmountEarned(newAmountEarned);
+        sellerPayment.setAmountEarned(amountEarned);
         sellerPayment.setModifiedAt(now);
         sellerPaymentRepository.save(sellerPayment);
     }
@@ -64,7 +69,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
         if (sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller))
+        if (!LegitUtils.isSellerLegit(seller, true))
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
 
         double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
@@ -97,6 +102,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
                     //TODO RazorPay's failure status
                     break;
             }
+            sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
             sellerPaymentRepository.save(sellerPayment);
             return sellerReceiptResponse;
         } catch (Exception e) {

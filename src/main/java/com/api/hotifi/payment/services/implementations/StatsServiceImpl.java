@@ -24,10 +24,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,13 +58,14 @@ public class StatsServiceImpl implements IStatsService {
         try {
             User buyer = userRepository.findById(buyerId).orElse(null);
             if (LegitUtils.isUserLegit(buyer)) {
-                Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-                Stream<Purchase> purchaseStream = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
-                double totalPendingRefunds = purchaseStream.filter(purchase -> purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && purchase.getStatus() % Constants.BUYER_PAYMENT_START_VALUE_CODE <= BuyerPaymentCodes.REFUND_FAILED.value())
+                Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("session_created_at").descending());
+                Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
+                double totalPendingRefunds = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
                         .mapToDouble(Purchase::getAmountRefund)
                         .sum();
-                double totalDataBought = purchaseStream.mapToDouble(Purchase::getAmountRefund).sum();
-                double totalDataBoughtByWifi = purchaseStream.filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
+
+                double totalDataBought = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
+                double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
                         .mapToDouble(Purchase::getDataUsed)
                         .sum();
                 double totalDataBoughtByMobile = totalDataBought - totalDataBoughtByWifi;
@@ -79,7 +82,7 @@ public class StatsServiceImpl implements IStatsService {
     @Override
     public SellerStatsResponse getSellerStats(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller))
+        if (!LegitUtils.isSellerLegit(seller, false))
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
@@ -88,21 +91,22 @@ public class StatsServiceImpl implements IStatsService {
             double totalEarnings = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
             double totalAmountWithdrawn = sellerPayment.getAmountPaid();
             String averageRating = feedbackService.getAverageRating(sellerId);
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
 
             List<Long> speedTestIds = seller.getSpeedTests()
                     .stream().map(SpeedTest::getId)
                     .collect(Collectors.toList());
-            List<Long> sessionIds = sessionRepository.findSessionsBySpeedTestIds(speedTestIds)
+            List<Long> sessionIds = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageable)
                     .stream().map(Session::getId)
                     .collect(Collectors.toList());
-            List<Purchase> purchases = purchaseRepository.findPurchasesBySessionIds(sessionIds);
+            Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesBySessionIds(sessionIds).stream();
 
-            double totalDataSold = purchases.stream().mapToDouble(Purchase::getDataUsed).sum();
-            double totalDataSoldByWifi = purchases.stream().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
+            double totalDataSold = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
+            double totalDataSoldByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
                     .mapToDouble(Purchase::getDataUsed)
                     .sum();
             double totalDataSoldByMobile = totalDataSold - totalDataSoldByWifi;
-            return new SellerStatsResponse(totalEarnings, totalAmountWithdrawn, averageRating,totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
+            return new SellerStatsResponse(sellerPayment.getId(), sellerPayment.getLastPaidAt(),totalEarnings, totalAmountWithdrawn, averageRating,totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
         } catch (Exception e) {
             log.error("Error Occurred", e);
             throw new HotifiException(UserStatusErrorCodes.UNEXPECTED_USER_STATUS_ERROR);

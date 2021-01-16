@@ -36,36 +36,34 @@ public class LegitUtils {
     }
 
     //Check if buyer is logged in / deleted / activated / freezed / banned / has upi id
-    public static boolean isBuyerLegit(User user) {
-        if (user == null)
+    public static boolean isBuyerLegit(User buyer) {
+        if (buyer == null)
             return false;
-        if(!user.getAuthentication().isActivated())
+        if(!buyer.getAuthentication().isActivated())
             throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(user.getAuthentication().isFreezed())
+        if(buyer.getAuthentication().isFreezed())
             throw new HotifiException(UserErrorCodes.USER_FREEZED);
-        if(user.getAuthentication().isBanned())
+        if(buyer.getAuthentication().isBanned())
             throw new HotifiException(UserErrorCodes.USER_BANNED);
-        if(user.getAuthentication().isDeleted())
+        if(buyer.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
-        if(!user.isLoggedIn())
+        if(!buyer.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
-        if(user.getUpiId() == null)
-            throw new HotifiException(UserErrorCodes.USER_UPI_ID_NOT_ADDED);
         return true;
     }
 
     //Check if seller is deleted / activated / has upi id
-    public static boolean isSellerLegit(User user) {
-        if (user == null)
+    public static boolean isSellerLegit(User seller, boolean isLinkedAccountIdMandatory) {
+        if (seller == null)
             return false;
-        if(!user.getAuthentication().isActivated())
+        if(!seller.getAuthentication().isActivated())
             throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(user.getAuthentication().isDeleted())
+        if(seller.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
-        if(!user.isLoggedIn())
+        if(!seller.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
-        if(user.getUpiId() == null)
-            throw new HotifiException(UserErrorCodes.USER_UPI_ID_NOT_ADDED);
+        if(seller.getLinkedAccountId() == null && isLinkedAccountIdMandatory)
+            throw new HotifiException(UserErrorCodes.USER_LINKED_ACCOUNT_ID_NULL);
         return true;
     }
 

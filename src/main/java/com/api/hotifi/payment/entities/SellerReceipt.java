@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public class SellerReceipt implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_payment_id", nullable = false)
     private SellerPayment sellerPayment;
@@ -24,7 +26,7 @@ public class SellerReceipt implements Serializable {
     private double amountPaid;
 
     @Column(nullable = false)
-    private String transactionId;
+    private String paymentId;
 
     @Column(columnDefinition = "INT", nullable = false)
     private int status;

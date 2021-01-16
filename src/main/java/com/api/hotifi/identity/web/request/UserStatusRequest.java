@@ -23,19 +23,15 @@ public class UserStatusRequest {
     @Pattern(regexp = Constants.VALID_ROLE_PATTERN, message = "{role.name.invalid}")
     private String role;
 
-    @NotBlank(message = "{warning.reason.blank}")
     @Length(max = 255, message = "{warning.reason.invalid}")
     private String warningReason;
 
-    @NotBlank(message = "freeze.reason.blank")
     @Length(max = 255, message = "{freeze.reason.invalid}")
     private String freezeReason;
 
-    @NotBlank(message = "{ban.reason.blank}")
     @Length(max = 255, message = "{ban.reason.invalid}")
     private String banReason;
 
-    @NotBlank(message = "{delete.reason.blank}")
     @Length(max = 255, message = "{delete.reason.invalid}")
     private String deleteReason;
 

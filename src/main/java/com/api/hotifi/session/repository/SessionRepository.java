@@ -14,11 +14,8 @@ import java.util.List;
 @Repository
 public interface SessionRepository extends PagingAndSortingRepository<Session, Long> {
 
-    @Query(value = "SELECT * FROM session WHERE id in :ids", nativeQuery = true)
-    List<Session> findAllSessionsById(@Param("ids") List<Long> sessionIds, Pageable pageable);
-
     @Query(value = "SELECT * FROM session WHERE speed_test_id in :speed_test_ids", nativeQuery = true)
-    List<Session> findSessionsBySpeedTestIds(@Param("speed_test_ids") List<Long> speedTestIds);
+    List<Session> findSessionsBySpeedTestIds(@Param("speed_test_ids") List<Long> speedTestIds, Pageable pageable);
 
     @Modifying
     @Query(value = "UPDATE session SET finished_at = :finished_at WHERE speed_test_id in :speed_test_ids AND finished_at IS NULL", nativeQuery = true)

@@ -63,7 +63,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     //For Get Speed Tests call sortByDateTime in Descending format
     @Transactional
     @Override
-    public List<SpeedTest> getSortedTestByDateTime(Long userId, int page, int size, boolean isDescending) {
+    public List<SpeedTest> getSortedSpeedTestByDateTime(Long userId, int page, int size, boolean isDescending) {
         try {
             Pageable sortedPageableByDateTime
                     = isDescending ?

@@ -3,9 +3,15 @@ package com.api.hotifi.payment.web.responses;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Date;
+
 @Getter
 @AllArgsConstructor
 public class SellerStatsResponse {
+
+    public Long sellerPaymentId;
+
+    public Date lastPaidAt;
 
     public double totalEarnings;
 

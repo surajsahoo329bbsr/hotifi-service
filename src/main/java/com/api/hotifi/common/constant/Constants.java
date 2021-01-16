@@ -4,7 +4,7 @@ public class Constants {
 
     //TODO add hotifi upi and commission
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
-    public static final String HOTIFI_UPI_ID = "hotifi@ybl";
+    public static final String HOTIFI_BANK_ACCOUNT = "hotifi_bank";
     public static final int COMMISSION_PERCENTAGE = 20;
 
     //Razorpay Configuration
@@ -49,7 +49,7 @@ public class Constants {
     public static final String VALID_PHONE_PATTERN = "^[0-9]{10,15}$";
     public static final String VALID_USERNAME_PATTERN = "^(?=[a-zA-Z0-9._]{6,30}$)(?!.*[_.]{2})[^_.].*[^_.]$";
     public static final String VALID_COUNTRY_CODE_PATTERN = "^[0-9]{1,5}$";
-    public static final String VALID_UPI_ID_PATTERN = "[a-zA-Z0-9.\\\\-_]{3,256}@[a-zA-Z]{3,64}";
+    //public static final String VALID_UPI_ID_PATTERN = "[a-zA-Z0-9.\\\\-_]{3,256}@[a-zA-Z]{3,64}";
     public static final String VALID_ROLE_PATTERN = "(BUYER|SELLER|DELETE)";
 
     //Range
@@ -61,23 +61,23 @@ public class Constants {
     public static final int MINIMUM_SELLING_DATA_PRICE = 1;
     public static final int MAXIMUM_SELLING_DATA_PRICE = 40;
     public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
-    public static final int MINIMUM_WITHDRAWAL_AMOUNT = 20;
+    public static final int MINIMUM_WITHDRAWAL_AMOUNT = 5;
     public static final int MAXIMUM_WITHDRAWAL_AMOUNT = 10000;
     public static final int MAXIMUM_REFUND_WITHDRAWAL_LIMIT = 1000;
     public static final int MAXIMUM_SELLER_AMOUNT_EARNED = 20000;
     public static final int MAXIMUM_EMAIL_OTP_MINUTES = 10;
-    public static final int MINIMUM_WITHDRAWAL_DUE_DAYS = 30;
-    public static final int MINIMUM_AMOUNT_PAID_INR = 1;
-    public static final int MAXIMUM_AMOUNT_PAID_INR = 8000;
+    public static final int MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS = 30;
+    //public static final int MINIMUM_AMOUNT_PAID_INR = 1;
+    //public static final int MAXIMUM_AMOUNT_PAID_INR = 8000;
     public static final int MINIMUM_FREEZE_PERIOD_HOURS = 24;
     public static final int MINIMUM_WARNINGS_TO_FREEZE = 10;
     public static final int MINIMUM_WARNINGS_TO_BAN = 15;
+    public static final int MAXIMUM_BUYER_REFUND_DUE_HOURS = 72;
 
     //Status codes
-    public static final int BUYER_PAYMENT_START_VALUE_CODE = 100;
+    public static final int BUYER_PAYMENT_START_VALUE_CODE = 0;
     public static final int SELLER_PAYMENT_START_VALUE_CODE = 1000;
-    public static final int UPI_PAYMENT_START_VALUE_CODE = 1;
-    public static final int PAYMENT_METHOD_START_VALUE_CODE = 1;
+    public static final int PAYMENT_METHOD_START_VALUE_CODE = 100;
     public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
 
 }

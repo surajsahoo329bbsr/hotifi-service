@@ -167,16 +167,16 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public void updateUpiId(Long id, String upiId) {
+    public void updateLinkedAccountId(Long id, String linkedAccountId) {
 
         User user = userRepository.findById(id).orElse(null);
         if (!LegitUtils.isUserLegit(user))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            if(!paymentProcessor.isUpiIdValid(user.getUpiId()))
-                throw new HotifiException(UserErrorCodes.INVALID_UPI_ID);
-            user.setUpiId(upiId);
+            if(!paymentProcessor.isLinkedAccountIdValid(user.getLinkedAccountId()))
+                throw new HotifiException(UserErrorCodes.INVALID_LINKED_ACCOUNT_ID);
+            user.setLinkedAccountId(linkedAccountId);
             userRepository.save(user);
         } catch (Exception e) {
             log.error("Error occurred ", e);

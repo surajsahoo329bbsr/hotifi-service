@@ -20,6 +20,6 @@ public class PurchaseErrorCodes extends ErrorCodes {
     public static final ErrorCode BUYER_WIFI_SERVICE_NOT_STARTED = new ErrorCode("11", Collections.singletonList(getMessage("BUYER_WIFI_SERVICE_NOT_STARTED", PurchaseErrorMessages.BUYER_WIFI_SERVICE_NOT_STARTED)), 500);
     public static final ErrorCode DATA_USED_EXCEEDS_DATA_BOUGHT = new ErrorCode("12", Collections.singletonList(getMessage("DATA_USED_EXCEEDS_DATA_BOUGHT", PurchaseErrorMessages.DATA_USED_EXCEEDS_DATA_BOUGHT)), 500);
     public static final ErrorCode DATA_TO_UPDATE_DECEEDS_DATA_USED = new ErrorCode("13", Collections.singletonList(getMessage("DATA_TO_UPDATE_DECEEDS_DATA_USED", PurchaseErrorMessages.DATA_TO_UPDATE_DECEEDS_DATA_USED)), 500);
-    public static final ErrorCode UPI_APP_NULL_ERROR =  new ErrorCode("14", Collections.singletonList(getMessage("UPI_APP_NULL_ERROR", PurchaseErrorMessages.UPI_APP_NULL_ERROR)), 500);
     public static final ErrorCode PAYMENT_NOT_SUCCESSFUL = new ErrorCode("15", Collections.singletonList(getMessage("PAYMENT_NOT_SUCCESSFUL", PurchaseErrorMessages.PAYMENT_NOT_SUCCESSFUL)), 500);
+    public static final ErrorCode NO_BUYER_PENDING_REFUNDS = new ErrorCode("16", Collections.singletonList(getMessage("NO_BUYER_PENDING_REFUNDS", PurchaseErrorMessages.NO_BUYER_PENDING_REFUNDS)), 500);
 }
