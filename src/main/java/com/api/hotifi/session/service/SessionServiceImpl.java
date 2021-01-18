@@ -108,7 +108,6 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
-
     @Transactional
     @Override
     public List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames) {
@@ -137,7 +136,7 @@ public class SessionServiceImpl implements ISessionService {
 
                 sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
-                    double availableDataPrice = Math.ceil((session.getPrice() / session.getData()) * availableData);
+                    double availableDataPrice = Math.ceil((session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB) * availableData);
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
@@ -235,6 +234,18 @@ public class SessionServiceImpl implements ISessionService {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         }
 
+    }
+
+    @Transactional
+    @Override
+    public double calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed) {
+        Session session = sessionRepository.findById(sessionId).orElse(null);
+        if(session == null)
+            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+        double availableData = session.getData() - session.getDataUsed();
+        if(Double.compare(dataToBeUsed, availableData) > 0)
+            throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
+        return Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * dataToBeUsed);
     }
 
     @Override

@@ -11,6 +11,8 @@ public interface IUserService {
 
     String generateEmailOtpLogin(String email);
 
+    boolean isUsernameAvailable(String username);
+
     String regenerateEmailOtpLogin(String email);
 
     void verifyEmailOtp(String email, String emailOtp);

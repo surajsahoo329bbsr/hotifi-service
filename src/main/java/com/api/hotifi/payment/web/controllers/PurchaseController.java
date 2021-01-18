@@ -122,7 +122,7 @@ public class PurchaseController {
                                                         @PathVariable(value = "session-id")
                                                         @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                                         @PathVariable(value = "data-to-be-used")
-                                                        @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{page.number.invalid}") int dataToBeUsed) {
+                                                        @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
         boolean isBuyerCurrentSessionLegit = purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);
         return new ResponseEntity<>(isBuyerCurrentSessionLegit, HttpStatus.OK);
     }

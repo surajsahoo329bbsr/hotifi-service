@@ -66,7 +66,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     }
 
-
     @Transactional
     @Override
     public String regenerateEmailOtpSignUp(String email) {

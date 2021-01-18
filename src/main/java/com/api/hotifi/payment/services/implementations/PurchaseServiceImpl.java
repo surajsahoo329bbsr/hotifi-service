@@ -35,7 +35,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -103,7 +105,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.valueOf(purchaseRequest.getPaymentMethod()));
 
         try {
-            int amountPaid = session != null ? (int) Math.ceil(session.getPrice() / session.getData() * purchaseRequest.getData()) : 0;
+            int amountPaid = session != null ? (int) Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * purchaseRequest.getData()) : 0;
             Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -231,8 +233,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             if (sellerPayment == null)
                 sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
-            else if(Double.compare(dataUsed, purchase.getDataUsed()) > 0)
-                sellerPaymentService.updateSellerPayment(seller, purchase.getAmountPaid() - calculatedRefundAmount);
+            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(calculatedRefundAmount, purchase.getAmountRefund()) < 0)
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - calculatedRefundAmount);
 
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(calculatedRefundAmount);
@@ -262,6 +264,15 @@ public class PurchaseServiceImpl implements IPurchaseService {
             int dataBought = purchase.getData();
             Date sessionFinishedAt = new Date(System.currentTimeMillis());
             double amountRefund = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+            User seller = session != null ? session.getSpeedTest().getUser() : null;
+
+            SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
+            if (sellerPayment == null)
+                sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
+            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(amountRefund, purchase.getAmountRefund()) < 0)
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - amountRefund);
+
             RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
             purchase.setDataUsed(dataUsed);
@@ -269,8 +280,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setSessionFinishedAt(sessionFinishedAt);
             saveSessionWithWifiService(purchase, true);
             return getBuyerWifiSummary(purchase, false);
-        } else
-            throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
+        }
+
+        throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
 
     }
 
@@ -316,7 +328,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                     .mapToDouble(Purchase::getAmountRefund)
                     .sum();
 
-            if(Double.compare(totalRefundAmount, 0) == 0)
+            if (Double.compare(totalRefundAmount, 0) == 0)
                 throw new HotifiException(PurchaseErrorCodes.NO_BUYER_PENDING_REFUNDS);
 
             List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
@@ -337,19 +349,21 @@ public class PurchaseServiceImpl implements IPurchaseService {
     @Override
     public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
         User buyer = userRepository.findById(buyerId).orElse(null);
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
         if (LegitUtils.isBuyerLegit(buyer)) {
             Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
                     PageRequest.of(page, size, Sort.by("refund_done_at"));
-            Map<String, List<Purchase>> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+            List<Purchase> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                     .stream()
-                    .collect(Collectors.groupingBy(Purchase::getRefundPaymentId));
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_STARTED.value())
+                    .collect(Collectors.toList());
             List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
-            purchaseReceipts.forEach((refundPaymentId, purchases) -> purchases.forEach(purchase -> {
-                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_PROCESSING.value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(purchaseRepository, refundPaymentId, true);
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
+            purchaseReceipts.forEach(purchase -> {
+                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_PROCESSING.value()) {
+                    RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), true);
                     int status = receiptResponse.getPurchase().getStatus();
                     Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
+                    String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
                     purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, purchase.getId());
                     purchase.setStatus(status);
                     purchase.setRefundPaymentId(refundPaymentId);
@@ -357,17 +371,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 }
                 RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
                 refundReceiptResponses.add(refundReceiptResponse);
-            }));
+            });
             return refundReceiptResponses;
-        } else
-            throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
+        }
+
+        throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
     }
 
     //User defined functions
 
     private double calculateRefundAmount(double dataBought, double dataUsed, double amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
-        return amountPaid - Math.floor((amountPaid / dataBought) * dataUsed);
+        return amountPaid - Math.ceil((amountPaid / dataBought) * dataUsed);
     }
 
     private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {

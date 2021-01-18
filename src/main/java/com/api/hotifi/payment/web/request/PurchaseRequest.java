@@ -30,6 +30,6 @@ public class PurchaseRequest {
     @PaymentMethod
     private String paymentMethod;
 
-    @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{data.range.invalid}")
+    @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{data.range.invalid}")
     private int data;
 }

@@ -45,6 +45,15 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/get/is-available/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> isUsernameAvailable(@PathVariable(value = "username")
+                                                 @NotBlank(message = "{username.blank}")
+                                                 @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
+        boolean isUsernameAvailable = userService.isUsernameAvailable(username);
+        return new ResponseEntity<>(isUsernameAvailable, HttpStatus.OK);
+    }
+
+
     @PutMapping(path = "/login/send-otp/{email}")
     public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
         String token = userService.generateEmailOtpLogin(email);

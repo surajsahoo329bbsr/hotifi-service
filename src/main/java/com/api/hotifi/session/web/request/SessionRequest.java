@@ -26,11 +26,11 @@ public class SessionRequest {
     private String wifiPassword;
 
     //For unlimited data put 200 GB, else put minimum 100
-    @Range(min = Constants.MINIMUM_SELLING_DATA, max = Constants.MAXIMUM_SELLING_DATA, message = "{session.data.invalid}")
+    @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{session.data.invalid}")
     private int data;
 
     //Unit Price, i.e. Price per GB
-    @Range(min = Constants.MINIMUM_SELLING_DATA_PRICE, max = Constants.MAXIMUM_SELLING_DATA_PRICE, message = "{session.price.invalid}")
+    @Range(min = Constants.MINIMUM_SELLING_DATA_PRICE_PER_GB, max = Constants.MAXIMUM_SELLING_DATA_PRICE_PER_GB, message = "{session.price.invalid}")
     private double price;
 
     private boolean isWifi;

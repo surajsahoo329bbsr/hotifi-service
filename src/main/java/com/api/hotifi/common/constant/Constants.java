@@ -11,6 +11,9 @@ public class Constants {
     public static final String RAZOR_PAY_KEY_ID = "";
     public static final String RAZOR_PAY_KEY_SECRET = "";
 
+    //1 GB in MB
+    public static final int UNIT_GB_VALUE_IN_MB = 1024;
+
 
     //TODO add Html files and it's paths and emails
     public static final String EMAIL_HOST = "";
@@ -56,10 +59,10 @@ public class Constants {
     public static final String MINIMUM_UPLOAD_SPEED = "0.25";
     public static final String MINIMUM_DOWNLOAD_SPEED = "1.00";
     public static final String MINIMUM_DATA_USED_MB = "0.00";
-    public static final int MINIMUM_SELLING_DATA = 100; //100 MB
-    public static final int MAXIMUM_SELLING_DATA = 204800; //200 GB
-    public static final int MINIMUM_SELLING_DATA_PRICE = 1;
-    public static final int MAXIMUM_SELLING_DATA_PRICE = 40;
+    public static final int MINIMUM_SELLING_DATA_MB = 100; //100 MB
+    public static final int MAXIMUM_SELLING_DATA_MB = 204800; //200 GB
+    public static final int MINIMUM_SELLING_DATA_PRICE_PER_GB = 10;
+    public static final int MAXIMUM_SELLING_DATA_PRICE_PER_GB = 40;
     public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
     public static final int MINIMUM_WITHDRAWAL_AMOUNT = 5;
     public static final int MAXIMUM_WITHDRAWAL_AMOUNT = 10000;

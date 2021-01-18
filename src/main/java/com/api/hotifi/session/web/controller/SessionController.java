@@ -58,6 +58,12 @@ public class SessionController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping(path = "/get/buyers/session/calculate/{session-id}/{data-to-be-used}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> calculatePaymentForDataToBeUsed(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId, @PathVariable(value = "data-to-be-used") @Range(min = 1, message = "{data.to.be.used.invalid}") int dataToBeUsed) {
+        double amountToBePaid = sessionService.calculatePaymentForDataToBeUsed(sessionId, dataToBeUsed);
+        return new ResponseEntity<>(amountToBePaid, HttpStatus.OK);
+    }
+
     @GetMapping(path = "/get/buyers/session/summary/{session-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId) {
         SessionSummaryResponse sessionSummaryResponse = sessionService.getSessionSummary(sessionId);

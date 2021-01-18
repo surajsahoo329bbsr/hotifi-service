@@ -98,6 +98,11 @@ public class UserServiceImpl implements IUserService {
         return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
+    @Override
+    public boolean isUsernameAvailable(String username) {
+        return !userRepository.existsByUsername(username);
+    }
+
     @Transactional
     @Override
     public String regenerateEmailOtpLogin(String email) {
