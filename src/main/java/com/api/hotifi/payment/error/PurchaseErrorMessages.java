@@ -17,4 +17,5 @@ public class PurchaseErrorMessages {
     public static final String PURCHASE_UPDATE_NOT_LEGIT = "Purchase update not legit";
     public static final String PAYMENT_NOT_SUCCESSFUL = "Payment is not successful";
     public static final String NO_BUYER_PENDING_REFUNDS = "Buyer has no pending refunds";
+    public static final String UPDATE_WIFI_SERVICE_BEFORE_FINISHING = "Update Wifi Service  before finishing";
 }

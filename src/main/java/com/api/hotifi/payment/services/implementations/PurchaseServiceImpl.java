@@ -269,8 +269,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             if (sellerPayment == null)
-                sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
-            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(amountRefund, purchase.getAmountRefund()) < 0)
+                throw new HotifiException(PurchaseErrorCodes.UPDATE_WIFI_SERVICE_BEFORE_FINISHING);
+            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(amountRefund, purchase.getAmountRefund()) < 0)
                 sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - amountRefund);
 
             RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());

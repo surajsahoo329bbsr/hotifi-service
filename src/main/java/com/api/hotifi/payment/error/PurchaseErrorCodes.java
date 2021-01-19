@@ -22,4 +22,5 @@ public class PurchaseErrorCodes extends ErrorCodes {
     public static final ErrorCode DATA_TO_UPDATE_DECEEDS_DATA_USED = new ErrorCode("13", Collections.singletonList(getMessage("DATA_TO_UPDATE_DECEEDS_DATA_USED", PurchaseErrorMessages.DATA_TO_UPDATE_DECEEDS_DATA_USED)), 500);
     public static final ErrorCode PAYMENT_NOT_SUCCESSFUL = new ErrorCode("15", Collections.singletonList(getMessage("PAYMENT_NOT_SUCCESSFUL", PurchaseErrorMessages.PAYMENT_NOT_SUCCESSFUL)), 500);
     public static final ErrorCode NO_BUYER_PENDING_REFUNDS = new ErrorCode("16", Collections.singletonList(getMessage("NO_BUYER_PENDING_REFUNDS", PurchaseErrorMessages.NO_BUYER_PENDING_REFUNDS)), 500);
+    public static final ErrorCode UPDATE_WIFI_SERVICE_BEFORE_FINISHING = new ErrorCode("17", Collections.singletonList(getMessage("UPDATE_WIFI_SERVICE_BEFORE_FINISHING", PurchaseErrorMessages.UPDATE_WIFI_SERVICE_BEFORE_FINISHING)), 500);
 }
