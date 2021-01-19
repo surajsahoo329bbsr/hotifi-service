@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -89,15 +90,15 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
 
     @Transactional
     @Override
-    public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerPaymentId, int page, int size, boolean isDescending) {
-        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
+    public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerId, int page, int size, boolean isDescending) {
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         try {
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("created_at").descending()) :
                     PageRequest.of(page, size, Sort.by("created_at"));
-            return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
+            return getSellerReceipts(sellerPayment.getId(), pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
             throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
@@ -106,15 +107,15 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
 
     @Transactional
     @Override
-    public List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerPaymentId, int page, int size, boolean isDescending) {
+    public List<SellerReceiptResponse> getSortedSellerReceiptsByAmountPaid(Long sellerId, int page, int size, boolean isDescending) {
         try {
-            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerPaymentId);
+            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
             if (sellerPayment == null)
                 throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("amount_paid").descending()) :
                     PageRequest.of(page, size, Sort.by("amount_paid"));
-            return getSellerReceipts(sellerPaymentId, pageable, sellerPayment);
+            return getSellerReceipts(sellerPayment.getId(), pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
             throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
@@ -131,10 +132,20 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
             for (SellerReceipt sellerReceipt : sellerReceipts) {
-                if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
+                if (sellerReceipt.getStatus() <= SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
+                    Date paidAt = new Date(System.currentTimeMillis());
                     SellerReceiptResponse receipt = paymentProcessor.getSellerPaymentStatus(sellerReceiptRepository, sellerReceipt.getPaymentId());
                     sellerReceipt.setStatus(receipt.getSellerReceipt().getStatus());
+                    sellerReceipt.setPaidAt(paidAt);
+                    sellerReceipt.setModifiedAt(paidAt);
                     sellerReceiptRepository.save(sellerReceipt);
+
+                    //updating seller_payment entity after withdrawing money
+                    sellerPayment.setAmountPaid(sellerReceipt.getAmountPaid() + sellerPayment.getAmountPaid());
+                    sellerPayment.setLastPaidAt(sellerReceipt.getPaidAt());
+                    sellerPayment.setModifiedAt(sellerReceipt.getPaidAt());
+                    sellerPaymentRepository.save(sellerPayment);
+
                 }
                 String linkedAccountId = sellerPayment.getSeller().getLinkedAccountId();
                 receiptResponse.setSellerReceipt(sellerReceipt);
