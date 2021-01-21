@@ -1,6 +1,8 @@
 package com.api.hotifi.identity.entities;
 
+import com.api.hotifi.payment.entities.SellerBankAccount;
 import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
@@ -17,6 +19,7 @@ import java.util.Set;
 @Entity
 public class User implements Serializable {
 
+    @JsonIgnore
     @ManyToMany(cascade = {CascadeType.ALL})
     @JoinTable(
             name = "user_device",
@@ -24,6 +27,10 @@ public class User implements Serializable {
             inverseJoinColumns = {@JoinColumn(name = "device_id", referencedColumnName = "id")}
     )
     Set<Device> userDevices;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "seller_bank_account_id", referencedColumnName = "id")
+    private SellerBankAccount sellerBankAccount;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +72,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<SpeedTest> speedTests;
 }

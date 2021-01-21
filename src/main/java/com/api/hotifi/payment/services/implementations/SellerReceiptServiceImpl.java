@@ -51,6 +51,8 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
             sellerReceipt.setCreatedAt(receiptResponse.getSellerReceipt().getCreatedAt());
             sellerReceipt.setPaymentId(receiptResponse.getSellerReceipt().getPaymentId());
+            sellerReceipt.setBankAccountNumber(seller.getSellerBankAccount().getBankAccountNumber());
+            sellerReceipt.setBankIfscCode(seller.getSellerBankAccount().getBankIfscCode());
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
             receiptResponse.setSellerLinkedAccountId(seller.getLinkedAccountId());

@@ -7,19 +7,20 @@ import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.error.PurchaseErrorCodes;
+import com.api.hotifi.payment.error.SellerBankAccountErrorCodes;
 
 public class LegitUtils {
 
     public static boolean isAuthenticationLegit(Authentication authentication) {
         if (authentication == null)
             return false;
-        if(!authentication.isEmailVerified())
+        if (!authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
-        if(!authentication.isPhoneVerified())
+        if (!authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_EXISTS);
-        if(!authentication.isActivated())
+        if (!authentication.isActivated())
             throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(authentication.isDeleted())
+        if (authentication.isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         return true;
     }
@@ -27,9 +28,9 @@ public class LegitUtils {
     public static boolean isUserLegit(User user) {
         if (user == null)
             return false;
-        if(!user.getAuthentication().isActivated())
+        if (!user.getAuthentication().isActivated())
             throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(user.getAuthentication().isDeleted())
+        if (user.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         //login check not required because if user has been created then phone and email has been already verified
         return true;
@@ -39,15 +40,15 @@ public class LegitUtils {
     public static boolean isBuyerLegit(User buyer) {
         if (buyer == null)
             return false;
-        if(!buyer.getAuthentication().isActivated())
+        if (!buyer.getAuthentication().isActivated())
             throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(buyer.getAuthentication().isFreezed())
+        if (buyer.getAuthentication().isFreezed())
             throw new HotifiException(UserErrorCodes.USER_FREEZED);
-        if(buyer.getAuthentication().isBanned())
+        if (buyer.getAuthentication().isBanned())
             throw new HotifiException(UserErrorCodes.USER_BANNED);
-        if(buyer.getAuthentication().isDeleted())
+        if (buyer.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
-        if(!buyer.isLoggedIn())
+        if (!buyer.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
         return true;
     }
@@ -56,14 +57,26 @@ public class LegitUtils {
     public static boolean isSellerLegit(User seller, boolean isLinkedAccountIdMandatory) {
         if (seller == null)
             return false;
-        if(!seller.getAuthentication().isActivated())
-            throw new HotifiException(UserErrorCodes.USER_NOT_ACTIVATED);
-        if(seller.getAuthentication().isDeleted())
+        if (seller.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
-        if(!seller.isLoggedIn())
+        if (!seller.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
-        if(seller.getLinkedAccountId() == null && isLinkedAccountIdMandatory)
+        if (seller.getSellerBankAccount().getLinkedAccountId() == null && isLinkedAccountIdMandatory)
             throw new HotifiException(UserErrorCodes.USER_LINKED_ACCOUNT_ID_NULL);
+        return true;
+    }
+
+    public static boolean isSellerLegitByAdmin(User seller, String linkedAccountId, String errorDescription) {
+        if (seller == null)
+            return false;
+        if (seller.getAuthentication().isDeleted())
+            throw new HotifiException(UserErrorCodes.USER_DELETED);
+        if (seller.getSellerBankAccount().getLinkedAccountId() == null)
+            throw new HotifiException(UserErrorCodes.USER_LINKED_ACCOUNT_ID_NULL);
+        if (errorDescription != null && linkedAccountId != null)
+            throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
+        if (errorDescription == null && linkedAccountId == null)
+            throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
         return true;
     }
 

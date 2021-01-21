@@ -82,5 +82,7 @@ public class Constants {
     public static final int SELLER_PAYMENT_START_VALUE_CODE = 1000;
     public static final int PAYMENT_METHOD_START_VALUE_CODE = 100;
     public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
+    public static final int ACCOUNT_TYPE_START_VALUE_CODE = 1;
+    public static final int BANK_ACCOUNT_TYPE_START_VALUE_CODE = 1;
 
 }

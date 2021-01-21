@@ -46,7 +46,6 @@ public class Purchase implements Serializable {
     @Column(precision = 15, scale = 3, nullable = false)
     private double dataUsed;
 
-
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date paymentDoneAt;

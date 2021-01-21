@@ -221,12 +221,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Date now = new Date(System.currentTimeMillis());
             double calculatedRefundAmount = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
 
-            //Comparing if data is going to be exhausted
-            if (Double.compare((double) dataBought - dataUsed, Constants.MINIMUM_DATA_THRESHOLD_MB) < 0) {
-                log.info("Finish wifi service");
-                return 2;
-            }
-
             //Updating seller payment each time update is made
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
@@ -241,6 +235,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setSessionModifiedAt(now);
             purchase.setStatus(purchaseStatus);
             purchaseRepository.save(purchase);
+
+            //Comparing if data is going to be exhausted
+            if (Double.compare((double) dataBought - dataUsed, Constants.MINIMUM_DATA_THRESHOLD_MB) < 0) {
+                log.info("Finish wifi service");
+                return 2;
+            }
 
             if (Double.compare(dataUsed, 0.9 * dataBought) > 0) {
                 log.info("90% data consumed");

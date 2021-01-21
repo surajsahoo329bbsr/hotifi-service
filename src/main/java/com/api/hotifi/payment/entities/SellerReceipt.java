@@ -28,6 +28,12 @@ public class SellerReceipt implements Serializable {
     @Column(nullable = false)
     private String paymentId;
 
+    @Column(nullable = false)
+    private String bankAccountNumber;
+
+    @Column(nullable = false)
+    private String bankIfscCode;
+
     @Column(columnDefinition = "INT", nullable = false)
     private int status;
 
@@ -40,5 +46,6 @@ public class SellerReceipt implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date paidAt; // Time at which amount is paid to the seller
+
 
 }

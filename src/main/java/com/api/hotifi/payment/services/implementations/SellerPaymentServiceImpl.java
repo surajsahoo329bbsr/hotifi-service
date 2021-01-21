@@ -64,7 +64,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
 
     @Transactional
     @Override
-    public SellerReceiptResponse withdrawSellerPayment(Long sellerId) {
+    public SellerReceiptResponse withdrawSellerPayment(Long sellerId)  {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
@@ -73,7 +73,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
 
         double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
-        double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim;
+        double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim - sellerPayment.getAmountPaid();
         Date now = new Date(System.currentTimeMillis());
 
         if (Double.compare(sellerAmountPaid, Constants.MINIMUM_WITHDRAWAL_AMOUNT) < 0) {
@@ -90,8 +90,8 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             Date lastPaidAt = sellerReceiptResponse.getSellerReceipt().getPaidAt();
             sellerPayment.setModifiedAt(now);
             switch (sellerPaymentCodes) {
+                case PAYMENT_STARTED:
                 case PAYMENT_SUCCESSFUL:
-                    sellerPayment.setAmountEarned(sellerWithdrawalClaim - sellerAmountPaid);
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid() + sellerAmountPaid);
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     break;
