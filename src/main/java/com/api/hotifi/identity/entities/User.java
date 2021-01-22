@@ -28,7 +28,7 @@ public class User implements Serializable {
     )
     Set<Device> userDevices;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "seller_bank_account_id", referencedColumnName = "id")
     private SellerBankAccount sellerBankAccount;
 
@@ -41,9 +41,6 @@ public class User implements Serializable {
 
     @Column(length = 20, unique = true, nullable = false)
     private String username;
-
-    @Column(unique = true)
-    private String linkedAccountId;
 
     @Column(unique = true)
     private String facebookId;

@@ -36,6 +36,7 @@ public class Constants {
     public static final String DEVICE_TAG = "device";
     public static final String SESSION_TAG = "session";
     public static final String PURCHASE_TAG = "purchase";
+    public static final String SELLER_BANK_ACCOUNT = "seller-bank-account";
     public static final String SELLER_PAYMENT_TAG = "seller-payment";
     public static final String SELLER_RECEIPT_TAG = "seller-receipt";
     public static final String STATS_TAG = "stats";

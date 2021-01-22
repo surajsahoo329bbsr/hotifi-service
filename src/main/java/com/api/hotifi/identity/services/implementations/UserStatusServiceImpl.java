@@ -15,6 +15,7 @@ import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
+import com.api.hotifi.payment.repositories.SellerBankAccountRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SellerBankAccountRepository sellerBankAccountRepository;
 
     @Autowired
     private IDeviceService deviceService;
@@ -202,6 +206,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
         //delete user devices
         deviceService.deleteUserDevices(userId);
+
+        //delete linked bank account
+        sellerBankAccountRepository.delete(user.getSellerBankAccount());
 
         //set user values to null
         user.setFacebookId(null);

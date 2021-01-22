@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface SellerBankAccountRepository extends PagingAndSortingRepository<SellerBankAccount, Long> {
 
-    @Query(value = "SELECT * FROM seller_bank_account WHERE is_verified = false", nativeQuery = true)
+    @Query(value = "SELECT * FROM seller_bank_account WHERE linked_account_id IS NULL AND error_description IS NULL", nativeQuery = true)
     List<SellerBankAccount> findUnverifiedSellerBankAccounts();
 
 }

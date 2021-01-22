@@ -43,7 +43,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid) {
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getLinkedAccountId(), seller.getAuthentication().getEmail());
+            SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getSellerBankAccount().getLinkedAccountId(), seller.getAuthentication().getEmail());
 
             SellerReceipt sellerReceipt = new SellerReceipt();
             sellerReceipt.setSellerPayment(sellerPayment);
@@ -55,7 +55,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             sellerReceipt.setBankIfscCode(seller.getSellerBankAccount().getBankIfscCode());
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
-            receiptResponse.setSellerLinkedAccountId(seller.getLinkedAccountId());
+            receiptResponse.setSellerLinkedAccountId(seller.getSellerBankAccount().getLinkedAccountId());
 
             return receiptResponse;
         } catch (Exception e){
@@ -78,7 +78,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
                 sellerReceiptRepository.save(sellerReceipt);
             }
             SellerPayment sellerPayment = sellerReceipt.getSellerPayment();
-            String linkedAccountId = sellerPayment.getSeller().getLinkedAccountId();
+            String linkedAccountId = sellerPayment.getSeller().getSellerBankAccount().getLinkedAccountId();
             SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setSellerLinkedAccountId(linkedAccountId);
@@ -149,7 +149,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
                     sellerPaymentRepository.save(sellerPayment);
 
                 }
-                String linkedAccountId = sellerPayment.getSeller().getLinkedAccountId();
+                String linkedAccountId = sellerPayment.getSeller().getSellerBankAccount().getLinkedAccountId();
                 receiptResponse.setSellerReceipt(sellerReceipt);
                 receiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);

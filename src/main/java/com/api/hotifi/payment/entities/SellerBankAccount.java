@@ -32,9 +32,6 @@ public class SellerBankAccount {
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt;
 
-    @Column(columnDefinition = "TINYINT(1)", nullable = false)
-    private boolean isVerified;
-
     @Column(unique = true)
     private String linkedAccountId;
 
@@ -53,6 +50,5 @@ public class SellerBankAccount {
     @Column(nullable = false)
     private String bankBeneficiaryName;
 
-    @Column(nullable = false)
     private String errorDescription;
 }

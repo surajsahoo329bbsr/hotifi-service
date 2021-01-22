@@ -15,8 +15,6 @@ import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
-import com.api.hotifi.payment.processor.PaymentProcessor;
-import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,25 +165,6 @@ public class UserServiceImpl implements IUserService {
         else {
             user.setLoggedIn(loginStatus);
             userRepository.save(user);
-        }
-    }
-
-    @Transactional
-    @Override
-    public void updateLinkedAccountId(Long id, String linkedAccountId) {
-
-        User user = userRepository.findById(id).orElse(null);
-        if (!LegitUtils.isUserLegit(user))
-            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
-        try {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            if(!paymentProcessor.isLinkedAccountIdValid(user.getLinkedAccountId()))
-                throw new HotifiException(UserErrorCodes.INVALID_LINKED_ACCOUNT_ID);
-            user.setLinkedAccountId(linkedAccountId);
-            userRepository.save(user);
-        } catch (Exception e) {
-            log.error("Error occurred ", e);
-            throw new HotifiException(UserErrorCodes.UNEXPECTED_USER_ERROR);
         }
     }
 

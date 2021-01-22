@@ -11,7 +11,7 @@ public interface ISellerBankAccountService {
 
     void updateSellerBankAccountBySeller(SellerBankAccountRequest sellerBankAccountRequest);
 
-    void updateSellerBankAccountByAdmin(Long sellerId, boolean isVerified, String linkedAccountId, String errorDescription);
+    void updateSellerBankAccountByAdmin(Long sellerId, String linkedAccountId, String errorDescription);
 
     SellerBankAccount getSellerBankAccountBySellerId(Long sellerId);
 

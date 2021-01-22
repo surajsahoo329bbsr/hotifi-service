@@ -71,12 +71,10 @@ public class LegitUtils {
             return false;
         if (seller.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
-        if (seller.getSellerBankAccount().getLinkedAccountId() == null)
-            throw new HotifiException(UserErrorCodes.USER_LINKED_ACCOUNT_ID_NULL);
         if (errorDescription != null && linkedAccountId != null)
-            throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
+            throw new HotifiException(SellerBankAccountErrorCodes.NO_ERROR_DESCRIPTION_ON_LINKED_ACCOUNT);
         if (errorDescription == null && linkedAccountId == null)
-            throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
+            throw new HotifiException(SellerBankAccountErrorCodes.ERROR_DESCRIPTION_ON_UNLINKED_ACCOUNT);
         return true;
     }
 
