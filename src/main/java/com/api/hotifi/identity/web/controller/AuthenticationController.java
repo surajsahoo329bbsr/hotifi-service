@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,10 @@ public class AuthenticationController {
     private IAuthenticationService authenticationService;
 
     //On App start first this method will be called.
+    //@ApiImplicitParams(value = {
+      //      @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header")
+    //})
+    //@PreAuthorize("hasAuthority('USER')")
     @GetMapping(path = "/email/get/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getEmail(@PathVariable(value = "email")
                                       @NotBlank(message = "{email.blank}")
@@ -35,6 +40,21 @@ public class AuthenticationController {
                                       @Length(max = 255, message = "{email.length.invalid}") String email) {
         Authentication authentication = authenticationService.getAuthentication(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/get/access/{email}/{client-id}/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAccessToken(@PathVariable(value = "email")
+                                      @NotBlank(message = "{email.blank}")
+                                      @Email(message = "{email.pattern.invalid}")
+                                      @Length(max = 255, message = "{email.length.invalid}") String email,
+                                      @PathVariable(value = "client-id")
+                                      @NotBlank(message = "{client.id.blank}")
+                                      @Length(max = 255, message = "{client.id.length.invalid}") String clientId,
+                                      @PathVariable(value = "token")
+                                      @NotBlank(message = "{token.id.blank}")
+                                      @Length(max = 255, message = "{token.id.length.invalid}") String token) {
+        OAuth2AccessToken accessToken = authenticationService.getAccessToken(email, clientId, token);
+        return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
     @PostMapping(path = "/email/add/{email}/{is-verified}")

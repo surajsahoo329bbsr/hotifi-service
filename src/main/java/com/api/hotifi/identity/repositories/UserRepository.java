@@ -14,6 +14,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByAuthenticationId(Long authenticationId);
 
+    User findByFacebookId(String facebookId);
+
+    User findByGoogleId(String facebookId);
+
     User findByUsername(String username);
 
     Boolean existsByUsername(String username);

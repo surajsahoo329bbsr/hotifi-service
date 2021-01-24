@@ -19,10 +19,6 @@ public class OAuthProperties {
     private List<String> grantTypes = new ArrayList<>();
     private List<String> scopes = new ArrayList<>();
 
-    public OAuthProperties(){
-
-    }
-
     @Getter
     @Setter
     public static class Token {

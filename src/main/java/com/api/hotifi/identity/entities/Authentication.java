@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,11 +8,20 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 public class Authentication implements Serializable {
+
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "authentication_roles",
+            joinColumns = @JoinColumn(name = "authentication_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private List<Role> roles;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +40,8 @@ public class Authentication implements Serializable {
     private String token;
 
     private String emailOtp;
+
+    private String adminPassword;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)

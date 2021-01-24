@@ -1,6 +1,7 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.configuration.OAuth2SecurityConfiguration;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorMessages;
@@ -12,9 +13,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,10 +31,14 @@ import java.util.UUID;
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Autowired
-    private AuthenticationRepository authenticationRepository;
+    AuthenticationRepository authenticationRepository;
 
     @Autowired
     private IEmailService emailService;
+
+    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository){
+        //this.authenticationRepository = authenticationRepository;
+    }
 
     @Transactional
     @Override
@@ -35,6 +47,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         return authentication;
+    }
+
+    @Transactional
+    @Override
+    public OAuth2AccessToken getAccessToken(String email, String clientId, String token) {
+        OAuth2SecurityConfiguration oAuth2SecurityConfiguration = new OAuth2SecurityConfiguration();
+        //return oAuth2SecurityConfiguration.getAccessToken(email, clientId, token);
+        return null;
     }
 
     @Transactional
@@ -129,5 +149,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         } catch (Exception e) {
             throw new HotifiException(AuthenticationErrorCodes.UNEXPECTED_AUTHENTICATION_ERROR);
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (email == null) throw new UsernameNotFoundException("Email not found");
+        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("USER");
+        return new User(authentication.getEmail(), authentication.getToken(), Collections.singleton(grantedAuthority));
+        //List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
+        //return new HotifiUserDetailsImpl(authentication.getEmail(), authentication.getToken(), authentication.isActivated(), authorities);
     }
 }

@@ -1,7 +1,7 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.identity.model.EmailModel;
+import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;

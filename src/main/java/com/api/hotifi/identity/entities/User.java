@@ -23,8 +23,8 @@ public class User implements Serializable {
     @ManyToMany(cascade = {CascadeType.ALL})
     @JoinTable(
             name = "user_device",
-            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "device_id", referencedColumnName = "id")}
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "device_id", referencedColumnName = "id")
     )
     Set<Device> userDevices;
 

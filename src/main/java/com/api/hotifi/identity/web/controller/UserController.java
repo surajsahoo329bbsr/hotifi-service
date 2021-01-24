@@ -2,10 +2,12 @@ package com.api.hotifi.identity.web.controller;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.web.request.UserRequest;
 import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,9 @@ public class UserController {
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private IAuthenticationService authenticationService;
@@ -53,6 +58,13 @@ public class UserController {
         return new ResponseEntity<>(isUsernameAvailable, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/get/social/{identifier-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getUserByIdentifier(@PathVariable(value = "identifier-id")
+                                                 @NotBlank(message = "{identifier.id.blank}")
+                                                 @Length(max = 255, message = "{identifier.id.length.invalid}") String identifier) {
+        User user = userRepository.findByFacebookId(identifier) == null ? userRepository.findByGoogleId(identifier) : null;
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
 
     @PutMapping(path = "/login/send-otp/{email}")
     public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
@@ -68,7 +80,7 @@ public class UserController {
 
     @PutMapping(path = "/login/{email}/{email-otp}")
     public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") String emailOtp) {
-        userService.verifyEmailOtp(email, emailOtp);
+        userService.verifyEmailOtpAndLogin(email, emailOtp);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

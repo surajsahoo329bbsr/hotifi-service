@@ -10,10 +10,10 @@ public class Constants {
     //Razorpay Configuration
     public static final String RAZOR_PAY_KEY_ID = "";
     public static final String RAZOR_PAY_KEY_SECRET = "";
+    public static final String SIGNING_KEY = "hotifi-api-connect";
 
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
-
 
     //TODO add Html files and it's paths and emails
     public static final String EMAIL_HOST = "";

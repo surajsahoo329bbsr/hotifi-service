@@ -7,7 +7,7 @@ import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorCodes;
-import com.api.hotifi.identity.model.EmailModel;
+import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
@@ -46,11 +46,11 @@ public class UserServiceImpl implements IUserService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_VERIFIED);
-        if(userRepository.existsByFacebookId(userRequest.getFacebookId()))
+        if (userRepository.existsByFacebookId(userRequest.getFacebookId()))
             throw new HotifiException(UserErrorCodes.FACEBOOK_USER_EXISTS);
-        if(userRepository.existsByGoogleId(userRequest.getGoogleId()))
+        if (userRepository.existsByGoogleId(userRequest.getGoogleId()))
             throw new HotifiException(UserErrorCodes.GOOGLE_USER_EXISTS);
-        if(userRepository.existsByUsername(userRequest.getUsername()))
+        if (userRepository.existsByUsername(userRequest.getUsername()))
             throw new HotifiException(UserErrorCodes.USERNAME_EXISTS);
         try {
             User user = new User();
@@ -76,9 +76,7 @@ public class UserServiceImpl implements IUserService {
     //To check if username is available in database
     @Override
     @Transactional
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
+    public User getUserByUsername(String username) { return userRepository.findByUsername(username); }
 
     @Transactional
     @Override
@@ -116,7 +114,7 @@ public class UserServiceImpl implements IUserService {
 
     //DO NOT ADD @Transaction
     @Override
-    public void verifyEmailOtp(String email, String emailOtp) {
+    public void verifyEmailOtpAndLogin(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (OtpUtils.isEmailOtpExpired(authentication)) {
             log.error("Otp Expired");
@@ -154,7 +152,6 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     @Override
     public void updateLoginStatus(Long id, boolean loginStatus) {
-
         User user = userRepository.findById(id).orElse(null);
         if (!LegitUtils.isUserLegit(user))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);

@@ -7,7 +7,7 @@ import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.entities.UserStatus;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.errors.UserStatusErrorCodes;
-import com.api.hotifi.identity.model.EmailModel;
+import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.repositories.UserStatusRepository;

@@ -1,4 +1,4 @@
-package com.api.hotifi.identity.model;
+package com.api.hotifi.identity.models;
 
 import lombok.Getter;
 import lombok.Setter;

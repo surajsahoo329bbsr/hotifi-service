@@ -1,7 +1,7 @@
 package com.api.hotifi.identity.services.interfaces;
 
 import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.identity.model.EmailModel;
+import com.api.hotifi.identity.models.EmailModel;
 
 public interface IEmailService {
 

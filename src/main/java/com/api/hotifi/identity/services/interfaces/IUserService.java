@@ -15,7 +15,7 @@ public interface IUserService {
 
     String regenerateEmailOtpLogin(String email);
 
-    void verifyEmailOtp(String email, String emailOtp);
+    void verifyEmailOtpAndLogin(String email, String emailOtp);
 
     void updateUser(UserRequest userRequest);
 

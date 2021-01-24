@@ -4,7 +4,7 @@ import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.errors.UserErrorCodes;
-import com.api.hotifi.identity.model.EmailModel;
+import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
