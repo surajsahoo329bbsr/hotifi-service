@@ -16,7 +16,7 @@ import java.util.List;
 public class Authentication implements Serializable {
 
     @JsonIgnore
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "authentication_roles",
             joinColumns = @JoinColumn(name = "authentication_id", referencedColumnName = "id"),
@@ -36,16 +36,18 @@ public class Authentication implements Serializable {
     @Column(length = 15, unique = true)
     private String phone;
 
-    @Column(nullable = false)
-    private String token;
-
     private String emailOtp;
 
-    private String adminPassword;
+    @Column(nullable = false)
+    private String password;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date tokenCreatedAt = new Timestamp(System.currentTimeMillis());
+    private Date createdAt = new Timestamp(System.currentTimeMillis());
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Date modifiedAt;
 
     @Column(columnDefinition = "TINYINT(1)", nullable = false)
     private boolean isEmailVerified = false;

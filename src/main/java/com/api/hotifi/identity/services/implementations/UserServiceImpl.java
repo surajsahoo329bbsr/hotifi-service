@@ -80,7 +80,7 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public String generateEmailOtpLogin(String email) {
+    public void generateEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         //If user doesn't exist no need to check legit authentication
@@ -91,7 +91,7 @@ public class UserServiceImpl implements IUserService {
         if (!LegitUtils.isAuthenticationLegit(authentication))
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
 
-        return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+        OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public String regenerateEmailOtpLogin(String email) {
+    public void regenerateEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         if (user == null)
@@ -109,7 +109,7 @@ public class UserServiceImpl implements IUserService {
         if (!LegitUtils.isAuthenticationLegit(authentication))
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
 
-        return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+        OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
     //DO NOT ADD @Transaction

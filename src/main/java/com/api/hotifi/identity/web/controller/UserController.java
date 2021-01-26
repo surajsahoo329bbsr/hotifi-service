@@ -68,14 +68,14 @@ public class UserController {
 
     @PutMapping(path = "/login/send-otp/{email}")
     public ResponseEntity<?> generateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
-        String token = userService.generateEmailOtpLogin(email);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+        userService.generateEmailOtpLogin(email);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping(path = "/login/resend-otp/{email}")
     public ResponseEntity<?> regenerateEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
-        String token = userService.regenerateEmailOtpLogin(email);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+        userService.regenerateEmailOtpLogin(email);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping(path = "/login/{email}/{email-otp}")

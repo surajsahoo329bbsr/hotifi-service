@@ -1,11 +1,13 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.exception.HotifiException;
-import com.api.hotifi.configuration.OAuth2SecurityConfiguration;
 import com.api.hotifi.identity.entities.Authentication;
+import com.api.hotifi.identity.entities.Role;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorMessages;
+import com.api.hotifi.identity.models.RoleName;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
+import com.api.hotifi.identity.repositories.RoleRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.utils.OtpUtils;
@@ -18,27 +20,31 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.Objects;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Autowired
-    AuthenticationRepository authenticationRepository;
+    private AuthenticationRepository authenticationRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private IEmailService emailService;
 
-    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository){
-        //this.authenticationRepository = authenticationRepository;
-    }
+    //public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository){
+    //this.authenticationRepository = authenticationRepository;
+    //}
 
     @Transactional
     @Override
@@ -51,30 +57,25 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public OAuth2AccessToken getAccessToken(String email, String clientId, String token) {
-        OAuth2SecurityConfiguration oAuth2SecurityConfiguration = new OAuth2SecurityConfiguration();
-        //return oAuth2SecurityConfiguration.getAccessToken(email, clientId, token);
-        return null;
-    }
-
-    @Transactional
-    @Override
     //If login client already has email verified no need for further verification
-    public String addEmail(String email, boolean isEmailVerified) {
+    public void addEmail(String email, boolean isEmailVerified) {
         try {
             Authentication authentication = new Authentication();
+            String token = UUID.randomUUID().toString();
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
+            authentication.setPassword(token);
 
             if (!isEmailVerified)
-                return OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+                OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
+            else {
+                Date modifiedAt = new Date(System.currentTimeMillis());
+                authentication.setModifiedAt(modifiedAt);
+            }
 
-            String token = UUID.randomUUID().toString();
-            log.info("Token" + token);
-            String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
-            authentication.setToken(encryptedToken);
+            Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
+            authentication.setRoles(Collections.singletonList(role));
             authenticationRepository.save(authentication);
-            return token;
 
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
@@ -88,7 +89,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public String regenerateEmailOtpSignUp(String email) {
+    public void regenerateEmailOtpSignUp(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         //Since it is signup so no need for verifying legit user
         if (authentication == null)
@@ -98,7 +99,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
         log.info("Regenerating Otp...");
-        return Objects.requireNonNull(OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService));
+        OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
 
     }
 
@@ -155,8 +156,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (email == null) throw new UsernameNotFoundException("Email not found");
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("USER");
-        return new User(authentication.getEmail(), authentication.getToken(), Collections.singleton(grantedAuthority));
+        List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
+        return new User(authentication.getEmail(), authentication.getPassword(), authorities);
         //List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
         //return new HotifiUserDetailsImpl(authentication.getEmail(), authentication.getToken(), authentication.isActivated(), authorities);
     }

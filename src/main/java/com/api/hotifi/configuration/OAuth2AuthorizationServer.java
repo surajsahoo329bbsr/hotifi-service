@@ -23,66 +23,12 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @EnableAuthorizationServer
 public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdapter {
 
-    /*@Autowired
-    OAuthProperties oauthProperties;
-
-    @Autowired
-    private TokenStore tokenStore;
-
-    @Autowired
-    private UserApprovalHandler userApprovalHandler;
-
-    @Autowired
-    private JwtAccessTokenConverter accessTokenConverter;*/
-
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Autowired
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
-
-    /*@Bean
-    public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
-    }
-
-    @Override
-    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-        oauthServer
-                .tokenKeyAccess("permitAll()")
-                .checkTokenAccess("permitAll()")
-                .allowFormAuthenticationForClients();
-    }
-
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer configurer) throws Exception {
-        TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
-        enhancerChain.setTokenEnhancers(Collections.singletonList(accessTokenConverter));
-
-        configurer
-                .authenticationManager(authenticationManager)
-                .userDetailsService(userDetailsService)
-                .tokenEnhancer(enhancerChain)
-                .tokenStore(tokenStore)
-                .userApprovalHandler(userApprovalHandler)
-                .reuseRefreshTokens(true);
-    }
-
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients
-                .inMemory()
-                .withClient(oauthProperties.getClient())
-                .secret(oauthProperties.getSecret())
-                .authorizedGrantTypes(oauthProperties.getGrantTypes().toArray(String[]::new))
-                .scopes(oauthProperties.getScopes().toArray(String[]::new))
-                .authorities(Arrays.stream(RoleName.values()).map(Enum::toString).toArray(String[]::new))
-                .accessTokenValiditySeconds(oauthProperties.getToken().getTimeout())
-                .refreshTokenValiditySeconds(oauthProperties.getRefreshToken().getTimeout())
-                .resourceIds(OAuth2ResourceServer.RESOURCE_ID);
-    }*/
-
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {

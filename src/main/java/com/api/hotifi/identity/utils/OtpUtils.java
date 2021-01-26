@@ -17,7 +17,6 @@ import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.UUID;
 
 @Slf4j
 public class OtpUtils {
@@ -52,23 +51,19 @@ public class OtpUtils {
 
     public static boolean isEmailOtpExpired(Authentication authentication){
         Date currentTime = new Date(System.currentTimeMillis());
-        long timeDifference =  currentTime.getTime() - authentication.getTokenCreatedAt().getTime();
+        long timeDifference =  currentTime.getTime() - authentication.getModifiedAt().getTime();
         long minutesDifference = timeDifference / (60L * 1000L);
         return minutesDifference >= Constants.MAXIMUM_EMAIL_OTP_MINUTES; // If otp generated is more than 10 minutes
     }
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin
-    public static String saveAuthenticationEmailOtp(Authentication authentication, AuthenticationRepository authenticationRepository, IEmailService emailService){
+    public static void saveAuthenticationEmailOtp(Authentication authentication, AuthenticationRepository authenticationRepository, IEmailService emailService){
         try {
             String emailOtp = generateEmailOtp();
-            String token = UUID.randomUUID().toString();
             log.info("Otp " + emailOtp);
-            log.info("Token" + token);
             String encryptedEmailOtp = BCrypt.hashpw(emailOtp, BCrypt.gensalt());
-            String encryptedToken = BCrypt.hashpw(token, BCrypt.gensalt());
             Date now = new Date(System.currentTimeMillis()); //set updated token created time
-            authentication.setTokenCreatedAt(now);
-            authentication.setToken(encryptedToken);
+            authentication.setModifiedAt(now);
             authentication.setEmailOtp(encryptedEmailOtp);
             authenticationRepository.save(authentication); //updating otp in password
 
@@ -79,8 +74,6 @@ public class OtpUtils {
             emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
             emailModel.setEmailOtp(emailOtp);
             emailService.sendEmail(null, emailModel, 0);
-
-            return token;
         } catch (Exception e){
             throw new HotifiException(UserErrorCodes.UNEXPECTED_EMAIL_OTP_ERROR);
         }
