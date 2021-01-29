@@ -10,24 +10,23 @@ import com.api.hotifi.speed_test.error.SpeedTestErrorCodes;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Slf4j
-@Service
 public class SpeedTestServiceImpl implements ISpeedTestService {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final SpeedTestRepository speedTestRepository;
 
-    @Autowired
-    SpeedTestRepository speedTestRepository;
+    public SpeedTestServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository) {
+        this.userRepository = userRepository;
+        this.speedTestRepository = speedTestRepository;
+    }
 
     @Transactional
     @Override

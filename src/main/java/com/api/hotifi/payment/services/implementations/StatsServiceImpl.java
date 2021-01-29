@@ -21,11 +21,9 @@ import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -34,23 +32,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Service
 public class StatsServiceImpl implements IStatsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final SessionRepository sessionRepository;
+    private final SellerPaymentRepository sellerPaymentRepository;
+    private final IFeedbackService feedbackService;
 
-    @Autowired
-    private PurchaseRepository purchaseRepository;
-
-    @Autowired
-    private SessionRepository sessionRepository;
-
-    @Autowired
-    private SellerPaymentRepository sellerPaymentRepository;
-
-    @Autowired
-    private IFeedbackService feedbackService;
+    public StatsServiceImpl(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService) {
+        this.userRepository = userRepository;
+        this.purchaseRepository = purchaseRepository;
+        this.sessionRepository = sessionRepository;
+        this.sellerPaymentRepository = sellerPaymentRepository;
+        this.feedbackService = feedbackService;
+    }
 
     @Transactional(readOnly = true)
     @Override

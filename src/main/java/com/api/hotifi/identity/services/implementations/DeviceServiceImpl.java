@@ -10,22 +10,23 @@ import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.web.request.DeviceRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
-@Service
 public class DeviceServiceImpl implements IDeviceService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final DeviceRepository deviceRepository;
 
-    @Autowired
-    private DeviceRepository deviceRepository;
+    public DeviceServiceImpl(UserRepository userRepository, DeviceRepository deviceRepository) {
+        this.userRepository = userRepository;
+        this.deviceRepository = deviceRepository;
+    }
 
     @Transactional
     @Override

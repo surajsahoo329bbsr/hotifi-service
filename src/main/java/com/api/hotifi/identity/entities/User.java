@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.entities;
 
-import com.api.hotifi.payment.entities.SellerBankAccount;
+import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -30,7 +30,7 @@ public class User implements Serializable {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "seller_bank_account_id", referencedColumnName = "id")
-    private SellerBankAccount sellerBankAccount;
+    private BankAccount bankAccount;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

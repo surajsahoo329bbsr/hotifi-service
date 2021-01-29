@@ -1,15 +1,18 @@
 package com.api.hotifi.speed_test.web.controller;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.errors.ErrorMessages;
+import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.speed_test.service.ISpeedTestService;
 import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
-import io.swagger.annotations.Api;
+import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,13 +28,28 @@ public class SpeedTestController {
     @Autowired
     private ISpeedTestService speedTestService;
 
-    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Finish Seller's Hotspot Session",
+            notes = "Finish Seller's Hotspot Session",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addSpeedTest(@RequestBody @Validated SpeedTestRequest speedTestRequest) {
         speedTestService.addSpeedTest(speedTestRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(path = "/get/{user-id}/{pin-code}/{is-wifi}")
+    @GetMapping(path = "/{user-id}/{pin-code}/{is-wifi}")
+    @ApiOperation(
+            value = "Finish Seller's Hotspot Session",
+            notes = "Finish Seller's Hotspot Session",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
     public ResponseEntity<?> getLatestSpeedTest(@PathVariable(value = "user-id")
                                                 @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                 @NotBlank(message = "{pin.code.blank}")
@@ -41,7 +59,15 @@ public class SpeedTestController {
         return new ResponseEntity<>(speedTest, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/date-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/date-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Sorted Date-Time Speedtests By User Id And Pagenation Values",
+            notes = "Get Sorted Date-Time Speedtests By User Id And Pagenation Values",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByDateTime(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                           @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
@@ -50,7 +76,14 @@ public class SpeedTestController {
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/upload-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/upload-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Sorted Upload-Speed Speedtests By User Id And Pagenation Values",
+            notes = "Get Sorted Upload-Speed Speedtests By User Id And Pagenation Values",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByUploadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                              @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                              @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
@@ -59,7 +92,14 @@ public class SpeedTestController {
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/get/download-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/download-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Sorted Download-Speed Speedtests By User Id And Pagenation Values",
+            notes = "Get Sorted Download-Speed Speedtests By User Id And Pagenation Values",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByDownloadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                                @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                                @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,

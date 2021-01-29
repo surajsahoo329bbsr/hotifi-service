@@ -61,7 +61,7 @@ public class LegitUtils {
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         if (!seller.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
-        if (seller.getSellerBankAccount().getLinkedAccountId() == null && isLinkedAccountIdMandatory)
+        if (seller.getBankAccount().getLinkedAccountId() == null && isLinkedAccountIdMandatory)
             throw new HotifiException(UserErrorCodes.USER_LINKED_ACCOUNT_ID_NULL);
         return true;
     }

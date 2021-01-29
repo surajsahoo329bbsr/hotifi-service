@@ -15,27 +15,24 @@ import com.api.hotifi.payment.services.interfaces.ISellerReceiptService;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
 @Slf4j
-@Service
 public class SellerPaymentServiceImpl implements ISellerPaymentService {
 
-    @Autowired
-    private SellerPaymentRepository sellerPaymentRepository;
+    private final SellerPaymentRepository sellerPaymentRepository;
+    private final SellerReceiptRepository sellerReceiptRepository;
+    private final UserRepository userRepository;
+    private final ISellerReceiptService sellerReceiptService;
 
-    @Autowired
-    private SellerReceiptRepository sellerReceiptRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ISellerReceiptService sellerReceiptService;
+    public SellerPaymentServiceImpl(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, ISellerReceiptService sellerReceiptService) {
+        this.sellerPaymentRepository = sellerPaymentRepository;
+        this.sellerReceiptRepository = sellerReceiptRepository;
+        this.userRepository = userRepository;
+        this.sellerReceiptService = sellerReceiptService;
+    }
 
     //No need to implement try catch and condition checks since this method will be
     //called by PurchaseServiceImpl

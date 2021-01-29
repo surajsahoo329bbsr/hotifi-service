@@ -28,11 +28,9 @@ import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -43,21 +41,23 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Service
 public class PurchaseServiceImpl implements IPurchaseService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private SpeedTestRepository speedTestRepository;
-    @Autowired
-    private SessionRepository sessionRepository;
-    @Autowired
-    private PurchaseRepository purchaseRepository;
-    @Autowired
-    private SellerPaymentRepository sellerPaymentRepository;
-    @Autowired
-    private ISellerPaymentService sellerPaymentService;
+    private final UserRepository userRepository;
+    private final SpeedTestRepository speedTestRepository;
+    private final SessionRepository sessionRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final SellerPaymentRepository sellerPaymentRepository;
+    private final ISellerPaymentService sellerPaymentService;
+
+    public PurchaseServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, ISellerPaymentService sellerPaymentService) {
+        this.userRepository = userRepository;
+        this.speedTestRepository = speedTestRepository;
+        this.sessionRepository = sessionRepository;
+        this.purchaseRepository = purchaseRepository;
+        this.sellerPaymentRepository = sellerPaymentRepository;
+        this.sellerPaymentService = sellerPaymentService;
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -219,7 +219,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             int dataBought = purchase.getData();
             int purchaseStatus = purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value();
             Date now = new Date(System.currentTimeMillis());
-            double calculatedRefundAmount = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double calculatedRefundAmount = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, purchase.getAmountPaid());
 
             //Updating seller payment each time update is made
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
@@ -227,8 +228,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             if (sellerPayment == null)
                 sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
-            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(calculatedRefundAmount, purchase.getAmountRefund()) < 0)
-                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - calculatedRefundAmount);
+            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(calculatedSellerAmount, purchase.getAmountRefund()) < 0)
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - calculatedSellerAmount);
 
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(calculatedRefundAmount);
@@ -263,15 +264,16 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
             int dataBought = purchase.getData();
             Date sessionFinishedAt = new Date(System.currentTimeMillis());
-            double amountRefund = calculateRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double amountRefund = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, purchase.getAmountPaid());
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
 
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             if (sellerPayment == null)
                 throw new HotifiException(PurchaseErrorCodes.UPDATE_WIFI_SERVICE_BEFORE_FINISHING);
-            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(amountRefund, purchase.getAmountRefund()) < 0)
-                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - amountRefund);
+            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(sellerAmount, purchase.getAmountRefund()) < 0)
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - sellerAmount);
 
             RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
@@ -379,10 +381,14 @@ public class PurchaseServiceImpl implements IPurchaseService {
     }
 
     //User defined functions
-
-    private double calculateRefundAmount(double dataBought, double dataUsed, double amountPaid) {
+    private double calculateBuyerRefundAmount(double dataBought, double dataUsed, double amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
         return amountPaid - Math.ceil((amountPaid / dataBought) * dataUsed);
+    }
+
+    private double calculateSellerPaymentAmount(double dataBought, double dataUsed, double amountPaid) {
+        //Do not check for error types, simply calculate and return refund amount
+        return amountPaid - (double) Math.round((amountPaid / dataBought) * dataUsed * 100) / 100;
     }
 
     private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {

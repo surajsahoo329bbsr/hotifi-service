@@ -35,18 +35,18 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     public ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException e, @NonNull HttpHeaders headers, @NonNull HttpStatus status, @NonNull WebRequest request) {
         //TODO add JSON malformed error code
-        return new ResponseEntity<>(ErrorCodes.INTERNAL_ERROR, INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ErrorCodes.INVALID_PAYLOAD, INTERNAL_SERVER_ERROR);
     }
 
-    private ResponseEntity<Object> getErrorResponse(ErrorCode errorCode, HttpHeaders headers, HttpStatus status) {
-        return new ResponseEntity<>(new ErrorResponse(errorCode), headers, status);
+    private ResponseEntity<Object> getErrorResponse(HttpHeaders headers, HttpStatus status) {
+        return new ResponseEntity<>(new ErrorResponse(ErrorCodes.INVALID_HEADER), headers, status);
     }
 
 
     @NonNull
     protected ResponseEntity<Object> handleServletRequestBindingException(@NonNull ServletRequestBindingException ex,
                                                                           @NonNull HttpHeaders headers, @NonNull HttpStatus status, @NonNull WebRequest request) {
-        return getErrorResponse(ErrorCodes.INVALID_HEADER, headers, status);
+        return getErrorResponse(headers, status);
     }
 
 

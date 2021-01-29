@@ -14,14 +14,11 @@ import com.api.hotifi.payment.web.responses.FeedbackResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DecimalFormat;
@@ -31,23 +28,19 @@ import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class FeedbackServiceImpl implements IFeedbackService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final FeedbackRepository feedbackRepository;
 
-    @Autowired
-    private SpeedTestRepository speedTestRepository;
-
-    @Autowired
-    private SessionRepository sessionRepository;
-
-    @Autowired
-    private PurchaseRepository purchaseRepository;
-
-    @Autowired
-    private FeedbackRepository feedbackRepository;
+    public FeedbackServiceImpl(UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, FeedbackRepository feedbackRepository) {
+        this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
+        this.purchaseRepository = purchaseRepository;
+        this.feedbackRepository = feedbackRepository;
+    }
 
     @Transactional
     @Override

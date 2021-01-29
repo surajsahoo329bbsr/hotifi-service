@@ -3,6 +3,8 @@ package com.api.hotifi.common.constant;
 public class Constants {
 
     //TODO add hotifi upi and commission
+    public static final String APP_VERSION = "v1";
+    public static final String APP_NAME = "Hotifi";
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
     public static final String HOTIFI_BANK_ACCOUNT = "hotifi_bank";
     public static final int COMMISSION_PERCENTAGE = 20;
@@ -36,7 +38,7 @@ public class Constants {
     public static final String DEVICE_TAG = "device";
     public static final String SESSION_TAG = "session";
     public static final String PURCHASE_TAG = "purchase";
-    public static final String SELLER_BANK_ACCOUNT = "seller-bank-account";
+    public static final String BANK_ACCOUNT = "bank-account";
     public static final String SELLER_PAYMENT_TAG = "seller-payment";
     public static final String SELLER_RECEIPT_TAG = "seller-receipt";
     public static final String STATS_TAG = "stats";
@@ -62,7 +64,7 @@ public class Constants {
     public static final String MINIMUM_DATA_USED_MB = "0.00";
     public static final int MINIMUM_SELLING_DATA_MB = 100; //100 MB
     public static final int MAXIMUM_SELLING_DATA_MB = 204800; //200 GB
-    public static final int MINIMUM_SELLING_DATA_PRICE_PER_GB = 10;
+    public static final int MINIMUM_SELLING_DATA_PRICE_PER_GB = 8;
     public static final int MAXIMUM_SELLING_DATA_PRICE_PER_GB = 40;
     public static final int MINIMUM_DATA_THRESHOLD_MB = 5;
     public static final int MINIMUM_WITHDRAWAL_AMOUNT = 5;

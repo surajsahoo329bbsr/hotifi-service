@@ -15,10 +15,10 @@ import java.util.Date;
         uniqueConstraints=
         @UniqueConstraint(columnNames={"bankIfscCode", "bankAccountNumber"})
 )
-public class SellerBankAccount {
+public class BankAccount {
 
     @JsonIgnore
-    @OneToOne(mappedBy = "sellerBankAccount")
+    @OneToOne(mappedBy = "bankAccount")
     private User user;
 
     @Id

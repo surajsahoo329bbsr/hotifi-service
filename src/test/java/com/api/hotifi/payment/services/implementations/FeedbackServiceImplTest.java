@@ -32,7 +32,7 @@ class FeedbackServiceImplTest {
     @BeforeEach
     void init() {
         System.out.println("Before for each..");
-        feedbackService = new FeedbackServiceImpl();
+        //feedbackService = new FeedbackServiceImpl();
     }
 
     @AfterEach

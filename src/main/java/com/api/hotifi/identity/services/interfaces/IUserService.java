@@ -9,11 +9,11 @@ public interface IUserService {
 
     User getUserByUsername(String username);
 
-    void generateEmailOtpLogin(String email);
+    void sendEmailOtpLogin(String email);
 
     boolean isUsernameAvailable(String username);
 
-    void regenerateEmailOtpLogin(String email);
+    void resendEmailOtpLogin(String email);
 
     void verifyEmailOtpAndLogin(String email, String emailOtp);
 

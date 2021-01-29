@@ -15,10 +15,8 @@ import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
-import com.api.hotifi.payment.repositories.SellerBankAccountRepository;
+import com.api.hotifi.payment.repositories.BankAccountRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -26,26 +24,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class UserStatusServiceImpl implements IUserStatusService {
 
-    @Autowired
-    private AuthenticationRepository authenticationRepository;
+    private final AuthenticationRepository authenticationRepository;
+    private final UserStatusRepository userStatusRepository;
+    private final UserRepository userRepository;
+    private final BankAccountRepository bankAccountRepository;
+    private final IDeviceService deviceService;
+    private final IEmailService emailService;
 
-    @Autowired
-    private UserStatusRepository userStatusRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SellerBankAccountRepository sellerBankAccountRepository;
-
-    @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
-    private IEmailService emailService;
+    public UserStatusServiceImpl(AuthenticationRepository authenticationRepository, UserStatusRepository userStatusRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, IDeviceService deviceService, IEmailService emailService) {
+        this.authenticationRepository = authenticationRepository;
+        this.userStatusRepository = userStatusRepository;
+        this.userRepository = userRepository;
+        this.bankAccountRepository = bankAccountRepository;
+        this.deviceService = deviceService;
+        this.emailService = emailService;
+    }
 
     @Transactional
     @Override
@@ -208,7 +203,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         deviceService.deleteUserDevices(userId);
 
         //delete linked bank account
-        sellerBankAccountRepository.delete(user.getSellerBankAccount());
+        bankAccountRepository.delete(user.getBankAccount());
 
         //set user values to null
         user.setFacebookId(null);

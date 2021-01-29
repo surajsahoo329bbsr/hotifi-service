@@ -13,14 +13,12 @@ import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -30,21 +28,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
-    @Autowired
-    private AuthenticationRepository authenticationRepository;
+    private final AuthenticationRepository authenticationRepository;
+    private final RoleRepository roleRepository;
+    private final IEmailService emailService;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private IEmailService emailService;
-
-    //public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository){
-    //this.authenticationRepository = authenticationRepository;
-    //}
+    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService) {
+        this.authenticationRepository = authenticationRepository;
+        this.roleRepository = roleRepository;
+        this.emailService = emailService;
+    }
 
     @Transactional
     @Override
@@ -58,25 +52,23 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
-    public void addEmail(String email, boolean isEmailVerified) {
+    public String addEmail(String email, boolean isEmailVerified) {
         try {
             Authentication authentication = new Authentication();
             String token = UUID.randomUUID().toString();
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
             authentication.setPassword(token);
-
             if (!isEmailVerified)
                 OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
             else {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
             }
-
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
             authentication.setRoles(Collections.singletonList(role));
             authenticationRepository.save(authentication);
-
+            return token;
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_EXISTS);
@@ -89,7 +81,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void regenerateEmailOtpSignUp(String email) {
+    public void resendEmailOtpSignUp(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         //Since it is signup so no need for verifying legit user
         if (authentication == null)
@@ -105,7 +97,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     //@Transaction cannot be added here
     @Override
-    public void verifyEmailOtp(String email, String emailOtp) {
+    public void verifyEmail(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
@@ -158,7 +150,5 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (email == null) throw new UsernameNotFoundException("Email not found");
         List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
         return new User(authentication.getEmail(), authentication.getPassword(), authorities);
-        //List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
-        //return new HotifiUserDetailsImpl(authentication.getEmail(), authentication.getToken(), authentication.isActivated(), authorities);
     }
 }

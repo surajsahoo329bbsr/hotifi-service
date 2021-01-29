@@ -13,10 +13,10 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 @AllArgsConstructor
-public class SellerBankAccountRequest {
+public class BankAccountRequest {
 
     @Range(min = 1, message = "{seller.id.invalid}")
-    private Long sellerId;
+    private Long userId;
 
     @AccountType
     private String accountType;

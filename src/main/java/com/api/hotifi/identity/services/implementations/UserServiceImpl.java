@@ -10,33 +10,27 @@ import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Service
 public class UserServiceImpl implements IUserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final AuthenticationRepository authenticationRepository;
+    private final IEmailService emailService;
 
-    @Autowired
-    private AuthenticationRepository authenticationRepository;
-
-    @Autowired
-    private IAuthenticationService authenticationService;
-
-    @Autowired
-    private IEmailService emailService;
+    public UserServiceImpl(UserRepository userRepository, AuthenticationRepository authenticationRepository, IEmailService emailService) {
+        this.userRepository = userRepository;
+        this.authenticationRepository = authenticationRepository;
+        this.emailService = emailService;
+    }
 
     @Override
     @Transactional
@@ -76,11 +70,13 @@ public class UserServiceImpl implements IUserService {
     //To check if username is available in database
     @Override
     @Transactional
-    public User getUserByUsername(String username) { return userRepository.findByUsername(username); }
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 
     @Transactional
     @Override
-    public void generateEmailOtpLogin(String email) {
+    public void sendEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         //If user doesn't exist no need to check legit authentication
@@ -101,7 +97,7 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public void regenerateEmailOtpLogin(String email) {
+    public void resendEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         if (user == null)

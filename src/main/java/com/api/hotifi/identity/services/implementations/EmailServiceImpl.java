@@ -5,13 +5,17 @@ import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.services.interfaces.IEmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 
 @Slf4j
-@Service
 public class EmailServiceImpl implements IEmailService {
+
+    //TODO service configuration
+
+    public EmailServiceImpl(){
+
+    }
 
     public void sendEmail(User user, EmailModel emailModel, int emailService){
         try {

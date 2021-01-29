@@ -26,11 +26,9 @@ import com.api.hotifi.speed_test.entity.SpeedTest;
 import com.api.hotifi.speed_test.repository.SpeedTestRepository;
 import com.api.hotifi.speed_test.service.ISpeedTestService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -39,29 +37,25 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class SessionServiceImpl implements ISessionService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final SpeedTestRepository speedTestRepository;
+    private final ISpeedTestService speedTestService;
+    private final SessionRepository sessionRepository;
+    private final SellerPaymentRepository sellerPaymentRepository;
+    private final IFeedbackService feedbackService;
+    private final PurchaseRepository purchaseRepository;
 
-    @Autowired
-    private SpeedTestRepository speedTestRepository;
-
-    @Autowired
-    private ISpeedTestService speedTestService;
-
-    @Autowired
-    private SessionRepository sessionRepository;
-
-    @Autowired
-    private SellerPaymentRepository sellerPaymentRepository;
-
-    @Autowired
-    private IFeedbackService feedbackService;
-
-    @Autowired
-    private PurchaseRepository purchaseRepository;
+    public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, ISpeedTestService speedTestService, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService, PurchaseRepository purchaseRepository) {
+        this.userRepository = userRepository;
+        this.speedTestRepository = speedTestRepository;
+        this.speedTestService = speedTestService;
+        this.sessionRepository = sessionRepository;
+        this.sellerPaymentRepository = sellerPaymentRepository;
+        this.feedbackService = feedbackService;
+        this.purchaseRepository = purchaseRepository;
+    }
 
     @Transactional
     @Override
@@ -216,21 +210,21 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional
     @Override
-    public void finishSession(Long sessionId, boolean isForceStop){
+    public void finishSession(Long sessionId, boolean isForceStop) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         List<Buyer> buyers = getBuyers(sessionId, true);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
-        if(session.getFinishedAt() != null)
+        if (session.getFinishedAt() != null)
             throw new HotifiException(SessionErrorCodes.SESSION_ALREADY_FINISHED);
         if (!isForceStop && buyers != null && buyers.size() > 0)
             throw new HotifiException(SessionErrorCodes.NOTIFY_BUYERS_TO_FINISH_SESSION);
 
         User buyer = userRepository.findById(session.getSpeedTest().getUser().getId()).orElse(null);
-        if(LegitUtils.isBuyerLegit(buyer)){
+        if (LegitUtils.isBuyerLegit(buyer)) {
             session.setFinishedAt(new Date(System.currentTimeMillis()));
             sessionRepository.save(session);
-        } else{
+        } else {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         }
 
@@ -240,10 +234,10 @@ public class SessionServiceImpl implements ISessionService {
     @Override
     public double calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
-        if(session == null)
+        if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
         double availableData = session.getData() - session.getDataUsed();
-        if(Double.compare(dataToBeUsed, availableData) > 0)
+        if (Double.compare(dataToBeUsed, availableData) > 0)
             throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
         return Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * dataToBeUsed);
     }

@@ -73,7 +73,7 @@ public class OtpUtils {
             emailModel.setFromEmail(Constants.FROM_EMAIL);
             emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
             emailModel.setEmailOtp(emailOtp);
-            emailService.sendEmail(null, emailModel, 0);
+            //emailService.sendEmail(null, emailModel, 0);
         } catch (Exception e){
             throw new HotifiException(UserErrorCodes.UNEXPECTED_EMAIL_OTP_ERROR);
         }
