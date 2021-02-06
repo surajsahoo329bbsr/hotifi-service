@@ -2,6 +2,7 @@ package com.api.hotifi.configuration;
 
 import com.api.hotifi.common.constant.Constants;
 import com.fasterxml.classmate.TypeResolver;
+import io.swagger.annotations.SwaggerDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,7 @@ import java.util.function.Predicate;
 
 @EnableSwagger2
 @Configuration
+@SwaggerDefinition
 public class SwaggerConfiguration {
 
     @Autowired
@@ -51,8 +53,46 @@ public class SwaggerConfiguration {
                                 typeResolver.resolve(ResponseEntity.class, WildcardType.class)),
                         typeResolver.resolve(WildcardType.class)))
                 .useDefaultResponseMessages(false)
+                //Uncomment below lines to turn on swagger authorize button ui
+                //.securityContexts(Collections.singletonList(securityContext()))
+                //.securitySchemes(Collections.singletonList(apiKey()))
                 .enableUrlTemplating(false);
     }
+
+    /*private ApiKey apiKey() {
+        return new ApiKey("JWT", "Authorization", "header");
+    }
+
+    private OAuth securitySchema() {
+
+        List<AuthorizationScope> authorizationScopeList = new ArrayList<>();
+        authorizationScopeList.add(new AuthorizationScope("read", "read all"));
+        authorizationScopeList.add(new AuthorizationScope("trust", "trust all"));
+        authorizationScopeList.add(new AuthorizationScope("write", "access all"));
+
+        List<GrantType> grantTypes = new ArrayList<>();
+        GrantType credentialsGrant = new ResourceOwnerPasswordCredentialsGrant("http://localhost:8080/v1/oauth/token");
+
+        grantTypes.add(credentialsGrant);
+
+        return new OAuth("oauth2schema", authorizationScopeList, grantTypes);
+
+    }
+
+    private SecurityContext securityContext() {
+        return SecurityContext
+                .builder()
+                .securityReferences(defaultAuth())
+                .build();
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        final AuthorizationScope[] authorizationScopes = new AuthorizationScope[3];
+        authorizationScopes[0] = new AuthorizationScope("read", "read all");
+        authorizationScopes[1] = new AuthorizationScope("trust", "trust all");
+        authorizationScopes[2] = new AuthorizationScope("write", "write all");
+        return Collections.singletonList(new SecurityReference("Oauth2Schema", authorizationScopes));
+    }*/
 
     private Predicate<String> applicationPaths() {
         Predicate<String> authentications = PathSelectors.regex("/authenticate.*")::apply;

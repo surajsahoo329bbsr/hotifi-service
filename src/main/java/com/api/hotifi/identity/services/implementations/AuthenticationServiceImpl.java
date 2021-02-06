@@ -55,19 +55,19 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public String addEmail(String email, boolean isEmailVerified) {
         try {
             Authentication authentication = new Authentication();
+            Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
             String token = UUID.randomUUID().toString();
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
             authentication.setPassword(token);
-            if (!isEmailVerified)
+            authentication.setRoles(Collections.singletonList(role));
+            if (!isEmailVerified) {
                 OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
-            else {
+            }else {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
+                authenticationRepository.save(authentication);
             }
-            Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
-            authentication.setRoles(Collections.singletonList(role));
-            authenticationRepository.save(authentication);
             return token;
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
