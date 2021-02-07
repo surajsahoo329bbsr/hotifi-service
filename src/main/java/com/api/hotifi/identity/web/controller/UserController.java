@@ -48,7 +48,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest) {
         userService.addUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -61,7 +61,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getUserByUsername(@PathVariable(value = "username")
                                                @NotBlank(message = "{username.blank}")
                                                @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
@@ -76,7 +76,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> isUsernameAvailable(@PathVariable(value = "username")
                                                  @NotBlank(message = "{username.blank}")
                                                  @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
@@ -91,7 +91,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getUserByIdentifier(@PathVariable(value = "identifier-id")
                                                  @NotBlank(message = "{identifier.id.blank}")
                                                  @Length(max = 255, message = "{identifier.id.length.invalid}") String identifier) {
@@ -106,7 +106,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> sendEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
         userService.sendEmailOtpLogin(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -119,7 +119,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> resendEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
         userService.resendEmailOtpLogin(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -133,7 +133,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") String emailOtp) {
         userService.verifyEmailOtpAndLogin(email, emailOtp);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -147,7 +147,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest) {
         userService.updateUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -161,7 +161,7 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
         userService.updateLoginStatus(id, loginStatus);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

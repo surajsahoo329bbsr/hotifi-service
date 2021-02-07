@@ -1,0 +1,52 @@
+[
+  {
+    "userId": 1,
+    "pinCode": "751245",
+    "isWifi": false
+  },
+  {
+    "userId": 2,
+    "pinCode": "758495",
+    "isWifi": true
+  },
+  {
+    "userId": 3,
+    "pinCode": "756456",
+    "isWifi": true
+  },
+  {
+    "userId": 4,
+    "pinCode": "156432",
+    "isWifi": true
+  },
+  {
+    "userId": 5,
+    "pinCode": "459495",
+    "isWifi": true
+  },
+  {
+    "userId": 6,
+    "pinCode": "169495",
+    "isWifi": false
+  },
+  {
+    "userId": 7,
+    "pinCode": "753258",
+    "isWifi": true
+  },
+  {
+    "userId": 8,
+    "pinCode": "120495",
+    "isWifi": false
+  },
+  {
+    "userId": 9,
+    "pinCode": "758811",
+    "isWifi": false
+  },
+  {
+    "userId": 10,
+    "pinCode": "751007",
+    "isWifi": false
+  }
+]

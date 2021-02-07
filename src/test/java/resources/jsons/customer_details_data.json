@@ -1,0 +1,102 @@
+[
+  {
+    "authenticationId": 1,
+    "dateOfBirth": "02-03-1998",
+    "facebookId": "12345",
+    "firstName": "John",
+    "googleId": "01245784",
+    "lastName": "stuart",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "rocketman12"
+  },
+  {
+    "authenticationId": 2,
+    "dateOfBirth": "22-08-1998",
+    "facebookId": "54874",
+    "firstName": "Asish",
+    "googleId": "78445565",
+    "lastName": "Sahoo",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "freakin17"
+  },
+  {
+    "authenticationId": 3,
+    "dateOfBirth": "01-08-1998",
+    "facebookId": "78774",
+    "firstName": "Jack",
+    "googleId": "78445845",
+    "lastName": "Ma",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "jackMaFia69"
+  },
+  {
+    "authenticationId": 4,
+    "dateOfBirth": "01-08-1998",
+    "facebookId": "787741076",
+    "firstName": "Jack",
+    "googleId": "784458450",
+    "lastName": "Reacher",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "Reacher63"
+  },
+  {
+    "authenticationId": 5,
+    "dateOfBirth": "12-04-1987",
+    "facebookId": "54123",
+    "firstName": "Walter",
+    "googleId": "78445451",
+    "lastName": "White",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "methKing"
+  },
+  {
+    "authenticationId": 6,
+    "dateOfBirth": "22-05-1988",
+    "facebookId": "54812",
+    "firstName": "Jessie",
+    "googleId": "7844548",
+    "lastName": "Pinkman",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "cooking69"
+  },
+  {
+    "authenticationId": 7,
+    "dateOfBirth": "04-12-1998",
+    "facebookId": "45187",
+    "firstName": "Micheal",
+    "googleId": null,
+    "lastName": "Penya",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "NotAntMan"
+  },
+  {
+    "authenticationId": 8,
+    "dateOfBirth": "21-08-1999",
+    "facebookId": null,
+    "firstName": "Asish",
+    "googleId": "7844512507",
+    "lastName": "Das",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "cardgamb54"
+  },
+  {
+    "authenticationId": 9,
+    "dateOfBirth": "22-11-1998",
+    "facebookId": null,
+    "firstName": "Bikash",
+    "googleId": "784459850123",
+    "lastName": "Sahoo",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "plato7"
+  },
+  {
+    "authenticationId": 10,
+    "dateOfBirth": "01-08-1998",
+    "facebookId": "54898021",
+    "firstName": "Sagyan",
+    "googleId": null,
+    "lastName": "Sahoo",
+    "photoUrl": "http://www.sampledata.com/profile_photo",
+    "username": "qwerty17"
+  }
+]

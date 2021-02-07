@@ -52,7 +52,7 @@ public class SessionController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getActiveSessions(@PathVariable(value = "usernames") Set<String> usernames) {
         List<ActiveSessionsResponse> activeSessionsResponses = sessionService.getActiveSessions(usernames);
         return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
@@ -65,7 +65,7 @@ public class SessionController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id") @Range(min = 1, message = "{user.id.invalid}") Long sessionId, @PathVariable(value = "is-active") boolean isActive) {
         List<Buyer> getBuyers = sessionService.getBuyers(sessionId, isActive);
         return new ResponseEntity<>(getBuyers, HttpStatus.OK);
@@ -106,7 +106,7 @@ public class SessionController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> calculatePaymentForDataToBeUsed(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId, @PathVariable(value = "data-to-be-used") @Range(min = 1, message = "{data.to.be.used.invalid}") int dataToBeUsed) {
         double amountToBePaid = sessionService.calculatePaymentForDataToBeUsed(sessionId, dataToBeUsed);
         return new ResponseEntity<>(new AmountToBePaidResponse(amountToBePaid), HttpStatus.OK);
@@ -119,7 +119,7 @@ public class SessionController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id") @Range(min = 1, message = "{session.id.invalid}") Long sessionId) {
         SessionSummaryResponse sessionSummaryResponse = sessionService.getSessionSummary(sessionId);
         return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);

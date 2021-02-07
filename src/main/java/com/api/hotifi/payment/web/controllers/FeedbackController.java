@@ -49,7 +49,7 @@ public class FeedbackController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getPurchaseFeedback(@PathVariable(value = "purchase-id") @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
         Feedback feedback = feedbackService.getPurchaseFeedback(purchaseId);
         return new ResponseEntity<>(feedback, HttpStatus.OK);
@@ -62,7 +62,7 @@ public class FeedbackController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerFeedbacks(@PathVariable(value = "seller-id")
                                                 @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
                                                 @PathVariable(value = "page")

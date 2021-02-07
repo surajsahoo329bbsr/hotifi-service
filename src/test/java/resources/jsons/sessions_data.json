@@ -1,0 +1,42 @@
+[
+  {
+    "data": 8048,
+    "pinCode": "751345",
+    "price": 40,
+    "userId": 1,
+    "wifi": true,
+    "wifiPassword": "vC#GFrdta!$&9874FD@!"
+  },
+  {
+    "data": 1104,
+    "pinCode": "758495",
+    "price": 12,
+    "userId": 2,
+    "wifi": false,
+    "wifiPassword": "vC#GFrdtj@$&1548FD@!"
+  },
+  {
+    "data": 2025,
+    "pinCode": "718595",
+    "price": 8,
+    "userId": 3,
+    "wifi": true,
+    "wifiPassword": "vC@GFrdtj!@#2548FD#!"
+  },
+  {
+    "data": 2800,
+    "pinCode": "156432",
+    "price": 24,
+    "userId": 4,
+    "wifi": true,
+    "wifiPassword": "mK@GFrdtj!$&2018FD#!"
+  },
+  {
+    "data": 800,
+    "pinCode": "773255",
+    "price": 28,
+    "userId": 5,
+    "wifi": false,
+    "wifiPassword": "*vCGFhbgj@$&1548FD#!"
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "accountType": "INDIVIDUAL",
+    "bankAccountNumber": "1245126789012",
+    "bankAccountType": "SALARY_ACCOUNT",
+    "bankBeneficiaryName": "John Stuart",
+    "bankIfscCode": "HDFC0001237",
+    "errorDescription": null,
+    "userId": 1
+  },
+  {
+    "accountType": "INDIVIDUAL",
+    "bankAccountNumber": "1245126789012",
+    "bankAccountType": "SAVINGS_ACCOUNT",
+    "bankBeneficiaryName": "Ashish Sahoo",
+    "bankIfscCode": "HDFC0001236",
+    "errorDescription": null,
+    "userId": 2
+  },
+  {
+    "accountType": "PUBLIC_LIMITED",
+    "bankAccountNumber": "1245126789012",
+    "bankAccountType": "SAVINGS_ACCOUNT",
+    "bankBeneficiaryName": "Jack Ma",
+    "bankIfscCode": "AXIS0001237",
+    "errorDescription": null,
+    "userId": 3
+  },
+  {
+    "accountType": "PRIVATE_LIMITED",
+    "bankAccountNumber": "4545126789012",
+    "bankAccountType": "OTHERS",
+    "bankBeneficiaryName": "Walter White",
+    "bankIfscCode": "HDFC0001237",
+    "errorDescription": null,
+    "userId": 4
+  },
+  {
+    "accountType": "PARTNERSHIP",
+    "bankAccountNumber": "9245126789012",
+    "bankAccountType": "CURRENT_ACCOUNT",
+    "bankBeneficiaryName": "Jesse Pinkman",
+    "bankIfscCode": "ICICI001237",
+    "errorDescription": null,
+    "userId": 5
+  }
+]

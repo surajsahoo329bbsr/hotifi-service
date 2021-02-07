@@ -40,9 +40,9 @@ public class UserServiceImpl implements IUserService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_VERIFIED);
-        if (userRepository.existsByFacebookId(userRequest.getFacebookId()))
+        if (userRepository.existsByFacebookId(userRequest.getFacebookId()) && userRequest.getFacebookId() != null)
             throw new HotifiException(UserErrorCodes.FACEBOOK_USER_EXISTS);
-        if (userRepository.existsByGoogleId(userRequest.getGoogleId()))
+        if (userRepository.existsByGoogleId(userRequest.getGoogleId()) && userRequest.getGoogleId() != null)
             throw new HotifiException(UserErrorCodes.GOOGLE_USER_EXISTS);
         if (userRepository.existsByUsername(userRequest.getUsername()))
             throw new HotifiException(UserErrorCodes.USERNAME_EXISTS);

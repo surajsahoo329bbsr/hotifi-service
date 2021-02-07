@@ -64,7 +64,7 @@ public class BankAccountController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> updateSuccessfulBankAccountByAdmin(@PathVariable(value = "user-id")
                                                                       @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                                       @PathVariable(value = "linked-account-id")
@@ -81,7 +81,7 @@ public class BankAccountController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> updateErrorBankAccountByAdmin(@PathVariable(value = "user-id")
                                                                  @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                            @PathVariable(value = "error-description", required = false)
@@ -97,7 +97,7 @@ public class BankAccountController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         BankAccount bankAccount = bankAccountService.getBankAccountByUserId(userId);
         return new ResponseEntity<>(bankAccount, HttpStatus.OK);
@@ -110,7 +110,7 @@ public class BankAccountController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTRATOR')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getUnlinkedBankAccounts() {
         List<BankAccount> bankAccounts = bankAccountService.getUnlinkedBankAccounts();
         return new ResponseEntity<>(bankAccounts, HttpStatus.OK);

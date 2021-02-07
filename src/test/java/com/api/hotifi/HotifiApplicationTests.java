@@ -1,6 +1,6 @@
 package com.api.hotifi;
 
-import com.api.hotifi.identity.AuthenticationControllerTest;
+import com.api.hotifi.controllers.AuthenticationControllerTest;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

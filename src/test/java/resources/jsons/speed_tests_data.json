@@ -1,0 +1,352 @@
+[
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "JIO",
+    "pinCode": "751245",
+    "uploadSpeed": 3.21,
+    "userId": 1
+  },
+  {
+    "downloadSpeed": 54.35,
+    "networkName": "WIFI",
+    "pinCode": "751345",
+    "uploadSpeed": 33.21,
+    "userId": 1
+  },
+  {
+    "downloadSpeed": 50.35,
+    "networkName": "WIFI",
+    "pinCode": "751345",
+    "uploadSpeed": 12.21,
+    "userId": 1
+  },
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "JIO",
+    "pinCode": "751345",
+    "uploadSpeed": 3.21,
+    "userId": 1
+  },
+  {
+    "downloadSpeed": 5.35,
+    "networkName": "AIRTEL",
+    "pinCode": "751345",
+    "uploadSpeed": 1.21,
+    "userId": 1
+  },
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "JIO",
+    "pinCode": "758495",
+    "uploadSpeed": 3.21,
+    "userId": 2
+  },
+  {
+    "downloadSpeed": 14.15,
+    "networkName": "WIFI",
+    "pinCode": "758495",
+    "uploadSpeed": 13.01,
+    "userId": 2
+  },
+  {
+    "downloadSpeed": 4.50,
+    "networkName": "JIO",
+    "pinCode": "758405",
+    "uploadSpeed": 3.11,
+    "userId": 2
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "JIO",
+    "pinCode": "758495",
+    "uploadSpeed": 2.20,
+    "userId": 2
+  },
+  {
+    "downloadSpeed": 3.35,
+    "networkName": "JIO",
+    "pinCode": "758195",
+    "uploadSpeed": 3.20,
+    "userId": 2
+  },
+  {
+    "downloadSpeed": 24.35,
+    "networkName": "WIFI",
+    "pinCode": "718595",
+    "uploadSpeed": 23.21,
+    "userId": 3
+  },
+  {
+    "downloadSpeed": 35.15,
+    "networkName": "WIFI",
+    "pinCode": "778655",
+    "uploadSpeed": 32.01,
+    "userId": 3
+  },
+  {
+    "downloadSpeed": 25.50,
+    "networkName": "WIFI",
+    "pinCode": "458495",
+    "uploadSpeed": 23.11,
+    "userId": 3
+  },
+  {
+    "downloadSpeed": 24.55,
+    "networkName": "WIFI",
+    "pinCode": "756432",
+    "uploadSpeed": 22.20,
+    "userId": 3
+  },
+  {
+    "downloadSpeed": 23.35,
+    "networkName": "WIFI",
+    "pinCode": "756456",
+    "uploadSpeed": 23.20,
+    "userId": 3
+  },
+  {
+    "downloadSpeed": 24.35,
+    "networkName": "WIFI",
+    "pinCode": "718965",
+    "uploadSpeed": 23.21,
+    "userId": 4
+  },
+  {
+    "downloadSpeed": 35.15,
+    "networkName": "AIRTEL",
+    "pinCode": "773255",
+    "uploadSpeed": 32.01,
+    "userId": 4
+  },
+  {
+    "downloadSpeed": 25.50,
+    "networkName": "WIFI",
+    "pinCode": "459495",
+    "uploadSpeed": 23.11,
+    "userId": 4
+  },
+  {
+    "downloadSpeed": 24.55,
+    "networkName": "WIFI",
+    "pinCode": "156432",
+    "uploadSpeed": 22.20,
+    "userId": 4
+  },
+  {
+    "downloadSpeed": 23.35,
+    "networkName": "WIFI",
+    "pinCode": "752456",
+    "uploadSpeed": 23.20,
+    "userId": 4
+  },
+  {
+    "downloadSpeed": 24.35,
+    "networkName": "WIFI",
+    "pinCode": "718965",
+    "uploadSpeed": 23.21,
+    "userId": 5
+  },
+  {
+    "downloadSpeed": 35.15,
+    "networkName": "AIRTEL",
+    "pinCode": "773255",
+    "uploadSpeed": 32.01,
+    "userId": 5
+  },
+  {
+    "downloadSpeed": 25.50,
+    "networkName": "WIFI",
+    "pinCode": "459495",
+    "uploadSpeed": 23.11,
+    "userId": 5
+  },
+  {
+    "downloadSpeed": 24.55,
+    "networkName": "WIFI",
+    "pinCode": "156432",
+    "uploadSpeed": 22.20,
+    "userId": 5
+  },
+  {
+    "downloadSpeed": 23.35,
+    "networkName": "WIFI",
+    "pinCode": "752456",
+    "uploadSpeed": 23.20,
+    "userId": 5
+  },
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "JIO",
+    "pinCode": "365495",
+    "uploadSpeed": 3.21,
+    "userId": 6
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "JIO",
+    "pinCode": "669495",
+    "uploadSpeed": 3.01,
+    "userId": 6
+  },
+  {
+    "downloadSpeed": 4.50,
+    "networkName": "JIO",
+    "pinCode": "169495",
+    "uploadSpeed": 3.11,
+    "userId": 6
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "JIO",
+    "pinCode": "969495",
+    "uploadSpeed": 2.20,
+    "userId": 6
+  },
+  {
+    "downloadSpeed": 3.35,
+    "networkName": "JIO",
+    "pinCode": "369695",
+    "uploadSpeed": 3.20,
+    "userId": 6
+  },
+  {
+    "downloadSpeed": 24.35,
+    "networkName": "WIFI",
+    "pinCode": "753258",
+    "uploadSpeed": 23.21,
+    "userId": 7
+  },
+  {
+    "downloadSpeed": 34.15,
+    "networkName": "WIFI",
+    "pinCode": "753258",
+    "uploadSpeed": 33.01,
+    "userId": 7
+  },
+  {
+    "downloadSpeed": 14.50,
+    "networkName": "WIFI",
+    "pinCode": "753251",
+    "uploadSpeed": 13.11,
+    "userId": 7
+  },
+  {
+    "downloadSpeed": 24.15,
+    "networkName": "WIFI",
+    "pinCode": "753258",
+    "uploadSpeed": 22.20,
+    "userId": 7
+  },
+  {
+    "downloadSpeed": 33.35,
+    "networkName": "WIFI",
+    "pinCode": "753258",
+    "uploadSpeed": 31.20,
+    "userId": 7
+  },
+  {
+    "downloadSpeed": 5.35,
+    "networkName": "JIO",
+    "pinCode": "120495",
+    "uploadSpeed": 4.21,
+    "userId": 8
+  },
+  {
+    "downloadSpeed": 5.15,
+    "networkName": "JIO",
+    "pinCode": "120495",
+    "uploadSpeed": 3.01,
+    "userId": 8
+  },
+  {
+    "downloadSpeed": 5.50,
+    "networkName": "JIO",
+    "pinCode": "120495",
+    "uploadSpeed": 3.14,
+    "userId": 8
+  },
+  {
+    "downloadSpeed": 2.15,
+    "networkName": "JIO",
+    "pinCode": "120495",
+    "uploadSpeed": 2.20,
+    "userId": 8
+  },
+  {
+    "downloadSpeed": 3.35,
+    "networkName": "JIO",
+    "pinCode": "120495",
+    "uploadSpeed": 3.20,
+    "userId": 8
+  },
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "AIRTEL",
+    "pinCode": "758811",
+    "uploadSpeed": 3.21,
+    "userId": 9
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "AIRTEL",
+    "pinCode": "758811",
+    "uploadSpeed": 3.01,
+    "userId": 9
+  },
+  {
+    "downloadSpeed": 4.50,
+    "networkName": "AIRTEL",
+    "pinCode": "758811",
+    "uploadSpeed": 3.11,
+    "userId": 9
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "AIRTEL",
+    "pinCode": "758811",
+    "uploadSpeed": 2.20,
+    "userId": 9
+  },
+  {
+    "downloadSpeed": 3.35,
+    "networkName": "AIRTEL",
+    "pinCode": "758811",
+    "uploadSpeed": 3.20,
+    "userId": 9
+  },
+  {
+    "downloadSpeed": 4.35,
+    "networkName": "JIO",
+    "pinCode": "751009",
+    "uploadSpeed": 3.21,
+    "userId": 10
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "JIO",
+    "pinCode": "751008",
+    "uploadSpeed": 3.01,
+    "userId": 10
+  },
+  {
+    "downloadSpeed": 4.50,
+    "networkName": "JIO",
+    "pinCode": "751007",
+    "uploadSpeed": 3.11,
+    "userId": 10
+  },
+  {
+    "downloadSpeed": 4.15,
+    "networkName": "JIO",
+    "pinCode": "751006",
+    "uploadSpeed": 2.20,
+    "userId": 10
+  },
+  {
+    "downloadSpeed": 23.35,
+    "networkName": "WIFI",
+    "pinCode": "751004",
+    "uploadSpeed": 23.20,
+    "userId": 10
+  }
+]
