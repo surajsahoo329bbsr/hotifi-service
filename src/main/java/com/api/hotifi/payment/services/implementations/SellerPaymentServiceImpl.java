@@ -49,12 +49,13 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     //called by PurchaseServiceImpl
     @Transactional
     @Override
-    public void updateSellerPayment(User seller, double amountEarned) {
+    public void updateSellerPayment(User seller, double amountEarned, boolean isUpdateTimeOnly) {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId());
         if(sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         Date now = new Date(System.currentTimeMillis());
-        sellerPayment.setAmountEarned(amountEarned);
+        //If we are not updating time only, then we need to update amount earned
+        if(!isUpdateTimeOnly) sellerPayment.setAmountEarned(amountEarned);
         sellerPayment.setModifiedAt(now);
         sellerPaymentRepository.save(sellerPayment);
     }

@@ -1,6 +1,7 @@
 package com.api.hotifi.json_readers;
 
 import com.api.hotifi.constants.TestConstants;
+import com.api.hotifi.model_mocks.PurchaseCheckMock;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,6 +24,13 @@ public class PurchaseJsonReader {
 
     public String getPurchaseJsonFromJsonFile() {
         return jsonObject.toJSONString();
+    }
+
+    public PurchaseCheckMock getPurchaseCheckFromJsonFile(){
+        Long buyerId = (Long) jsonObject.get("buyerId");
+        Long sessionId = (Long) jsonObject.get("sessionId");
+        Long dataToBeUsed = (Long) jsonObject.get("data");
+        return new PurchaseCheckMock(buyerId, sessionId, dataToBeUsed);
     }
 
 }

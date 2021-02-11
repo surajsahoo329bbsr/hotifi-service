@@ -38,7 +38,7 @@ public class AuthenticationControllerTest {
 
         mockMvc
                 .perform(requestBuilder)
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isOk())
                 //.andExpect(result -> assertNotNull(result.getResolvedException()))
                 //.andExpect(result -> assertEquals("Email already exists", Objects.requireNonNull(result.getResolvedException()).getMessage()))
                 .andReturn();

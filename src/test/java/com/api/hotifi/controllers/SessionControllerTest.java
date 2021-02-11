@@ -13,8 +13,10 @@ import org.springframework.test.web.servlet.RequestBuilder;
 
 import java.util.Set;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -27,6 +29,7 @@ public class SessionControllerTest {
 
     @RepeatedTest(value = 5, name = "Performing add session test - {currentRepetition}/{totalRepetitions} ...")
     @DisplayName("Should add sessions")
+    @Disabled
     @Order(1)
     public void shouldAddSessions(RepetitionInfo repetitionInfo) throws Exception {
 
@@ -68,11 +71,11 @@ public class SessionControllerTest {
                 "rocketman12",
                 "freakin17",
                 "jackMaFia69",
-                "methKing",
-                "cooking69"
+                "Reacher63",
+                "methKing"
         );
 
-        RequestBuilder requestBuilder = get("/session/active/" + usernames)
+        RequestBuilder requestBuilder = get("/session/active/" + String.join(",", usernames))
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .accept(MediaType.APPLICATION_JSON);
@@ -80,7 +83,7 @@ public class SessionControllerTest {
         mockMvc
                 .perform(requestBuilder)
                 .andExpect(status().isOk())
-                //.andExpect(content().json("[{}]"))
+                .andExpect(jsonPath("$", hasSize(5)))
                 .andReturn();
     }
 }

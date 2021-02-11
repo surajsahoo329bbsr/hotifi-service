@@ -9,7 +9,7 @@ public interface ISellerPaymentService {
     void addSellerPayment(User seller, double amountEarned);
 
     //DO NOT ADD TO CONTROLLER
-    void updateSellerPayment(User seller, double amountEarned);
+    void updateSellerPayment(User seller, double amountEarned, boolean isUpdateTimeOnly);
 
     SellerReceiptResponse withdrawSellerPayment(Long sellerId);
 

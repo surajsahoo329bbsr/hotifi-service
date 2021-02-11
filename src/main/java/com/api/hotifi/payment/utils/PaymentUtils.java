@@ -28,4 +28,8 @@ public class PaymentUtils {
         long hoursDifference = timeDifference / (60 * 60 * 1000);
         return hoursDifference >= Constants.MAXIMUM_BUYER_REFUND_DUE_HOURS;
     }
+
+    public static double formatDecimalFractions(double number) {
+        return (double) Math.round(number * 100.0) / 100.0;
+    }
 }

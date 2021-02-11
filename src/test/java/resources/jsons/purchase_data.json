@@ -5,8 +5,7 @@
     "macAddress": "00-KN-56-F2-B5-02",
     "paymentId": "vxau46c655554avb",
     "paymentMethod": "UPI_PAYMENT",
-    "sessionId": 1,
-    "upiApp": "PHONE_PE"
+    "sessionId": 1
   },
   {
     "buyerId": 7,
@@ -14,8 +13,7 @@
     "macAddress": "00-KN-56-F2-B5-02",
     "paymentId": "vxau465166c6555avb",
     "paymentMethod": "UPI_PAYMENT",
-    "sessionId": 1,
-    "upiApp": "GOOGLE_PAY"
+    "sessionId": 1
   },
   {
     "buyerId": 8,
@@ -23,8 +21,7 @@
     "macAddress": "01-FH-56-F2-B5-12",
     "paymentId": "vxau464cas55b",
     "paymentMethod": "UPI_PAYMENT",
-    "sessionId": 1,
-    "upiApp": "OTHERS"
+    "sessionId": 1
   },
   {
     "buyerId": 9,
@@ -32,8 +29,7 @@
     "macAddress": "11-F0-56-F2-B5-12",
     "paymentId": "vxau46455b",
     "paymentMethod": "UPI_PAYMENT",
-    "sessionId": 2,
-    "upiApp": "PAYTM"
+    "sessionId": 2
   },
   {
     "buyerId": 10,
@@ -41,7 +37,6 @@
     "macAddress": "11-K0-56-F2-B5-12",
     "paymentId": "v34xau464cds55b",
     "paymentMethod": "UPI_PAYMENT",
-    "sessionId": 3,
-    "upiApp": "PAYTM"
+    "sessionId": 3
   }
 ]

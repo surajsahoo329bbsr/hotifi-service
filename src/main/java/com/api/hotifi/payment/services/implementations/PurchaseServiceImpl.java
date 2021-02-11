@@ -59,6 +59,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         this.sellerPaymentService = sellerPaymentService;
     }
 
+
     @Transactional(readOnly = true)
     @Override
     public boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed) {
@@ -219,17 +220,21 @@ public class PurchaseServiceImpl implements IPurchaseService {
             int dataBought = purchase.getData();
             int purchaseStatus = purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value();
             Date now = new Date(System.currentTimeMillis());
+
+            double dataUsedBefore = purchase.getDataUsed();
             double calculatedRefundAmount = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
-            double calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
 
             //Updating seller payment each time update is made
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
+            boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
+
             if (sellerPayment == null)
-                sellerPaymentService.addSellerPayment(seller, purchase.getAmountPaid() - purchase.getAmountRefund());
-            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(calculatedSellerAmount, purchase.getAmountRefund()) < 0)
-                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - calculatedSellerAmount);
+                sellerPaymentService.addSellerPayment(seller, PaymentUtils.formatDecimalFractions(calculatedSellerAmount));
+            else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
+                sellerPaymentService.updateSellerPayment(seller, PaymentUtils.formatDecimalFractions(sellerPayment.getAmountEarned() + calculatedSellerAmount), isUpdateTimeOnly);
 
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(calculatedRefundAmount);
@@ -264,16 +269,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
             int dataBought = purchase.getData();
             Date sessionFinishedAt = new Date(System.currentTimeMillis());
+            double dataUsedBefore = purchase.getDataUsed();
             double amountRefund = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
-            double sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            double sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
+            boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
 
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             if (sellerPayment == null)
                 throw new HotifiException(PurchaseErrorCodes.UPDATE_WIFI_SERVICE_BEFORE_FINISHING);
-            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && Double.compare(sellerAmount, purchase.getAmountRefund()) < 0)
-                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned() + purchase.getAmountRefund() - sellerAmount);
+            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
+                sellerPaymentService.updateSellerPayment(seller, PaymentUtils.formatDecimalFractions(sellerPayment.getAmountEarned() + sellerAmount), isUpdateTimeOnly);
 
             RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
@@ -386,9 +393,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
         return amountPaid - Math.ceil((amountPaid / dataBought) * dataUsed);
     }
 
-    private double calculateSellerPaymentAmount(double dataBought, double dataUsed, double amountPaid) {
+    private double calculateSellerPaymentAmount(double dataBought, double dataUsed, double dataUsedBefore, double amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
-        return amountPaid - (double) Math.round((amountPaid / dataBought) * dataUsed * 100) / 100;
+        return (amountPaid / dataBought) * (dataUsed - dataUsedBefore);
     }
 
     private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {

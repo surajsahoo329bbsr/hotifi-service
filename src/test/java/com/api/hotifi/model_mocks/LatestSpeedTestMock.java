@@ -2,17 +2,15 @@ package com.api.hotifi.model_mocks;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
 public class LatestSpeedTestMock {
 
-    private Long userId;
+    private final Long userId;
 
-    private String pinCode;
+    private final String pinCode;
 
-    private boolean isWifi;
+    private final boolean isWifi;
 
 }
