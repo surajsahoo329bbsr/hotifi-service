@@ -85,7 +85,7 @@ public class PurchaseController {
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        int updateStatus = purchaseService.updateBuyerWifiService(purchaseId,dataUsed);
+        int updateStatus = purchaseService.updateBuyerWifiService(purchaseId, dataUsed);
         return new ResponseEntity<>(new UpdateStatusResponse(updateStatus), HttpStatus.OK);
     }
 

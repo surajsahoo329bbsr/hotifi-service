@@ -6,6 +6,7 @@ import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
 import com.api.hotifi.session.web.response.SessionSummaryResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public interface ISessionService {
 
     void finishSession(Long sessionId, boolean isForceStop);
 
-    double calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed);
+    BigDecimal calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed);
 
     SessionSummaryResponse getSessionSummary(Long sessionId);
 

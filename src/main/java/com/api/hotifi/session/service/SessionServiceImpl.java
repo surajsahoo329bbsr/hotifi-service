@@ -15,6 +15,7 @@ import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
+import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.error.SessionErrorCodes;
 import com.api.hotifi.session.model.Buyer;
@@ -31,6 +32,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -72,7 +75,7 @@ public class SessionServiceImpl implements ISessionService {
             throw new HotifiException(SessionErrorCodes.SPEED_TEST_ABSENT);
 
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
-        if (sellerPayment != null && Double.compare(sellerPayment.getAmountEarned(), Constants.MAXIMUM_SELLER_AMOUNT_EARNED) > 0)
+        if (sellerPayment != null && sellerPayment.getAmountEarned().compareTo(BigDecimal.valueOf(Constants.MAXIMUM_SELLER_AMOUNT_EARNED)) > 0)
             throw new HotifiException(SessionErrorCodes.WITHDRAW_SELLER_AMOUNT);
 
         try {
@@ -82,8 +85,6 @@ public class SessionServiceImpl implements ISessionService {
                     .stream()
                     .map(SpeedTest::getId)
                     .collect(Collectors.toList());
-
-            //speedTestIds.forEach(id -> log.info("Id : "+ id));
 
             Date finishedAt = new Date(System.currentTimeMillis());
             sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
@@ -130,7 +131,8 @@ public class SessionServiceImpl implements ISessionService {
 
                 sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
-                    double availableDataPrice = Math.ceil((session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB) * availableData);
+                    BigDecimal availableDataPrice = PaymentUtils
+                            .divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
@@ -179,7 +181,7 @@ public class SessionServiceImpl implements ISessionService {
                 buyer.setSessionCreatedAt(purchase.getSessionCreatedAt());
                 buyer.setSessionModifiedAt(purchase.getSessionModifiedAt());
                 buyer.setSessionFinishedAt(purchase.getSessionFinishedAt());
-                buyer.setAmountPaid(purchase.getAmountPaid() - purchase.getAmountRefund());
+                buyer.setAmountPaid(purchase.getAmountPaid().subtract(purchase.getAmountRefund()));
                 buyer.setDataBought(purchase.getData());
                 buyer.setDataUsed(purchase.getDataUsed());
                 buyers.add(buyer);
@@ -232,14 +234,15 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional
     @Override
-    public double calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed) {
+    public BigDecimal calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
         double availableData = session.getData() - session.getDataUsed();
         if (Double.compare(dataToBeUsed, availableData) > 0)
             throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
-        return Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * dataToBeUsed);
+        //return Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * dataToBeUsed);
+        return PaymentUtils.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(dataToBeUsed));
     }
 
     @Override
@@ -250,12 +253,15 @@ public class SessionServiceImpl implements ISessionService {
         try {
             Date finishedAt = new Date(System.currentTimeMillis());
             List<Buyer> buyers = getBuyers(sessionId, false);
-            double totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
+            BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
                     .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
-                    .mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
-                    .sum();
-            int netEarnings = (int) Math.floor(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+                    //.mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
+                    .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal netEarnings = totalEarnings
+                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                    .setScale(2, RoundingMode.FLOOR);
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());
@@ -320,12 +326,14 @@ public class SessionServiceImpl implements ISessionService {
         List<Session> sessions = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageable);
         List<SessionSummaryResponse> sessionSummaryResponses = new ArrayList<>();
         sessions.forEach(session -> {
-            double totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
+            BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                     .stream()
                     .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
-                    .mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
-                    .sum();
-            int netEarnings = (int) Math.floor(totalEarnings * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+                    .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal netEarnings = totalEarnings
+                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100));
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());

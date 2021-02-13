@@ -28,10 +28,10 @@ public class SpeedTest implements Serializable {
     @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
-    @Column(precision = 10, scale = 2, nullable = false)
+    @Column(columnDefinition = "DECIMAL(10,3)", nullable = false)
     private double uploadSpeed;
 
-    @Column(precision = 10, scale = 2, nullable = false)
+    @Column(columnDefinition = "DECIMAL(10,3)", nullable = false)
     private double downloadSpeed;
 
     @ManyToOne(fetch = FetchType.LAZY)

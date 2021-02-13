@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +40,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     //called by SellerPaymentServiceImpl
     @Transactional
     @Override
-    public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, double sellerAmountPaid) {
+    public SellerReceiptResponse addSellerReceipt(User seller, SellerPayment sellerPayment, BigDecimal sellerAmountPaid) {
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             SellerReceiptResponse receiptResponse = paymentProcessor.startSellerPayment(sellerAmountPaid, seller.getBankAccount().getLinkedAccountId(), seller.getAuthentication().getEmail());
@@ -142,7 +143,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
                     sellerReceiptRepository.save(sellerReceipt);
 
                     //updating seller_payment entity after withdrawing money
-                    sellerPayment.setAmountPaid(sellerReceipt.getAmountPaid() + sellerPayment.getAmountPaid());
+                    sellerPayment.setAmountPaid(sellerReceipt.getAmountPaid().add(sellerPayment.getAmountPaid()));
                     sellerPayment.setLastPaidAt(sellerReceipt.getPaidAt());
                     sellerPayment.setModifiedAt(sellerReceipt.getPaidAt());
                     sellerPaymentRepository.save(sellerPayment);

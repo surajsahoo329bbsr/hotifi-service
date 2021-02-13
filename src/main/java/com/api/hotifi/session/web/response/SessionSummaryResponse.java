@@ -4,6 +4,7 @@ import com.api.hotifi.session.model.Buyer;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -11,9 +12,9 @@ import java.util.List;
 @Setter
 public class SessionSummaryResponse {
 
-    public double totalEarnings;
+    public BigDecimal totalEarnings;
 
-    public int netEarnings;
+    public BigDecimal netEarnings;
 
     public double totalDataSold;
 

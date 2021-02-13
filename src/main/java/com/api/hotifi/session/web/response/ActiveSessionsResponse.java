@@ -3,6 +3,8 @@ package com.api.hotifi.session.web.response;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Setter
 @Getter
 public class ActiveSessionsResponse {
@@ -22,7 +24,7 @@ public class ActiveSessionsResponse {
 
     private double uploadSpeed;
 
-    private double price;
+    private BigDecimal price;
 
     private double data;
 

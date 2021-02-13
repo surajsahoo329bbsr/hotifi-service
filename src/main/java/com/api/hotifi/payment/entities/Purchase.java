@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -43,7 +44,7 @@ public class Purchase implements Serializable {
     @Column(columnDefinition = "INT", nullable = false)
     private int data;
 
-    @Column(precision = 15, scale = 3, nullable = false)
+    @Column(columnDefinition = "Decimal(10,3)", nullable = false)
     private double dataUsed;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -65,10 +66,10 @@ public class Purchase implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date refundDoneAt;
 
-    @Column(precision = 10, scale = 2, nullable = false)
-    private double amountPaid;
+    @Column(nullable = false)
+    private BigDecimal amountPaid;
 
-    @Column(precision = 10, scale = 2)
-    private double amountRefund;
+    @Column(nullable = false)
+    private BigDecimal amountRefund;
 
 }

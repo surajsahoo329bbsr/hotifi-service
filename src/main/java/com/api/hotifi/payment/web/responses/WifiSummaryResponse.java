@@ -3,6 +3,7 @@ package com.api.hotifi.payment.web.responses;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -19,9 +20,9 @@ public class WifiSummaryResponse {
 
     private Date sessionFinishedAt;
 
-    private double amountPaid;
+    private BigDecimal amountPaid;
 
-    private double amountRefund;
+    private BigDecimal amountRefund;
 
     private double dataUsed;
 

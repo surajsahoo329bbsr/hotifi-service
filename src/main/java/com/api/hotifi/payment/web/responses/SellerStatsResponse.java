@@ -3,6 +3,7 @@ package com.api.hotifi.payment.web.responses;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -13,9 +14,9 @@ public class SellerStatsResponse {
 
     public Date lastPaidAt;
 
-    public double totalEarnings;
+    public BigDecimal totalEarnings;
 
-    public double totalAmountWithdrawn;
+    public BigDecimal totalAmountWithdrawn;
 
     //4.0 or 4.5 format
     public String averageRating;

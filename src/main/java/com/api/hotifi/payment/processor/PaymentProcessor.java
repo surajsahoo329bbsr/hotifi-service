@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -136,7 +137,7 @@ public class PaymentProcessor {
         return null;
     }
 
-    public RefundReceiptResponse startBuyerRefund(PurchaseRepository purchaseRepository, double refundAmount, String paymentId, String email) {
+    public RefundReceiptResponse startBuyerRefund(PurchaseRepository purchaseRepository, BigDecimal refundAmount, String paymentId, String email) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("TODO RAZORPAY PAYMENT");
@@ -155,7 +156,7 @@ public class PaymentProcessor {
         return null;
     }
 
-    public SellerReceiptResponse startSellerPayment(double sellerPendingAmount, String linkedAccountId, String email) {
+    public SellerReceiptResponse startSellerPayment(BigDecimal sellerPendingAmount, String linkedAccountId, String email) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("TODO RAZORPAY PAYMENT");

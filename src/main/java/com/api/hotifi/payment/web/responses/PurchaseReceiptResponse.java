@@ -3,6 +3,7 @@ package com.api.hotifi.payment.web.responses;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -17,7 +18,7 @@ public class PurchaseReceiptResponse {
 
     private int purchaseStatus;
 
-    private double amountPaid;
+    private BigDecimal amountPaid;
 
     private Date createdAt;
 

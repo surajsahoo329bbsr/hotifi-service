@@ -29,7 +29,6 @@ public class SessionControllerTest {
 
     @RepeatedTest(value = 5, name = "Performing add session test - {currentRepetition}/{totalRepetitions} ...")
     @DisplayName("Should add sessions")
-    @Disabled
     @Order(1)
     public void shouldAddSessions(RepetitionInfo repetitionInfo) throws Exception {
 

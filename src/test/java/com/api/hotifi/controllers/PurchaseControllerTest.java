@@ -55,7 +55,6 @@ public class PurchaseControllerTest {
 
     @RepeatedTest(value = 5, name = "Performing add purchase test - {currentRepetition}/{totalRepetitions} ...")
     @DisplayName("Should add purchase")
-    @Disabled
     @Order(2)
     public void shouldAddPurchases(RepetitionInfo repetitionInfo) throws Exception {
 
@@ -87,7 +86,7 @@ public class PurchaseControllerTest {
     @RepeatedTest(value = 5, name = "Performing get latest speed test - {currentRepetition}/{totalRepetitions} ...")
     @DisplayName("Should get latest speed test")
     @Order(3)
-    @Disabled
+    @Disabled //Don't comment this before testing all purchase use-cases
     public void shouldGetPurchaseReceipt(RepetitionInfo repetitionInfo) throws Exception {
         CustomerCredentialsJsonReader credentialsJsonReader = new CustomerCredentialsJsonReader(repetitionInfo.getCurrentRepetition() - 1);
 

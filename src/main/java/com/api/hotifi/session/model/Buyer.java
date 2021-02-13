@@ -3,6 +3,7 @@ package com.api.hotifi.session.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -25,6 +26,6 @@ public class Buyer {
 
     public Date sessionFinishedAt;
 
-    public double amountPaid;
+    public BigDecimal amountPaid;
 
 }

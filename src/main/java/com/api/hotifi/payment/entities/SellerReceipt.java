@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Getter
@@ -23,7 +24,7 @@ public class SellerReceipt implements Serializable {
     private SellerPayment sellerPayment;
 
     @Column(nullable = false)
-    private double amountPaid;
+    private BigDecimal amountPaid;
 
     @Column(nullable = false)
     private String paymentId;
@@ -46,6 +47,5 @@ public class SellerReceipt implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date paidAt; // Time at which amount is paid to the seller
-
 
 }

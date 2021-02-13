@@ -26,6 +26,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -56,9 +58,11 @@ public class StatsServiceImpl implements IStatsService {
             if (LegitUtils.isUserLegit(buyer)) {
                 Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("session_created_at").descending());
                 Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
-                double totalPendingRefunds = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
-                        .mapToDouble(Purchase::getAmountRefund)
-                        .sum();
+                BigDecimal totalPendingRefunds =
+                        purchaseStreamSupplier.get()
+                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
+                                .map(Purchase::getAmountRefund)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 double totalDataBought = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
                 double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
@@ -84,8 +88,11 @@ public class StatsServiceImpl implements IStatsService {
         if (sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
         try {
-            double totalEarnings = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
-            double totalAmountWithdrawn = sellerPayment.getAmountPaid();
+            BigDecimal totalEarnings = sellerPayment
+                    .getAmountEarned()
+                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                    .setScale(2, RoundingMode.FLOOR);
+            BigDecimal totalAmountWithdrawn = sellerPayment.getAmountPaid();
             String averageRating = feedbackService.getAverageRating(sellerId);
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
 

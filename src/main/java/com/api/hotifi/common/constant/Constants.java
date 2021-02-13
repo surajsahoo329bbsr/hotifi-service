@@ -73,7 +73,7 @@ public class Constants {
     public static final int MAXIMUM_SELLER_AMOUNT_EARNED = 20000;
     public static final int MAXIMUM_EMAIL_OTP_MINUTES = 10;
     public static final int MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS = 30;
-    //public static final int MINIMUM_AMOUNT_PAID_INR = 1;
+    public static final int MINIMUM_AMOUNT_INR = 1;
     //public static final int MAXIMUM_AMOUNT_PAID_INR = 8000;
     public static final int MINIMUM_FREEZE_PERIOD_HOURS = 24;
     public static final int MINIMUM_WARNINGS_TO_FREEZE = 10;

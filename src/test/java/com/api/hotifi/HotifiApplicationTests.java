@@ -16,9 +16,7 @@ import org.junit.runners.Suite;
 })
 //@SpringBootTest
 class HotifiApplicationTests {
-
 	//Using this as Suite Test To Control The Order Of Test Files
-
 	@Test
 	void contextLoads() {
 	}

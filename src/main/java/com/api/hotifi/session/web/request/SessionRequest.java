@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -31,7 +32,7 @@ public class SessionRequest {
 
     //Unit Price, i.e. Price per GB
     @Range(min = Constants.MINIMUM_SELLING_DATA_PRICE_PER_GB, max = Constants.MAXIMUM_SELLING_DATA_PRICE_PER_GB, message = "{session.price.invalid}")
-    private double price;
+    private BigDecimal price;
 
     private boolean isWifi;
 

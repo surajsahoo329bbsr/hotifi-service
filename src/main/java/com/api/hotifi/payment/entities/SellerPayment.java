@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -22,11 +23,11 @@ public class SellerPayment implements Serializable {
     @JoinColumn(name = "seller_id", unique = true, nullable = false)
     private User seller;
 
-    @Column(precision = 10, scale = 2, nullable = false)
-    private double amountEarned; // Total amount earned by the seller
+    @Column(nullable = false)
+    private BigDecimal amountEarned; // Total amount earned by the seller
 
     @Column(precision = 10, scale = 2, nullable = false)
-    private double amountPaid; // Total amount to be paid to the seller
+    private BigDecimal amountPaid; // Total amount to be paid to the seller
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)

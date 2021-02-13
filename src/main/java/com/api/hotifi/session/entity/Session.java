@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -33,14 +34,14 @@ public class Session implements Serializable {
     private int data;
 
     //Data left in MB
-    @Column(precision = 15, scale = 3, nullable = false)
+    @Column(columnDefinition = "DECIMAL(10,3)", nullable = false)
     private double dataUsed = 0.0;
 
     @Column(length = 10, nullable = false)
     private String currency = "INR";
 
-    @Column(precision = 10, scale = 2, nullable = false)
-    private double price;
+    @Column(nullable = false)
+    private BigDecimal price;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)

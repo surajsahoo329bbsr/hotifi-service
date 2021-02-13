@@ -17,6 +17,8 @@ import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 @Slf4j
@@ -38,10 +40,11 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     //called by PurchaseServiceImpl
     @Transactional
     @Override
-    public void addSellerPayment(User seller, double amountEarned) {
+    public void addSellerPayment(User seller, BigDecimal amountEarned) {
         SellerPayment sellerPayment = new SellerPayment();
         sellerPayment.setSeller(seller);
         sellerPayment.setAmountEarned(amountEarned);
+        sellerPayment.setAmountPaid(BigDecimal.ZERO);
         sellerPaymentRepository.save(sellerPayment);
     }
 
@@ -49,7 +52,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     //called by PurchaseServiceImpl
     @Transactional
     @Override
-    public void updateSellerPayment(User seller, double amountEarned, boolean isUpdateTimeOnly) {
+    public void updateSellerPayment(User seller, BigDecimal amountEarned, boolean isUpdateTimeOnly) {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId());
         if(sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
@@ -70,15 +73,23 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
         if (!LegitUtils.isSellerLegit(seller, true))
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
 
-        double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
-        double sellerAmountPaid = Double.compare(sellerWithdrawalClaim, Constants.MAXIMUM_WITHDRAWAL_AMOUNT) > 0 ? Constants.MAXIMUM_WITHDRAWAL_AMOUNT : sellerWithdrawalClaim - sellerPayment.getAmountPaid();
+        //double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+        BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                .setScale(0, RoundingMode.FLOOR);
+
+        BigDecimal sellerAmountPaid =
+                sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(Constants.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
+                BigDecimal.valueOf(Constants.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
+
         Date now = new Date(System.currentTimeMillis());
 
-        if (Double.compare(sellerAmountPaid, Constants.MINIMUM_WITHDRAWAL_AMOUNT) < 0) {
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(Constants.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
                 throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
-            throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
+            if(sellerAmountPaid.compareTo(BigDecimal.valueOf(Constants.MINIMUM_AMOUNT_INR)) < 0)
+                throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
         }
 
         try {
@@ -90,7 +101,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
             switch (sellerPaymentCodes) {
                 case PAYMENT_STARTED:
                 case PAYMENT_SUCCESSFUL:
-                    sellerPayment.setAmountPaid(sellerPayment.getAmountPaid() + sellerAmountPaid);
+                    sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     break;
                 case PAYMENT_PROCESSING:

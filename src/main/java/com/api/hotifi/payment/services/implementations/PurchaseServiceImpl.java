@@ -33,6 +33,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,7 +61,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
         this.sellerPaymentService = sellerPaymentService;
     }
 
-
     @Transactional(readOnly = true)
     @Override
     public boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed) {
@@ -82,14 +83,14 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
 
-        double totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
+        BigDecimal totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                 .stream()
                 .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() &&
                         purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
-                .mapToDouble(Purchase::getAmountRefund)
-                .sum();
+                .map(Purchase::getAmountRefund)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (totalPendingRefunds > Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)
+        if (totalPendingRefunds.compareTo(BigDecimal.valueOf(Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)) > 0)
             throw new HotifiException(PurchaseErrorCodes.WITHDRAW_PENDING_REFUNDS);
 
         return true;
@@ -106,7 +107,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.valueOf(purchaseRequest.getPaymentMethod()));
 
         try {
-            int amountPaid = session != null ? (int) Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * purchaseRequest.getData()) : 0;
+            BigDecimal amountPaid = session != null ?
+                    session.getPrice()
+                            .divide(BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
+                                    .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
+                                    .setScale(0, RoundingMode.CEILING): BigDecimal.ZERO;
             Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -204,7 +209,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setSessionCreatedAt(sessionStartedAt);
             purchase.setSessionModifiedAt(sessionStartedAt);
             purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.START_WIFI_SERVICE.value());
-            saveSessionWithWifiService(purchase, false);
+            purchaseRepository.save(purchase);
+            saveSessionWithWifiService(purchase);
             return sessionStartedAt;
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -222,8 +228,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Date now = new Date(System.currentTimeMillis());
 
             double dataUsedBefore = purchase.getDataUsed();
-            double calculatedRefundAmount = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
-            double calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
+            BigDecimal calculatedRefundAmount = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            BigDecimal calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
 
             //Updating seller payment each time update is made
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
@@ -232,9 +238,10 @@ public class PurchaseServiceImpl implements IPurchaseService {
             boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
 
             if (sellerPayment == null)
-                sellerPaymentService.addSellerPayment(seller, PaymentUtils.formatDecimalFractions(calculatedSellerAmount));
+                sellerPaymentService.addSellerPayment(seller, calculatedSellerAmount);
             else if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
-                sellerPaymentService.updateSellerPayment(seller, PaymentUtils.formatDecimalFractions(sellerPayment.getAmountEarned() + calculatedSellerAmount), isUpdateTimeOnly);
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned()
+                        .add(calculatedSellerAmount), isUpdateTimeOnly);
 
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(calculatedRefundAmount);
@@ -270,8 +277,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             int dataBought = purchase.getData();
             Date sessionFinishedAt = new Date(System.currentTimeMillis());
             double dataUsedBefore = purchase.getDataUsed();
-            double amountRefund = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
-            double sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
+            BigDecimal amountRefund = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
+            BigDecimal sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
             boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
@@ -280,14 +287,15 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (sellerPayment == null)
                 throw new HotifiException(PurchaseErrorCodes.UPDATE_WIFI_SERVICE_BEFORE_FINISHING);
             if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
-                sellerPaymentService.updateSellerPayment(seller, PaymentUtils.formatDecimalFractions(sellerPayment.getAmountEarned() + sellerAmount), isUpdateTimeOnly);
+                sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned().add(sellerAmount), isUpdateTimeOnly);
 
             RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(amountRefund);
             purchase.setSessionFinishedAt(sessionFinishedAt);
-            saveSessionWithWifiService(purchase, true);
+            purchaseRepository.save(purchase);
+            saveSessionWithWifiService(purchase);
             return getBuyerWifiSummary(purchase, false);
         }
 
@@ -333,11 +341,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
             Date currentTime = new Date(System.currentTimeMillis());
             Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
-            double totalRefundAmount = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
-                    .mapToDouble(Purchase::getAmountRefund)
-                    .sum();
+            BigDecimal totalRefundAmount = purchaseStreamSupplier.get()
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+                    .map(Purchase::getAmountRefund)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            if (Double.compare(totalRefundAmount, 0) == 0)
+            if (totalRefundAmount.compareTo(BigDecimal.ZERO) == 0)
                 throw new HotifiException(PurchaseErrorCodes.NO_BUYER_PENDING_REFUNDS);
 
             List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
@@ -388,14 +397,20 @@ public class PurchaseServiceImpl implements IPurchaseService {
     }
 
     //User defined functions
-    private double calculateBuyerRefundAmount(double dataBought, double dataUsed, double amountPaid) {
+    private BigDecimal calculateBuyerRefundAmount(double dataBought, double dataUsed, BigDecimal amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
-        return amountPaid - Math.ceil((amountPaid / dataBought) * dataUsed);
+        //return amountPaid - Math.ceil((amountPaid / dataBought) * dataUsed);
+        return amountPaid
+                .subtract
+                        (PaymentUtils
+                                .divideThenMultiplyFloorZeroScale(amountPaid, BigDecimal.valueOf(dataBought), BigDecimal.valueOf(dataUsed)));
     }
 
-    private double calculateSellerPaymentAmount(double dataBought, double dataUsed, double dataUsedBefore, double amountPaid) {
+    private BigDecimal calculateSellerPaymentAmount(double dataBought, double dataUsed, double dataUsedBefore, BigDecimal amountPaid) {
         //Do not check for error types, simply calculate and return refund amount
-        return (amountPaid / dataBought) * (dataUsed - dataUsedBefore);
+        //return (amountPaid / dataBought) * (dataUsed - dataUsedBefore);
+        return PaymentUtils
+                .divideThenMultiplyFloorTwoScale(amountPaid, BigDecimal.valueOf(dataBought), BigDecimal.valueOf(dataUsed - dataUsedBefore));
     }
 
     private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {
@@ -422,17 +437,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
         return wifiSummaryResponse;
     }
 
-    private void saveSessionWithWifiService(Purchase purchase, boolean isFinished) {
-        purchase.setStatus(purchase.getStatus());
-        purchase.setSessionFinishedAt(purchase.getSessionFinishedAt());
-        purchaseRepository.save(purchase);
+    private void saveSessionWithWifiService(Purchase purchase) {
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
-        if (isFinished)
-            session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
-        else
-            session.setDataUsed(purchase.getData());
+        session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
         session.setModifiedAt(purchase.getSessionModifiedAt());
         sessionRepository.save(session);
     }
