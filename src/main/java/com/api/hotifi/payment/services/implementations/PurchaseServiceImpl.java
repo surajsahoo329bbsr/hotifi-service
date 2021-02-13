@@ -198,6 +198,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
             throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+        if(purchase.getRefundStartedAt() != null)
+            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
         if (purchase.getSessionCreatedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);
         if (purchase.getSessionFinishedAt() != null)

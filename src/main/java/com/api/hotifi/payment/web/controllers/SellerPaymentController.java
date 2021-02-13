@@ -28,8 +28,8 @@ public class SellerPaymentController {
 
     @PutMapping(path = "/withdraw/{seller-id}")
     @ApiOperation(
-            value = "Get Bank Account Details By User Id",
-            notes = "Get Bank Account Details By User Id",
+            value = "Withdraw Seller Earnings By User Id",
+            notes = "Withdraw Seller Earnings By User Id",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))

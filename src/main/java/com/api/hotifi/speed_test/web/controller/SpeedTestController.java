@@ -30,8 +30,8 @@ public class SpeedTestController {
 
     @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Finish Seller's Hotspot Session",
-            notes = "Finish Seller's Hotspot Session",
+            value = "Add Speed Test",
+            notes = "Add Speed Test",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
@@ -44,8 +44,8 @@ public class SpeedTestController {
 
     @GetMapping(path = "/{user-id}/{pin-code}/{is-wifi}")
     @ApiOperation(
-            value = "Finish Seller's Hotspot Session",
-            notes = "Finish Seller's Hotspot Session",
+            value = "Get Latest Speed Test Of A Pincode",
+            notes = "Get Latest Speed Test Of A Pincode",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))

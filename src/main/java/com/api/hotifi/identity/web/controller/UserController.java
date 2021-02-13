@@ -141,8 +141,8 @@ public class UserController {
 
     @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Verify Email Otp By Providing Email For Login",
-            notes = "Verify Email Otp By Providing Email For Login",
+            value = "Update User Details",
+            notes = "Update User Details",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
@@ -155,8 +155,8 @@ public class UserController {
 
     @PutMapping(path = "/login/update/{id}/{login-status}")
     @ApiOperation(
-            value = "Verify Email Otp By Providing Email For Login",
-            notes = "Verify Email Otp By Providing Email For Login",
+            value = "Update User Login Status",
+            notes = "Update User Login Status",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))

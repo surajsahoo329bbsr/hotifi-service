@@ -48,8 +48,8 @@ public class SessionController {
 
     @GetMapping(path = "/active/{usernames}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Add Active Session Details",
-            notes = "Add Active Session Details",
+            value = "Get Active Session Details",
+            notes = "Get Active Session Details",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
@@ -86,7 +86,7 @@ public class SessionController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(path = "/finish/{session-id}/{is-force-stop}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/finish/{session-id}/{is-force-stop}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Finish Seller's Hotspot Session",
             notes = "Finish Seller's Hotspot Session",
