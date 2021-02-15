@@ -1,5 +1,11 @@
 package com.api.hotifi.configuration;
 
+import com.api.hotifi.common.services.implementations.EmailServiceImpl;
+import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
+import com.api.hotifi.common.services.implementations.SocialServiceImpl;
+import com.api.hotifi.common.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.INotificationService;
+import com.api.hotifi.common.services.interfaces.ISocialService;
 import com.api.hotifi.identity.repositories.*;
 import com.api.hotifi.identity.services.implementations.*;
 import com.api.hotifi.identity.services.interfaces.*;
@@ -31,6 +37,16 @@ public class ServicesConfiguration {
     @Bean
     public IEmailService emailService(){
         return new EmailServiceImpl();
+    }
+
+    @Bean
+    public INotificationService notificationService(IDeviceService deviceService){
+        return new NotificationServiceImpl(deviceService);
+    }
+
+    @Bean
+    public ISocialService socialService(){
+        return new SocialServiceImpl();
     }
 
     @Bean

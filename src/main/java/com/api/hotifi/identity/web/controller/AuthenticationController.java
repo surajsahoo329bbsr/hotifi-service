@@ -3,6 +3,7 @@ package com.api.hotifi.identity.web.controller;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.common.validator.SocialClient;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.web.request.EmailOtpRequest;
@@ -47,7 +48,7 @@ public class AuthenticationController {
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/sign-up/{email}/{is-verified}")
+    @PostMapping(path = "/sign-up/{email}/{id-token}/{social-client}")
     @ApiOperation(
             value = "Post Authentication By Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
@@ -58,8 +59,13 @@ public class AuthenticationController {
     public ResponseEntity<?> addEmail(@PathVariable(value = "email")
                                       @NotBlank(message = "{email.blank}")
                                       @Email(message = "{email.pattern.invalid}")
-                                      @Length(max = 255, message = "{email.length.invalid}") String email, @PathVariable(value = "is-verified") boolean isEmailVerified) {
-        String passwordToken = authenticationService.addEmail(email, isEmailVerified);
+                                      @Length(max = 255, message = "{email.length.invalid}") String email,
+                                      @PathVariable(value = "id-token")
+                                      @NotBlank(message = "{id.token.blank}")
+                                      @Length(max = 255, message = "{id.token.length.invalid}") String idToken,
+                                      @PathVariable(value = "social-client")
+                                      @SocialClient String socialClient) {
+        String passwordToken = authenticationService.addEmail(email, idToken, socialClient);
         return new ResponseEntity<>(new PasswordTokenResponse(passwordToken), HttpStatus.OK);
     }
 
@@ -73,9 +79,9 @@ public class AuthenticationController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> resendEmailOtpSignUp(@PathVariable(value = "email")
-                                                      @NotBlank(message = "{email.blank}")
-                                                      @Email(message = "{email.pattern.invalid}")
-                                                      @Length(max = 255, message = "{email.length.invalid}") String email) {
+                                                  @NotBlank(message = "{email.blank}")
+                                                  @Email(message = "{email.pattern.invalid}")
+                                                  @Length(max = 255, message = "{email.length.invalid}") String email) {
         authenticationService.resendEmailOtpSignUp(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -104,7 +110,7 @@ public class AuthenticationController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyPhone(@RequestBody @Valid PhoneRequest phoneRequest) {
-        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone());
+        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone(), phoneRequest.getIdToken());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

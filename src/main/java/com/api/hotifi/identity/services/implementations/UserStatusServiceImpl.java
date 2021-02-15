@@ -12,7 +12,7 @@ import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.repositories.UserStatusRepository;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
-import com.api.hotifi.identity.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import com.api.hotifi.payment.repositories.BankAccountRepository;

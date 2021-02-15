@@ -10,7 +10,7 @@ import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.identity.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;

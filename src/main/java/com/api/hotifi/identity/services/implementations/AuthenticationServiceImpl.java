@@ -9,7 +9,7 @@ import com.api.hotifi.identity.models.RoleName;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.RoleRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
-import com.api.hotifi.identity.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -52,16 +52,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
-    public String addEmail(String email, boolean isEmailVerified) {
+    public String addEmail(String email, String idToken, String socialClient) {
         try {
             Authentication authentication = new Authentication();
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
             String token = UUID.randomUUID().toString();
             authentication.setEmail(email);
-            authentication.setEmailVerified(isEmailVerified);
+            authentication.setEmailVerified(true); //TODO
             authentication.setPassword(token);
             authentication.setRoles(Collections.singletonList(role));
-            if (!isEmailVerified) {
+            if (!true) { //TODO
                 OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
             }else {
                 Date modifiedAt = new Date(System.currentTimeMillis());
@@ -124,7 +124,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void verifyPhone(String email, String countryCode, String phone) {
+    public void verifyPhone(String email, String countryCode, String phone, String idToken) {
+        //TODO id-token verifiaction
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);

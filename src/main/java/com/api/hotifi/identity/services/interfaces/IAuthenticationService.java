@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface IAuthenticationService extends UserDetailsService {
 
-    String addEmail(String email, boolean isEmailVerified);
+    String addEmail(String email, String idToken, String socailClient);
 
     Authentication getAuthentication(String email);
 
@@ -13,6 +13,6 @@ public interface IAuthenticationService extends UserDetailsService {
 
     void verifyEmail(String email, String otp);
 
-    void verifyPhone(String email, String countryCode, String phone);
+    void verifyPhone(String email, String countryCode, String phone, String idToken);
 
 }

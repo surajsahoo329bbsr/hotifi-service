@@ -6,7 +6,7 @@ import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
-import com.api.hotifi.identity.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;

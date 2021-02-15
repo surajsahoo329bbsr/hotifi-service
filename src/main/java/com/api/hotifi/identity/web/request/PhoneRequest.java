@@ -26,4 +26,8 @@ public class PhoneRequest {
     @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.number.invalid}")
     private String phone;
 
+    @NotBlank(message = "{id.token.blank}")
+    @Length(max = 255, message = "{id.token.length.invalid}")
+    private String idToken;
+
 }

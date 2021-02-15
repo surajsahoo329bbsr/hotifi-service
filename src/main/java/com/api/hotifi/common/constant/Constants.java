@@ -8,11 +8,17 @@ public class Constants {
     public static final String APP_PACKAGE_NAME = "com.api.hotifi";
     public static final String HOTIFI_BANK_ACCOUNT = "hotifi_bank";
     public static final int COMMISSION_PERCENTAGE = 20;
+    public static final String SIGNING_KEY = "hotifi-api-connect";
 
     //Razorpay Configuration
-    public static final String RAZOR_PAY_KEY_ID = "";
-    public static final String RAZOR_PAY_KEY_SECRET = "";
-    public static final String SIGNING_KEY = "hotifi-api-connect";
+    public static final String RAZORPAY_CLIENT_ID = "";
+    public static final String RAZORPAY_CLIENT_KEY = "";
+
+    //TODO Google Configuration As JSON from Firebase
+    //Facebook Configuration
+    public static final String FACEBOOK_CLIENT_ID = "";
+    public static final String FACEBOOK_CLIENT_KEY = "";
+    public static final String FACEBOOK_GRAPH_API_URL = "https://graph.facebook.com";
 
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
@@ -84,6 +90,8 @@ public class Constants {
     public static final int BUYER_PAYMENT_START_VALUE_CODE = 0;
     public static final int SELLER_PAYMENT_START_VALUE_CODE = 1000;
     public static final int PAYMENT_METHOD_START_VALUE_CODE = 100;
+    public static final int CLOUD_CLIENT_START_VALUE_CODE = 100;
+    public static final int SOCIAL_START_VALUE_CODE = 100;
     public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
     public static final int ACCOUNT_TYPE_START_VALUE_CODE = 1;
     public static final int BANK_ACCOUNT_TYPE_START_VALUE_CODE = 1;
