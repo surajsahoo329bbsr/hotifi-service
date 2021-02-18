@@ -1,7 +1,7 @@
-package com.api.hotifi.speed_test.service;
+package com.api.hotifi.speedtest.service;
 
-import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
+import com.api.hotifi.speedtest.web.request.SpeedTestRequest;
 
 import java.util.List;
 

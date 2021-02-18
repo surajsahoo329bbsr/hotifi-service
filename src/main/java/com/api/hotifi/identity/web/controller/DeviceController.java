@@ -1,5 +1,7 @@
 package com.api.hotifi.identity.web.controller;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -28,6 +30,9 @@ public class DeviceController {
     @Autowired
     private IDeviceService deviceService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @GetMapping(path = "/{android-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Device Details By Android-Id",
@@ -37,9 +42,10 @@ public class DeviceController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getDeviceByAndroidId(@PathVariable(value = "android-id")
-                                                      @NotBlank(message = "{android.id.blank}")
-                                                      @Length(max = 255, message = "{android.id.invalid}") String androidId) {
-        Device device = deviceService.getDeviceByAndroidId(androidId);
+                                                  @NotBlank(message = "{android.id.blank}")
+                                                  @Length(max = 255, message = "{android.id.invalid}") String androidId) {
+        Device device = (customerAutorizationService.isAuthorizedByAndroidId(androidId, AuthorizationUtils.getUserToken())) ?
+                deviceService.getDeviceByAndroidId(androidId) : null;
         return new ResponseEntity<>(device, HttpStatus.OK);
     }
 
@@ -53,7 +59,8 @@ public class DeviceController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addDevice(@RequestBody @Validated DeviceRequest deviceRequest) {
-        deviceService.addDevice(deviceRequest);
+        if ((customerAutorizationService.isAuthorizedByAndroidId(deviceRequest.getAndroidId(), AuthorizationUtils.getUserToken())))
+            deviceService.addDevice(deviceRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -67,7 +74,8 @@ public class DeviceController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateDevice(@RequestBody @Validated DeviceRequest deviceRequest) {
-        deviceService.updateDevice(deviceRequest);
+        if (customerAutorizationService.isAuthorizedByAndroidId(deviceRequest.getAndroidId(), AuthorizationUtils.getUserToken()))
+            deviceService.updateDevice(deviceRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -81,7 +89,8 @@ public class DeviceController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> deleteUserDevices(@PathVariable("user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        deviceService.deleteUserDevices(userId);
+        if (customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()))
+            deviceService.deleteUserDevices(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

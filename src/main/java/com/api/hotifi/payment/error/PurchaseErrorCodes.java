@@ -8,7 +8,7 @@ import java.util.Collections;
 public class PurchaseErrorCodes extends ErrorCodes {
     public static final ErrorCode UNEXPECTED_PURCHASE_ERROR = new ErrorCode("00", Collections.singletonList(getMessage("UNEXPECTED_PURCHASE_ERROR", PurchaseErrorMessages.UNEXPECTED_PURCHASE_ERROR)), 500);
     public static final ErrorCode BUYER_NOT_LEGIT = new ErrorCode("01", Collections.singletonList(getMessage("BUYER_NOT_LEGIT", PurchaseErrorMessages.BUYER_NOT_LEGIT)), 500);
-    public static final ErrorCode NO_SESSION_EXISTS = new ErrorCode("02", Collections.singletonList(getMessage("NO_SESSION_EXISTS", PurchaseErrorMessages.NO_SESSION_EXISTS)), 500);
+    public static final ErrorCode SESSION_NOT_FOUND = new ErrorCode("02", Collections.singletonList(getMessage("SESSION_NOT_FOUND", PurchaseErrorMessages.SESSION_NOT_FOUND)), 500);
     public static final ErrorCode SESSION_ALREADY_ENDED = new ErrorCode("03", Collections.singletonList(getMessage("SESSION_ALREADY_ENDED", PurchaseErrorMessages.SESSION_ALREADY_ENDED)), 500);
     public static final ErrorCode EXCESS_DATA_TO_BUY_ERROR = new ErrorCode("04", Collections.singletonList(getMessage("EXCESS_DATA_TO_BUY_ERROR", PurchaseErrorMessages.EXCESS_DATA_TO_BUY_ERROR)), 500);
     public static final ErrorCode BUYER_SELLER_SAME = new ErrorCode("05", Collections.singletonList(getMessage("BUYER_SELLER_SAME", PurchaseErrorMessages.BUYER_SELLER_SAME)), 500);

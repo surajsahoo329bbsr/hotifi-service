@@ -23,9 +23,9 @@ import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
 import com.api.hotifi.session.web.response.SessionSummaryResponse;
-import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.repository.SpeedTestRepository;
-import com.api.hotifi.speed_test.service.ISpeedTestService;
+import com.api.hotifi.speedtest.entity.SpeedTest;
+import com.api.hotifi.speedtest.repository.SpeedTestRepository;
+import com.api.hotifi.speedtest.service.ISpeedTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -159,7 +159,7 @@ public class SessionServiceImpl implements ISessionService {
     public List<Buyer> getBuyers(Long sessionId, boolean isActive) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         if (session.getFinishedAt() != null && isActive)
             throw new HotifiException(PurchaseErrorCodes.SESSION_ALREADY_ENDED);
         try {
@@ -216,7 +216,7 @@ public class SessionServiceImpl implements ISessionService {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         List<Buyer> buyers = getBuyers(sessionId, true);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         if (session.getFinishedAt() != null)
             throw new HotifiException(SessionErrorCodes.SESSION_ALREADY_FINISHED);
         if (!isForceStop && buyers != null && buyers.size() > 0)
@@ -237,7 +237,7 @@ public class SessionServiceImpl implements ISessionService {
     public BigDecimal calculatePaymentForDataToBeUsed(Long sessionId, int dataToBeUsed) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         double availableData = session.getData() - session.getDataUsed();
         if (Double.compare(dataToBeUsed, availableData) > 0)
             throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
@@ -249,7 +249,7 @@ public class SessionServiceImpl implements ISessionService {
     public SessionSummaryResponse getSessionSummary(Long sessionId) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         try {
             Date finishedAt = new Date(System.currentTimeMillis());
             List<Buyer> buyers = getBuyers(sessionId, false);

@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -28,6 +30,9 @@ public class FeedbackController {
     @Autowired
     private IFeedbackService feedbackService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/buyer", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add Feedback Of A Purchase By A Buyer",
@@ -38,7 +43,8 @@ public class FeedbackController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addFeedback(@RequestBody @Validated FeedbackRequest feedbackRequest) {
-        feedbackService.addFeedback(feedbackRequest);
+        if (customerAutorizationService.isAuthorizedByPurchaseId(feedbackRequest.getPurchaseId(), AuthorizationUtils.getUserToken()))
+            feedbackService.addFeedback(feedbackRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -51,7 +57,9 @@ public class FeedbackController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getPurchaseFeedback(@PathVariable(value = "purchase-id") @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
-        Feedback feedback = feedbackService.getPurchaseFeedback(purchaseId);
+        Feedback feedback = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                feedbackService.getPurchaseFeedback(purchaseId) : null;
         return new ResponseEntity<>(feedback, HttpStatus.OK);
     }
 
@@ -69,8 +77,10 @@ public class FeedbackController {
                                                 @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                 @PathVariable(value = "size")
                                                 @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
-                                                @PathVariable(value = "is-descending") boolean isDescending){
-        List<FeedbackResponse> feedbackResponses = feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending);
+                                                @PathVariable(value = "is-descending") boolean isDescending) {
+        List<FeedbackResponse> feedbackResponses = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
+                feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(feedbackResponses, HttpStatus.OK);
     }
 }

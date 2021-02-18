@@ -13,7 +13,7 @@ import com.api.hotifi.payment.web.request.FeedbackRequest;
 import com.api.hotifi.payment.web.responses.FeedbackResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
-import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -47,7 +47,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
     public void addFeedback(FeedbackRequest feedbackRequest) {
         Purchase purchase = purchaseRepository.findById(feedbackRequest.getPurchaseId()).orElse(null);
         if (purchase == null)
-            throw new HotifiException(FeedbackErrorCodes.NO_PURCHASE_NO_FEEDBACK);
+            throw new HotifiException(FeedbackErrorCodes.PURCHASE_NOT_FOUND_FOR_FEEDBACK);
         try {
             Feedback feedback = new Feedback();
             feedback.setComment(feedbackRequest.getComment());
@@ -71,7 +71,7 @@ public class FeedbackServiceImpl implements IFeedbackService {
     public Feedback getPurchaseFeedback(Long purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
-            throw new HotifiException(FeedbackErrorCodes.NO_FEEDBACK_EXISTS_FOR_NO_PURCHASE);
+            throw new HotifiException(FeedbackErrorCodes.FEEDBACK_NOT_FOUND_FOR_NON_EXISTENT_PURCHASE);
         return feedbackRepository.findFeedbackByPurchaseId(purchaseId);
     }
 

@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -29,6 +31,9 @@ public class SellerReceiptController {
     @Autowired
     private ISellerReceiptService sellerReceiptService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Seller Receipt By Seller Receipt Id",
@@ -38,7 +43,9 @@ public class SellerReceiptController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerReceipt(@PathVariable(value = "id") @Range(min = 1, message = "{id.invalid}") Long id) {
-        SellerReceiptResponse sellerReceiptResponse = sellerReceiptService.getSellerReceipt(id);
+        SellerReceiptResponse sellerReceiptResponse =
+                AuthorizationUtils.isAdminstratorRole() && customerAutorizationService.isAuthorizedBySellerReceiptId(id, AuthorizationUtils.getUserToken()) ?
+                        sellerReceiptService.getSellerReceipt(id) : null;
         return new ResponseEntity<>(sellerReceiptResponse, HttpStatus.OK);
     }
 
@@ -57,7 +64,9 @@ public class SellerReceiptController {
                                                                @PathVariable(value = "size")
                                                                @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByDateTime(sellerId, page, size, isDescending);
+        List<SellerReceiptResponse> sellerReceiptResponses =
+                AuthorizationUtils.isAdminstratorRole() && customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                        sellerReceiptService.getSortedSellerReceiptsByDateTime(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }
 
@@ -70,13 +79,15 @@ public class SellerReceiptController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSortedSellerReceiptsByAmountPaid(@PathVariable(value = "seller-id")
-                                                               @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
-                                                               @PathVariable(value = "page")
-                                                               @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
-                                                               @PathVariable(value = "size")
-                                                               @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
-                                                               @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SellerReceiptResponse> sellerReceiptResponses = sellerReceiptService.getSortedSellerReceiptsByAmountPaid(sellerId, page, size, isDescending);
+                                                                 @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
+                                                                 @PathVariable(value = "page")
+                                                                 @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                                 @PathVariable(value = "size")
+                                                                 @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
+                                                                 @PathVariable(value = "is-descending") boolean isDescending) {
+        List<SellerReceiptResponse> sellerReceiptResponses =
+                AuthorizationUtils.isAdminstratorRole() && customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                        sellerReceiptService.getSortedSellerReceiptsByAmountPaid(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }
 

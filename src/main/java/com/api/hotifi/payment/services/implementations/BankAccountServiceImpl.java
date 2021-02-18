@@ -35,7 +35,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
             throw new HotifiException(SellerBankAccountErrorCodes.ERROR_DESCRIPTION_ON_CREATION_BY_SELLER);
         User seller = userRepository.findById(bankAccountRequest.getUserId()).orElse(null);
         if (seller == null)
-            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         if (seller.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         if (!seller.isLoggedIn())

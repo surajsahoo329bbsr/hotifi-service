@@ -1,7 +1,7 @@
 package com.api.hotifi.session.entity;
 
 import com.api.hotifi.payment.entities.Purchase;
-import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;

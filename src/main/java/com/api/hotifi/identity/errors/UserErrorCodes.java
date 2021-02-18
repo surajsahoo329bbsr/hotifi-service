@@ -33,9 +33,11 @@ public class UserErrorCodes extends ErrorCodes {
 
     public static final ErrorCode USER_DELETED = new ErrorCode("13", Collections.singletonList(getMessage("USER_DELETED", UserErrorMessages.USER_DELETED)), 500);
     public static final ErrorCode USER_ALREADY_DELETED = new ErrorCode("17", Collections.singletonList(getMessage("USER_ALREADY_DELETED", UserErrorMessages.USER_ALREADY_DELETED)), 400);
-    public static final ErrorCode NO_USER_EXISTS = new ErrorCode("18", Collections.singletonList(getMessage("NO_USER_EXISTS", UserErrorMessages.NO_USER_EXISTS)), 400);
+    public static final ErrorCode USER_NOT_FOUND = new ErrorCode("18", Collections.singletonList(getMessage("USER_NOT_FOUND", UserErrorMessages.USER_NOT_FOUND)), 400);
     public static final ErrorCode USER_NOT_LEGIT = new ErrorCode("19", Collections.singletonList(getMessage("USER_NOT_LEGIT", UserErrorMessages.USER_NOT_LEGIT)), 400);
     public static final ErrorCode EMAIL_OTP_ALREADY_GENERATED = new ErrorCode("20", Collections.singletonList(getMessage("EMAIL_OTP_ALREADY_GENERATED", UserErrorMessages.EMAIL_OTP_ALREADY_GENERATED)), 400);
     public static final ErrorCode INVALID_LINKED_ACCOUNT_ID = new ErrorCode("21", Collections.singletonList(getMessage("INVALID_LINKED_ACCOUNT_ID", UserErrorMessages.INVALID_LINKED_ACCOUNT_ID)), 500);
     public static final ErrorCode USER_LINKED_ACCOUNT_ID_NULL = new ErrorCode("22", Collections.singletonList(getMessage("USER_LINKED_ACCOUNT_ID_NULL", UserErrorMessages.USER_LINKED_ACCOUNT_ID_NULL)), 500);
+    public static final ErrorCode USER_FORBIDDEN = new ErrorCode("01", Collections.singletonList(getMessage("USER_FORBIDDEN", UserErrorMessages.USER_FORBIDDEN)), 400);
+    public static final ErrorCode USER_TOKEN_EXPIRED = new ErrorCode("01", Collections.singletonList(getMessage("USER_TOKEN_EXPIRED", UserErrorMessages.USER_TOKEN_EXPIRED)), 400);
 }

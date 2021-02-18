@@ -25,8 +25,8 @@ import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.WifiSummaryResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
-import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.repository.SpeedTestRepository;
+import com.api.hotifi.speedtest.entity.SpeedTest;
+import com.api.hotifi.speedtest.repository.SpeedTestRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -71,7 +71,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (!LegitUtils.isBuyerLegit(buyer))
             throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         if (session.getFinishedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.SESSION_ALREADY_ENDED);
         if (Double.compare(dataToBeUsed, (double) session.getData() - session.getDataUsed()) > 0)
@@ -421,7 +421,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         User seller = speedTest != null ? userRepository.findById(speedTest.getUser().getId()).orElse(null) : null;
 
         if (seller == null)
-            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
@@ -442,7 +442,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     private void saveSessionWithWifiService(Purchase purchase) {
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
         if (session == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_SESSION_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));
         session.setModifiedAt(purchase.getSessionModifiedAt());
         sessionRepository.save(session);

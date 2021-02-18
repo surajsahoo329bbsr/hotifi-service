@@ -58,7 +58,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         Authentication authentication = authenticationId != null ? authenticationRepository.findById(authenticationId).orElse(null) : null;
 
         if (authentication == null)
-            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         //Logic to see user if he/she has been freezed or banned
         if (authentication.isDeleted())
             throw new HotifiException(UserErrorCodes.USER_ALREADY_DELETED);
@@ -124,7 +124,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         Long authenticationId = user != null ? user.getAuthentication().getId() : null;
         Authentication authentication = authenticationId != null ? authenticationRepository.findById(authenticationId).orElse(null) : null;
         if(authentication == null)
-            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         //If we are unfreezing a freezed user
         if (!freezeUser) {
             //Logic to activate user if he/she has been freezed or banned
@@ -187,7 +187,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         Long authenticationId = user != null ? user.getAuthentication().getId() : null;
         Authentication authentication = authenticationId != null ? authenticationRepository.findById(authenticationId).orElse(null) : null;
         if (authentication == null)
-            throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
 
         if (authentication.isDeleted()) {
             log.error("Account already deleted");

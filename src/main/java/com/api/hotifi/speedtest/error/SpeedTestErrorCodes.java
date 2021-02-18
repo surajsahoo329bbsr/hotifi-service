@@ -1,4 +1,4 @@
-package com.api.hotifi.speed_test.error;
+package com.api.hotifi.speedtest.error;
 
 import com.api.hotifi.common.exception.errors.ErrorCode;
 import com.api.hotifi.common.exception.errors.ErrorCodes;

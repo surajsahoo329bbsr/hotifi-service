@@ -3,7 +3,7 @@ package com.api.hotifi.payment.error;
 public class PurchaseErrorMessages {
     public static final String UNEXPECTED_PURCHASE_ERROR = "Unexpected Purchase Error Occurred";
     public static final String BUYER_NOT_LEGIT = "Buyer not legit";
-    public static final String NO_SESSION_EXISTS = "Session doesn't exist";
+    public static final String SESSION_NOT_FOUND = "Session doesn't exist";
     public static final String SESSION_ALREADY_ENDED = "Session already ended";
     public static final String EXCESS_DATA_TO_BUY_ERROR = "Data entered is more than data sold";
     public static final String BUYER_SELLER_SAME = "Buyer and seller cannot be same";

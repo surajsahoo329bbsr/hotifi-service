@@ -1,4 +1,4 @@
-package com.api.hotifi.speed_test.error;
+package com.api.hotifi.speedtest.error;
 
 public class SpeedTestErrorMessages {
     public static final String UNEXPECTED_SPEED_TEST_ERROR = "Unexpected speed test error";

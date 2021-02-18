@@ -32,7 +32,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void addDevice(DeviceRequest deviceRequest) {
         User user = userRepository.findById(deviceRequest.getUserId()).orElse(null);
-        if (user == null) throw new HotifiException(UserErrorCodes.NO_USER_EXISTS);
+        if (user == null) throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         try {
             Set<User> users = new HashSet<>();
             users.add(user);

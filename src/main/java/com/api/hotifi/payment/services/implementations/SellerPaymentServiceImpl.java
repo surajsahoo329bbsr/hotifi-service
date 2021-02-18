@@ -55,7 +55,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     public void updateSellerPayment(User seller, BigDecimal amountEarned, boolean isUpdateTimeOnly) {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId());
         if(sellerPayment == null)
-            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
         Date now = new Date(System.currentTimeMillis());
         //If we are not updating time only, then we need to update amount earned
         if(!isUpdateTimeOnly) sellerPayment.setAmountEarned(amountEarned);
@@ -68,7 +68,7 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
     public SellerReceiptResponse withdrawSellerPayment(Long sellerId)  {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
-            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
         User seller = userRepository.findById(sellerId).orElse(null);
         if (!LegitUtils.isSellerLegit(seller, true))
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);

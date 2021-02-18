@@ -1,4 +1,4 @@
-package com.api.hotifi.speed_test.entity;
+package com.api.hotifi.speedtest.entity;
 
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.session.entity.Session;

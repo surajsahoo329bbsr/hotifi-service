@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -28,6 +30,9 @@ public class BankAccountController {
     @Autowired
     private IBankAccountService bankAccountService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/seller", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add Bank Account Details Of A Customer",
@@ -38,7 +43,8 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addBankAccount(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
-        bankAccountService.addBankAccount(bankAccountRequest);
+        if (customerAutorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
+            bankAccountService.addBankAccount(bankAccountRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -52,7 +58,8 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateBankAccountByUser(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
-        bankAccountService.updateBankAccountByCustomer(bankAccountRequest);
+        if (customerAutorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
+            bankAccountService.updateBankAccountByCustomer(bankAccountRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -66,9 +73,9 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> updateSuccessfulBankAccountByAdmin(@PathVariable(value = "user-id")
-                                                                      @Range(min = 1, message = "{user.id.invalid}") Long userId,
-                                                                      @PathVariable(value = "linked-account-id")
-                                                                      @Length(max = 255, message = "{linked.account.id.length.invalid}") String linkedAccountId) {
+                                                                @Range(min = 1, message = "{user.id.invalid}") Long userId,
+                                                                @PathVariable(value = "linked-account-id")
+                                                                @Length(max = 255, message = "{linked.account.id.length.invalid}") String linkedAccountId) {
         bankAccountService.updateBankAccountByAdmin(userId, linkedAccountId, null);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -83,9 +90,9 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> updateErrorBankAccountByAdmin(@PathVariable(value = "user-id")
-                                                                 @Range(min = 1, message = "{user.id.invalid}") Long userId,
+                                                           @Range(min = 1, message = "{user.id.invalid}") Long userId,
                                                            @PathVariable(value = "error-description", required = false)
-                                                                 @Length(max = 255, message = "{error.description.length.invalid}") String errorDescription) {
+                                                           @Length(max = 255, message = "{error.description.length.invalid}") String errorDescription) {
         bankAccountService.updateBankAccountByAdmin(userId, null, errorDescription);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -99,7 +106,8 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        BankAccount bankAccount = bankAccountService.getBankAccountByUserId(userId);
+        BankAccount bankAccount = (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                bankAccountService.getBankAccountByUserId(userId) : null;
         return new ResponseEntity<>(bankAccount, HttpStatus.OK);
     }
 

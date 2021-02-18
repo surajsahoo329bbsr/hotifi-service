@@ -1,4 +1,4 @@
-package com.api.hotifi.speed_test.web.request;
+package com.api.hotifi.speedtest.web.request;
 
 import com.api.hotifi.common.constant.Constants;
 import lombok.Getter;

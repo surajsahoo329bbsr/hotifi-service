@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -29,6 +31,9 @@ public class PurchaseController {
     @Autowired
     private IPurchaseService purchaseService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/buyer", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add Purchase",
@@ -38,7 +43,9 @@ public class PurchaseController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addPurchase(@RequestBody @Validated PurchaseRequest purchaseRequest) {
-        PurchaseReceiptResponse receiptResponse = purchaseService.addPurchase(purchaseRequest);
+        PurchaseReceiptResponse receiptResponse =
+                (customerAutorizationService.isAuthorizedByPurchaseId(purchaseRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
+                        purchaseService.addPurchase(purchaseRequest) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }
 
@@ -53,7 +60,9 @@ public class PurchaseController {
     public ResponseEntity<?> getPurchaseReceipt(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
-        PurchaseReceiptResponse receiptResponse = purchaseService.getPurchaseReceipt(purchaseId);
+        PurchaseReceiptResponse receiptResponse =
+                (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                        purchaseService.getPurchaseReceipt(purchaseId) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }
 
@@ -68,7 +77,8 @@ public class PurchaseController {
     public ResponseEntity<?> startBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
-        Date wifiStartTime = purchaseService.startBuyerWifiService(purchaseId);
+        Date wifiStartTime = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                purchaseService.startBuyerWifiService(purchaseId) : null;
         return new ResponseEntity<>(new WifiStartTimeResponse(wifiStartTime), HttpStatus.OK);
     }
 
@@ -85,7 +95,8 @@ public class PurchaseController {
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        int updateStatus = purchaseService.updateBuyerWifiService(purchaseId, dataUsed);
+        int updateStatus = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                purchaseService.updateBuyerWifiService(purchaseId, dataUsed) : -1; //-1 for failure
         return new ResponseEntity<>(new UpdateStatusResponse(updateStatus), HttpStatus.OK);
     }
 
@@ -102,7 +113,8 @@ public class PurchaseController {
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        WifiSummaryResponse wifiSummaryResponse = purchaseService.finishBuyerWifiService(purchaseId, dataUsed);
+        WifiSummaryResponse wifiSummaryResponse = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                purchaseService.finishBuyerWifiService(purchaseId, dataUsed) : null;
         return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
     }
 
@@ -122,7 +134,9 @@ public class PurchaseController {
             @PathVariable(value = "size")
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
-        List<WifiSummaryResponse> wifiSummaryResponses = purchaseService.getSortedWifiUsagesDateTime(buyerId, page, size, isDescending);
+        List<WifiSummaryResponse> wifiSummaryResponses =
+                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
+                        purchaseService.getSortedWifiUsagesDateTime(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(wifiSummaryResponses, HttpStatus.OK);
     }
 
@@ -142,7 +156,9 @@ public class PurchaseController {
             @PathVariable(value = "size")
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
-        List<WifiSummaryResponse> wifiSummaryResponses = purchaseService.getSortedWifiUsagesDataUsed(buyerId, page, size, isDescending);
+        List<WifiSummaryResponse> wifiSummaryResponses =
+                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
+                        purchaseService.getSortedWifiUsagesDataUsed(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(wifiSummaryResponses, HttpStatus.OK);
     }
 
@@ -157,7 +173,8 @@ public class PurchaseController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> withdrawBuyerRefunds(@PathVariable(value = "buyer-id")
                                                   @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId) {
-        purchaseService.withdrawBuyerRefunds(buyerId);
+        if (customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
+            purchaseService.withdrawBuyerRefunds(buyerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -177,7 +194,8 @@ public class PurchaseController {
             @PathVariable(value = "size")
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
-        List<RefundReceiptResponse> refundReceiptResponses = purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending);
+        List<RefundReceiptResponse> refundReceiptResponses = customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
+                purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(refundReceiptResponses, HttpStatus.OK);
     }
 
@@ -195,7 +213,9 @@ public class PurchaseController {
                                                         @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                                         @PathVariable(value = "data-to-be-used")
                                                         @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
-        boolean isBuyerCurrentSessionLegit = purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);
+        boolean isBuyerCurrentSessionLegit = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
+                && purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);
         return new ResponseEntity<>(new BuyerCurrentSessionLegitResponse(isBuyerCurrentSessionLegit), HttpStatus.OK);
     }
 

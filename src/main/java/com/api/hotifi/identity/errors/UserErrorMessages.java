@@ -7,7 +7,9 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String GOOGLE_USER_EXISTS = "Google user exists";
     public static final String USERNAME_EXISTS = "Username exists";
     public static final String USER_EXISTS = "User exists";
-    public static final String NO_USER_EXISTS = "User doesn't exist";
+    public static final String USER_NOT_FOUND = "User not found";
+    public static final String USER_FORBIDDEN = "User is forbidden";
+    public static final String USER_TOKEN_EXPIRED = "User token expired";
     public static final String EMAIL_OTP_ALREADY_GENERATED = "Email OTP already generated.";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_OTP = "Inavlid otp";

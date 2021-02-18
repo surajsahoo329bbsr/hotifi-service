@@ -19,7 +19,7 @@ import com.api.hotifi.payment.web.responses.BuyerStatsResponse;
 import com.api.hotifi.payment.web.responses.SellerStatsResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
-import com.api.hotifi.speed_test.entity.SpeedTest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -86,7 +86,7 @@ public class StatsServiceImpl implements IStatsService {
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
-            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
         try {
             BigDecimal totalEarnings = sellerPayment
                     .getAmountEarned()

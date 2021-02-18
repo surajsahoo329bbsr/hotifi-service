@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -28,6 +30,9 @@ public class StatsController {
     @Autowired
     private IStatsService statsService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @GetMapping(path = "/seller/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Seller Stats By User Id",
@@ -36,8 +41,10 @@ public class StatsController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getSellerStats(@PathVariable("id") @Range(min = 1, message = "{seller.id.invalid}") Long id){
-        SellerStatsResponse sellerStatsResponse = statsService.getSellerStats(id);
+    public ResponseEntity<?> getSellerStats(@PathVariable("id") @Range(min = 1, message = "{seller.id.invalid}") Long id) {
+        SellerStatsResponse sellerStatsResponse =
+                customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                        statsService.getSellerStats(id) : null;
         return new ResponseEntity<>(sellerStatsResponse, HttpStatus.OK);
     }
 
@@ -49,8 +56,10 @@ public class StatsController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getBuyerStats(@PathVariable("id") @Range(min = 1, message = "{buyer.id.invalid}") Long id){
-        BuyerStatsResponse buyerStatsResponse = statsService.getBuyerStats(id);
+    public ResponseEntity<?> getBuyerStats(@PathVariable("id") @Range(min = 1, message = "{buyer.id.invalid}") Long id) {
+        BuyerStatsResponse buyerStatsResponse =
+                customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                        statsService.getBuyerStats(id) : null;
         return new ResponseEntity<>(buyerStatsResponse, HttpStatus.OK);
     }
 

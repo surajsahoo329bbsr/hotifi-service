@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.web.controllers;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -26,6 +28,9 @@ public class SellerPaymentController {
     @Autowired
     private ISellerPaymentService sellerPaymentService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PutMapping(path = "/withdraw/{seller-id}")
     @ApiOperation(
             value = "Withdraw Seller Earnings By User Id",
@@ -33,9 +38,10 @@ public class SellerPaymentController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> withdrawSellerPayment(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId) {
-        SellerReceiptResponse sellerReceiptResponse = sellerPaymentService.withdrawSellerPayment(sellerId);
+        SellerReceiptResponse sellerReceiptResponse = (customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
+                sellerPaymentService.withdrawSellerPayment(sellerId) : null;
         return new ResponseEntity<>(sellerReceiptResponse, HttpStatus.OK);
     }
 

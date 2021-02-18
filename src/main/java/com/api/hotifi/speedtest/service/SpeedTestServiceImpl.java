@@ -1,14 +1,14 @@
-package com.api.hotifi.speed_test.service;
+package com.api.hotifi.speedtest.service;
 
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.error.SpeedTestErrorCodes;
-import com.api.hotifi.speed_test.repository.SpeedTestRepository;
-import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
+import com.api.hotifi.speedtest.error.SpeedTestErrorCodes;
+import com.api.hotifi.speedtest.repository.SpeedTestRepository;
+import com.api.hotifi.speedtest.web.request.SpeedTestRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

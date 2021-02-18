@@ -1,5 +1,7 @@
 package com.api.hotifi.identity.web.controller;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -40,6 +42,9 @@ public class UserController {
     @Autowired
     private IAuthenticationService authenticationService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add User Details",
@@ -65,7 +70,9 @@ public class UserController {
     public ResponseEntity<?> getUserByUsername(@PathVariable(value = "username")
                                                @NotBlank(message = "{username.blank}")
                                                @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
-        User user = userService.getUserByUsername(username);
+        User user = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUsername(username, AuthorizationUtils.getUserToken())) ?
+                userService.getUserByUsername(username) : null;
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -80,6 +87,8 @@ public class UserController {
     public ResponseEntity<?> isUsernameAvailable(@PathVariable(value = "username")
                                                  @NotBlank(message = "{username.blank}")
                                                  @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
+
+        //No need to check for role security here
         boolean isUsernameAvailable = userService.isUsernameAvailable(username);
         return new ResponseEntity<>(new UsernameAvailabilityResponse(isUsernameAvailable), HttpStatus.OK);
     }
@@ -95,7 +104,10 @@ public class UserController {
     public ResponseEntity<?> getUserByIdentifier(@PathVariable(value = "identifier-id")
                                                  @NotBlank(message = "{identifier.id.blank}")
                                                  @Length(max = 255, message = "{identifier.id.length.invalid}") String identifier) {
-        User user = userRepository.findByFacebookId(identifier) == null ? userRepository.findByGoogleId(identifier) : null;
+        User socialUser = userRepository.findByFacebookId(identifier) == null ? userRepository.findByGoogleId(identifier) : null;
+        User user = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedBySocialId(identifier, AuthorizationUtils.getUserToken())) ?
+                socialUser : null;
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -163,7 +175,8 @@ public class UserController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
-        userService.updateLoginStatus(id, loginStatus);
+        if ((AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken())))
+            userService.updateLoginStatus(id, loginStatus);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

@@ -95,7 +95,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
     public List<SellerReceiptResponse> getSortedSellerReceiptsByDateTime(Long sellerId, int page, int size, boolean isDescending) {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
-            throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
         try {
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("created_at").descending()) :
@@ -113,7 +113,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
         try {
             SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
             if (sellerPayment == null)
-                throw new HotifiException(SellerPaymentErrorCodes.NO_SELLER_PAYMENT_EXISTS);
+                throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("amount_paid").descending()) :
                     PageRequest.of(page, size, Sort.by("amount_paid"));

@@ -1,11 +1,14 @@
 package com.api.hotifi.configuration;
 
+import com.api.hotifi.authorization.service.CustomerAuthorizationImpl;
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
 import com.api.hotifi.common.services.implementations.EmailServiceImpl;
 import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
 import com.api.hotifi.common.services.implementations.SocialServiceImpl;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
 import com.api.hotifi.common.services.interfaces.ISocialService;
+import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.identity.repositories.*;
 import com.api.hotifi.identity.services.implementations.*;
 import com.api.hotifi.identity.services.interfaces.*;
@@ -15,14 +18,19 @@ import com.api.hotifi.payment.services.interfaces.*;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.session.service.ISessionService;
 import com.api.hotifi.session.service.SessionServiceImpl;
-import com.api.hotifi.speed_test.repository.SpeedTestRepository;
-import com.api.hotifi.speed_test.service.ISpeedTestService;
-import com.api.hotifi.speed_test.service.SpeedTestServiceImpl;
+import com.api.hotifi.speedtest.repository.SpeedTestRepository;
+import com.api.hotifi.speedtest.service.ISpeedTestService;
+import com.api.hotifi.speedtest.service.SpeedTestServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ServicesConfiguration {
+
+    @Bean
+    public ICustomerAutorizationService customerAutorizationService(DeviceRepository deviceRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, JwtDecoder jwtDecoder){
+        return new CustomerAuthorizationImpl(deviceRepository, userRepository, sessionRepository, purchaseRepository, sellerReceiptRepository, jwtDecoder);
+    }
 
     @Bean
     public IAuthenticationService authenticationService(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService) {

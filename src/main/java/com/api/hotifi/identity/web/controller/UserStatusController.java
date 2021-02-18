@@ -1,5 +1,7 @@
 package com.api.hotifi.identity.web.controller;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -29,6 +31,9 @@ public class UserStatusController {
     @Autowired
     private IUserStatusService userStatusService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add User Status Details",
@@ -36,7 +41,7 @@ public class UserStatusController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> addUserStatus(@RequestBody @Validated UserStatusRequest userStatusRequest) {
         List<UserStatus> userStatus = userStatusService.addUserStatus(userStatusRequest);
         return new ResponseEntity<>(userStatus, HttpStatus.OK);
@@ -51,7 +56,9 @@ public class UserStatusController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getUserStatusByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        List<UserStatus> userStatuses = userStatusService.getUserStatusByUserId(userId);
+        List<UserStatus> userStatuses = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                userStatusService.getUserStatusByUserId(userId) : null;
         return new ResponseEntity<>(userStatuses, HttpStatus.OK);
     }
 
@@ -63,7 +70,7 @@ public class UserStatusController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> unfreezeUser(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         userStatusService.freezeUser(userId, false);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

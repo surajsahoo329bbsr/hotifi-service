@@ -1,11 +1,13 @@
-package com.api.hotifi.speed_test.web.controller;
+package com.api.hotifi.speedtest.web.controller;
 
+import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.speed_test.entity.SpeedTest;
-import com.api.hotifi.speed_test.service.ISpeedTestService;
-import com.api.hotifi.speed_test.web.request.SpeedTestRequest;
+import com.api.hotifi.speedtest.entity.SpeedTest;
+import com.api.hotifi.speedtest.service.ISpeedTestService;
+import com.api.hotifi.speedtest.web.request.SpeedTestRequest;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class SpeedTestController {
     @Autowired
     private ISpeedTestService speedTestService;
 
+    @Autowired
+    private ICustomerAutorizationService customerAutorizationService;
+
     @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add Speed Test",
@@ -38,7 +43,8 @@ public class SpeedTestController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addSpeedTest(@RequestBody @Validated SpeedTestRequest speedTestRequest) {
-        speedTestService.addSpeedTest(speedTestRequest);
+        if (customerAutorizationService.isAuthorizedByUserId(speedTestRequest.getUserId(), AuthorizationUtils.getUserToken()))
+            speedTestService.addSpeedTest(speedTestRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -55,7 +61,9 @@ public class SpeedTestController {
                                                 @NotBlank(message = "{pin.code.blank}")
                                                 @PathVariable(value = "pin-code") String pinCode,
                                                 @PathVariable(value = "is-wifi") boolean isWifi) {
-        SpeedTest speedTest = speedTestService.getLatestSpeedTest(userId, pinCode, isWifi);
+        SpeedTest speedTest = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                speedTestService.getLatestSpeedTest(userId, pinCode, isWifi) : null;
         return new ResponseEntity<>(speedTest, HttpStatus.OK);
     }
 
@@ -72,7 +80,9 @@ public class SpeedTestController {
                                                           @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByDateTime(userId, page, size, isDescending);
+        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                speedTestService.getSortedSpeedTestByDateTime(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
@@ -88,7 +98,9 @@ public class SpeedTestController {
                                                              @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                              @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                              @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByUploadSpeed(userId, page, size, isDescending);
+        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                speedTestService.getSortedSpeedTestByUploadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
@@ -104,7 +116,9 @@ public class SpeedTestController {
                                                                @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                                @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = speedTestService.getSortedTestByDownloadSpeed(userId, page, size, isDescending);
+        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
+                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                speedTestService.getSortedTestByDownloadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 }
