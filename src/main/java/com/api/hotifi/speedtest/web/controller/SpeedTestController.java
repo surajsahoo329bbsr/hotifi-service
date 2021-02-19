@@ -61,8 +61,8 @@ public class SpeedTestController {
                                                 @NotBlank(message = "{pin.code.blank}")
                                                 @PathVariable(value = "pin-code") String pinCode,
                                                 @PathVariable(value = "is-wifi") boolean isWifi) {
-        SpeedTest speedTest = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        SpeedTest speedTest =
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getLatestSpeedTest(userId, pinCode, isWifi) : null;
         return new ResponseEntity<>(speedTest, HttpStatus.OK);
     }
@@ -80,8 +80,8 @@ public class SpeedTestController {
                                                           @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        List<SpeedTest> speedTests =
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedSpeedTestByDateTime(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
@@ -98,8 +98,8 @@ public class SpeedTestController {
                                                              @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                              @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                              @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        List<SpeedTest> speedTests =
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedSpeedTestByUploadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
@@ -116,8 +116,8 @@ public class SpeedTestController {
                                                                @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                                @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
-        List<SpeedTest> speedTests = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        List<SpeedTest> speedTests =
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedTestByDownloadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }

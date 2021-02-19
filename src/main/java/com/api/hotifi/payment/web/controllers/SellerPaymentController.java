@@ -40,7 +40,8 @@ public class SellerPaymentController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> withdrawSellerPayment(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId) {
-        SellerReceiptResponse sellerReceiptResponse = (customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
+        SellerReceiptResponse sellerReceiptResponse =
+                customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
                 sellerPaymentService.withdrawSellerPayment(sellerId) : null;
         return new ResponseEntity<>(sellerReceiptResponse, HttpStatus.OK);
     }

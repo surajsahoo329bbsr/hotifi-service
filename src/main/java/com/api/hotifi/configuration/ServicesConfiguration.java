@@ -1,17 +1,24 @@
 package com.api.hotifi.configuration;
 
+import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.authorization.service.CustomerAuthorizationImpl;
 import com.api.hotifi.authorization.service.ICustomerAutorizationService;
 import com.api.hotifi.common.services.implementations.EmailServiceImpl;
 import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
 import com.api.hotifi.common.services.implementations.SocialServiceImpl;
 import com.api.hotifi.common.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.IFirebaseMessagingService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
 import com.api.hotifi.common.services.interfaces.ISocialService;
-import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.identity.repositories.*;
-import com.api.hotifi.identity.services.implementations.*;
-import com.api.hotifi.identity.services.interfaces.*;
+import com.api.hotifi.identity.services.implementations.AuthenticationServiceImpl;
+import com.api.hotifi.identity.services.implementations.DeviceServiceImpl;
+import com.api.hotifi.identity.services.implementations.UserServiceImpl;
+import com.api.hotifi.identity.services.implementations.UserStatusServiceImpl;
+import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
+import com.api.hotifi.identity.services.interfaces.IDeviceService;
+import com.api.hotifi.identity.services.interfaces.IUserService;
+import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.payment.repositories.*;
 import com.api.hotifi.payment.services.implementations.*;
 import com.api.hotifi.payment.services.interfaces.*;
@@ -33,8 +40,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IAuthenticationService authenticationService(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService) {
-        return new AuthenticationServiceImpl(authenticationRepository, roleRepository, emailService);
+    public IAuthenticationService authenticationService(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, ISocialService socialService) {
+        return new AuthenticationServiceImpl(authenticationRepository, roleRepository, emailService, socialService);
     }
 
     @Bean
@@ -48,8 +55,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public INotificationService notificationService(IDeviceService deviceService){
-        return new NotificationServiceImpl(deviceService);
+    public INotificationService notificationService(IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService){
+        return new NotificationServiceImpl(deviceService, firebaseMessagingService);
     }
 
     @Bean
@@ -106,4 +113,5 @@ public class ServicesConfiguration {
     public ISpeedTestService speedTestService(UserRepository userRepository, SpeedTestRepository speedTestRepository){
         return new SpeedTestServiceImpl(userRepository, speedTestRepository);
     }
+
 }

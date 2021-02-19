@@ -19,4 +19,5 @@ public class AuthenticationErrorCodes extends ErrorCodes {
     public static final ErrorCode AUTHENTICATION_NOT_VERIFIED = new ErrorCode("10", Collections.singletonList(getMessage("AUTHENTICATION_NOT_VERIFIED", AuthenticationErrorMessages.AUTHENTICATION_NOT_VERIFIED)), 500);
     public static final ErrorCode AUTHENTICATION_NOT_LEGIT = new ErrorCode("11", Collections.singletonList(getMessage("AUTHENTICATION_NOT_LEGIT", AuthenticationErrorMessages.AUTHENTICATION_NOT_LEGIT)), 400);
     public static final ErrorCode UNEXPECTED_AUTHENTICATION_ERROR = new ErrorCode("00", Collections.singletonList(getMessage("UNEXPECTED_AUTHENTICATION_ERROR", AuthenticationErrorMessages.UNEXPECTED_AUTHENTICATION_ERROR)), 500);
+    public static final ErrorCode FIREBASE_AUTH_EXCEPTION = new ErrorCode("12", Collections.singletonList(getMessage("FIREBASE_AUTH_EXCEPTION", AuthenticationErrorMessages.UNEXPECTED_AUTHENTICATION_ERROR)), 500);
 }

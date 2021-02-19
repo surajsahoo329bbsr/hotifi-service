@@ -18,7 +18,7 @@ public class SocialClientValidator implements ConstraintValidator<SocialClient, 
     }
 
     @Override
-    public boolean isValid(String paymentMethod, ConstraintValidatorContext constraintValidatorContext) {
-        return paymentMethod != null && socialClients.contains(paymentMethod);
+    public boolean isValid(String socialClient, ConstraintValidatorContext constraintValidatorContext) {
+        return socialClient == null || socialClients.contains(socialClient);
     }
 }

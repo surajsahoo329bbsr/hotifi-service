@@ -50,14 +50,14 @@ public class BankAccountController {
 
     @PutMapping(path = "/seller/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Update Bank Account Details By User",
-            notes = "Update Bank Account Details By User",
+            value = "Update Bank Account Details By Customer",
+            notes = "Update Bank Account Details By Customer",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> updateBankAccountByUser(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
+    public ResponseEntity<?> updateBankAccountByCustomer(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
         if (customerAutorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
             bankAccountService.updateBankAccountByCustomer(bankAccountRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -106,7 +106,8 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        BankAccount bankAccount = (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        BankAccount bankAccount =
+                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
                 bankAccountService.getBankAccountByUserId(userId) : null;
         return new ResponseEntity<>(bankAccount, HttpStatus.OK);
     }

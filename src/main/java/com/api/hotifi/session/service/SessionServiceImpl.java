@@ -256,7 +256,6 @@ public class SessionServiceImpl implements ISessionService {
             BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
                     .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
-                    //.mapToDouble(purchase -> purchase.getAmountPaid() - purchase.getAmountRefund())
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal netEarnings = totalEarnings

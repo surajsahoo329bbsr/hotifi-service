@@ -5,9 +5,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface IAuthenticationService extends UserDetailsService {
 
-    String addEmail(String email, String idToken, String socailClient);
+    String addEmail(String email, String identifier, String token, String socialClient);
 
-    Authentication getAuthentication(String email);
+    Authentication getAuthenticationForAdminstrators(String email);
+
+    Authentication getAuthenticationForCustomer(String email);
 
     void resendEmailOtpSignUp(String email);
 

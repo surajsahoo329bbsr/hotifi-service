@@ -66,7 +66,8 @@ public class JwtDecoder {
         return new JSONObject(signature);
     }
 
-    public boolean isTokenExpired(String token){
+    public boolean isTokenExpired(String token)
+    {
         Date currentTime = new Date(System.currentTimeMillis());
         Date expiryTime = extractExpiryDate(token);
         return currentTime.after(expiryTime);

@@ -86,7 +86,7 @@ public class SellerReceiptController {
                                                                  @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                  @PathVariable(value = "is-descending") boolean isDescending) {
         List<SellerReceiptResponse> sellerReceiptResponses =
-                AuthorizationUtils.isAdminstratorRole() && customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
                         sellerReceiptService.getSortedSellerReceiptsByAmountPaid(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }

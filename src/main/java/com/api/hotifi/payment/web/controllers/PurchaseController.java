@@ -61,7 +61,7 @@ public class PurchaseController {
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
         PurchaseReceiptResponse receiptResponse =
-                (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
                         purchaseService.getPurchaseReceipt(purchaseId) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }
@@ -95,8 +95,9 @@ public class PurchaseController {
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        int updateStatus = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
-                purchaseService.updateBuyerWifiService(purchaseId, dataUsed) : -1; //-1 for failure
+        int updateStatus =
+                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
+                        purchaseService.updateBuyerWifiService(purchaseId, dataUsed) : -1; //-1 for failure
         return new ResponseEntity<>(new UpdateStatusResponse(updateStatus), HttpStatus.OK);
     }
 
@@ -113,8 +114,9 @@ public class PurchaseController {
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
-        WifiSummaryResponse wifiSummaryResponse = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
-                purchaseService.finishBuyerWifiService(purchaseId, dataUsed) : null;
+        WifiSummaryResponse wifiSummaryResponse =
+                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
+                        purchaseService.finishBuyerWifiService(purchaseId, dataUsed) : null;
         return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
     }
 
@@ -194,8 +196,9 @@ public class PurchaseController {
             @PathVariable(value = "size")
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
-        List<RefundReceiptResponse> refundReceiptResponses = customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
-                purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending) : null;
+        List<RefundReceiptResponse> refundReceiptResponses =
+                customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
+                        purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(refundReceiptResponses, HttpStatus.OK);
     }
 

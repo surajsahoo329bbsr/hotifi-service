@@ -1,6 +1,7 @@
-package com.api.hotifi.common.processors.facebook;
+package com.api.hotifi.common.processors.social;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.identity.entities.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class FacebookProcessor {
 
-    public boolean verifyFacebookIdentifier(String userToken, String identifier){
+    public boolean verifyEmail(String identifier, String userToken){
         RestTemplate restTemplate = new RestTemplate();
         String appUrl = Constants.FACEBOOK_GRAPH_API_URL + "/debug_token?input_token=" + userToken
                 + "&access_token=" + Constants.FACEBOOK_CLIENT_ID + "|" +Constants.FACEBOOK_CLIENT_KEY;
@@ -24,6 +25,10 @@ public class FacebookProcessor {
             log.error("Error Occurred", e);
         }
         return false;
+    }
+
+    public User getUserDetails(String userToken, String identifier){
+        return null;
     }
 
 }

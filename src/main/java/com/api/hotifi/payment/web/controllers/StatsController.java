@@ -43,7 +43,7 @@ public class StatsController {
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerStats(@PathVariable("id") @Range(min = 1, message = "{seller.id.invalid}") Long id) {
         SellerStatsResponse sellerStatsResponse =
-                customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getSellerStats(id) : null;
         return new ResponseEntity<>(sellerStatsResponse, HttpStatus.OK);
     }
@@ -58,7 +58,7 @@ public class StatsController {
     @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getBuyerStats(@PathVariable("id") @Range(min = 1, message = "{buyer.id.invalid}") Long id) {
         BuyerStatsResponse buyerStatsResponse =
-                customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getBuyerStats(id) : null;
         return new ResponseEntity<>(buyerStatsResponse, HttpStatus.OK);
     }

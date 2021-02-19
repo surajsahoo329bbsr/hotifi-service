@@ -32,23 +32,39 @@ public class AuthenticationController {
     @Autowired
     private IAuthenticationService authenticationService;
 
-    @GetMapping(path = "/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/adminstrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Authentication Details By Email",
-            notes = "Get Authentication Details By Email",
+            value = "Get Authentication Details By Email For Adminstrators",
+            notes = "Get Authentication Details By Email For Adminstrators",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> getEmail(@PathVariable(value = "email")
+    public ResponseEntity<?> getAuthenticationForAdminstrators(@PathVariable(value = "email")
                                       @NotBlank(message = "{email.blank}")
                                       @Email(message = "{email.pattern.invalid}")
                                       @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthentication(email);
+        Authentication authentication = authenticationService.getAuthenticationForAdminstrators(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/sign-up/{email}/{id-token}/{social-client}")
+    @GetMapping(path = "/customer/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Authentication Details By Email For Customers",
+            notes = "Get Authentication Details By Email For Customers",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> getAuthenticationForCustomer(@PathVariable(value = "email")
+                                                               @NotBlank(message = "{email.blank}")
+                                                               @Email(message = "{email.pattern.invalid}")
+                                                               @Length(max = 255, message = "{email.length.invalid}") String email) {
+        Authentication authentication = authenticationService.getAuthenticationForCustomer(email);
+        return new ResponseEntity<>(authentication, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/sign-up/{email}/{identifier}/{token}/{social-client}")
     @ApiOperation(
             value = "Post Authentication By Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
@@ -60,12 +76,13 @@ public class AuthenticationController {
                                       @NotBlank(message = "{email.blank}")
                                       @Email(message = "{email.pattern.invalid}")
                                       @Length(max = 255, message = "{email.length.invalid}") String email,
-                                      @PathVariable(value = "id-token")
-                                      @NotBlank(message = "{id.token.blank}")
-                                      @Length(max = 255, message = "{id.token.length.invalid}") String idToken,
+                                      @PathVariable(value = "identifier")
+                                      @Length(max = 255, message = "{id.identifier.length.invalid}") String identifier,
+                                      @PathVariable(value = "token")
+                                      @Length(max = 255, message = "{id.token.length.invalid}") String token,
                                       @PathVariable(value = "social-client")
                                       @SocialClient String socialClient) {
-        String passwordToken = authenticationService.addEmail(email, idToken, socialClient);
+        String passwordToken = authenticationService.addEmail(email, identifier, token, socialClient);
         return new ResponseEntity<>(new PasswordTokenResponse(passwordToken), HttpStatus.OK);
     }
 

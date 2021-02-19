@@ -87,6 +87,18 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Transactional
     @Override
+    public Set<Device> getUserDevices(Long userId) {
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            return user != null ? user.getUserDevices() : null;
+        } catch (Exception e) {
+            log.error("Error Occurred ", e);
+            throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
+        }
+    }
+
+    @Transactional
+    @Override
     public void deleteUserDevices(Long userId) {
         try {
             User user = userRepository.findById(userId).orElse(null);

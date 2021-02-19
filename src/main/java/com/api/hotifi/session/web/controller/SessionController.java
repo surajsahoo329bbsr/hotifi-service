@@ -78,7 +78,8 @@ public class SessionController {
     public ResponseEntity<?> getBuyers(@PathVariable(value = "session-id")
                                        @Range(min = 1, message = "{user.id.invalid}") Long sessionId,
                                        @PathVariable(value = "is-active") boolean isActive) {
-        List<Buyer> getBuyers = AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
+        List<Buyer> getBuyers =
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
                 sessionService.getBuyers(sessionId, isActive) : null;
         return new ResponseEntity<>(getBuyers, HttpStatus.OK);
     }
@@ -143,9 +144,8 @@ public class SessionController {
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id")
                                                @Range(min = 1, message = "{session.id.invalid}") Long sessionId) {
-
         SessionSummaryResponse sessionSummaryResponse =
-                customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
                         sessionService.getSessionSummary(sessionId) : null;
         return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);
     }

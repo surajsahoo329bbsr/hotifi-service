@@ -39,5 +39,7 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode INVALID_LINKED_ACCOUNT_ID = new ErrorCode("21", Collections.singletonList(getMessage("INVALID_LINKED_ACCOUNT_ID", UserErrorMessages.INVALID_LINKED_ACCOUNT_ID)), 500);
     public static final ErrorCode USER_LINKED_ACCOUNT_ID_NULL = new ErrorCode("22", Collections.singletonList(getMessage("USER_LINKED_ACCOUNT_ID_NULL", UserErrorMessages.USER_LINKED_ACCOUNT_ID_NULL)), 500);
     public static final ErrorCode USER_FORBIDDEN = new ErrorCode("01", Collections.singletonList(getMessage("USER_FORBIDDEN", UserErrorMessages.USER_FORBIDDEN)), 400);
-    public static final ErrorCode USER_TOKEN_EXPIRED = new ErrorCode("01", Collections.singletonList(getMessage("USER_TOKEN_EXPIRED", UserErrorMessages.USER_TOKEN_EXPIRED)), 400);
+    public static final ErrorCode USER_TOKEN_EXPIRED = new ErrorCode("02", Collections.singletonList(getMessage("USER_TOKEN_EXPIRED", UserErrorMessages.USER_TOKEN_EXPIRED)), 400);
+    public static final ErrorCode USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND = new ErrorCode("03", Collections.singletonList(getMessage("USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND", UserErrorMessages.USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND)), 400);
+    public static final ErrorCode USER_SOCIAL_IDENTIFIER_INVALID = new ErrorCode("04", Collections.singletonList(getMessage("USER_SOCIAL_IDENTIFIER_INVALID", UserErrorMessages.USER_SOCIAL_IDENTIFIER_INVALID)), 400);
 }

@@ -14,6 +14,9 @@ public class Constants {
     public static final String RAZORPAY_CLIENT_ID = "";
     public static final String RAZORPAY_CLIENT_KEY = "";
 
+    //Google Configuration
+    public static final String GOOGLE_CLIENT_ID = "";
+
     //TODO Google Configuration As JSON from Firebase
     //Facebook Configuration
     public static final String FACEBOOK_CLIENT_ID = "";

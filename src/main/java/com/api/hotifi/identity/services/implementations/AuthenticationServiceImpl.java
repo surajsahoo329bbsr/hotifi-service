@@ -1,15 +1,18 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.processors.codes.SocialCodes;
+import com.api.hotifi.common.services.interfaces.IEmailService;
+import com.api.hotifi.common.services.interfaces.ISocialService;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.Role;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorMessages;
 import com.api.hotifi.identity.models.RoleName;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.RoleRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
-import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -33,16 +36,27 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final AuthenticationRepository authenticationRepository;
     private final RoleRepository roleRepository;
     private final IEmailService emailService;
+    private final ISocialService socialService;
 
-    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService) {
+    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, ISocialService socialService) {
         this.authenticationRepository = authenticationRepository;
         this.roleRepository = roleRepository;
         this.emailService = emailService;
+        this.socialService = socialService;
     }
 
     @Transactional
     @Override
-    public Authentication getAuthentication(String email) {
+    public Authentication getAuthenticationForAdminstrators(String email) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        if (authentication == null)
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        authentication.setPassword(null);
+        return authentication;
+    }
+
+    @Override
+    public Authentication getAuthenticationForCustomer(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
@@ -52,24 +66,30 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
-    public String addEmail(String email, String idToken, String socialClient) {
+    public String addEmail(String email, String identifier, String token, String socialClient) {
+        if ((socialClient != null && token == null) || (socialClient == null && token != null))
+            throw new HotifiException(UserErrorCodes.USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND);
+        if (!socialService.isSocialUserVerified(token, null, email, SocialCodes.valueOf(socialClient)))
+            throw new HotifiException(UserErrorCodes.USER_SOCIAL_IDENTIFIER_INVALID);
         try {
+            boolean isEmailVerified = socialClient != null; //Do any not null check for social client or token
             Authentication authentication = new Authentication();
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
-            String token = UUID.randomUUID().toString();
+            String uuid = UUID.randomUUID().toString();
             authentication.setEmail(email);
-            authentication.setEmailVerified(true); //TODO
-            authentication.setPassword(token);
+            authentication.setEmailVerified(isEmailVerified);
+            authentication.setPassword(uuid);
             authentication.setRoles(Collections.singletonList(role));
-            if (!true) { //TODO
+            if (!isEmailVerified) //If email not verified, send email otps to verify as usual process
                 OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
-            }else {
+            else {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
                 authenticationRepository.save(authentication);
             }
             return token;
-        } catch (DataIntegrityViolationException e) {
+        }
+        catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_EXISTS);
         } catch (Exception e) {
@@ -88,7 +108,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
-
         //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
         log.info("Regenerating Otp...");
         OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
@@ -104,14 +123,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         String encryptedEmailOtp = authentication.getEmailOtp();
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
-
         if (OtpUtils.isEmailOtpExpired(authentication)) {
             log.error("Otp Expired");
             authentication.setEmailOtp(null);
             authenticationRepository.save(authentication);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
         }
-
         if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
             authentication.setEmailOtp(null);
             authentication.setEmailVerified(true);

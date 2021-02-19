@@ -5,8 +5,8 @@ import com.api.hotifi.identity.entities.User;
 
 public interface ISocialService {
 
-    void verifySocialUser(String idToken, SocialCodes socialCode);
+    boolean isSocialUserVerified(String email, String identifier, String token, SocialCodes socialCode);
 
-    User getSocialUserDetails(String idToken, SocialCodes socialCode);
+    User getSocialUserDetails(String token, SocialCodes socialCode);
 
 }

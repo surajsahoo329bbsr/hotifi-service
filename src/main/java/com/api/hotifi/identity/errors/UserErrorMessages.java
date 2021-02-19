@@ -10,6 +10,8 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_NOT_FOUND = "User not found";
     public static final String USER_FORBIDDEN = "User is forbidden";
     public static final String USER_TOKEN_EXPIRED = "User token expired";
+    public static final String USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND = "Either social token or identifier is null";
+    public static final String USER_SOCIAL_IDENTIFIER_INVALID = "User social identifier is invalid";
     public static final String EMAIL_OTP_ALREADY_GENERATED = "Email OTP already generated.";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_OTP = "Inavlid otp";
