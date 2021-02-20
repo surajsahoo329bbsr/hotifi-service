@@ -55,7 +55,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
                 speedTestRepository.findLatestWifiSpeedTest(userId, pinCode) :
                 speedTestRepository.findLatestNonWifiSpeedTest(userId, pinCode);
         if (speedTest == null)
-            throw new HotifiException(SpeedTestErrorCodes.NO_SPEED_TEST_RECORD_EXISTS);
+            throw new HotifiException(SpeedTestErrorCodes.SPEED_TEST_RECORD_NOT_FOUND);
         return speedTest;
     }
 

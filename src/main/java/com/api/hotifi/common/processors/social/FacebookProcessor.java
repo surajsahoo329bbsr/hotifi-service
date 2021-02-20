@@ -27,6 +27,7 @@ public class FacebookProcessor {
         return false;
     }
 
+    //TODO fetch user profile information using Facebook's Graph Api
     public User getUserDetails(String userToken, String identifier){
         return null;
     }

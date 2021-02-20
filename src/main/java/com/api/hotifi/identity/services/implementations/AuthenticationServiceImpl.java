@@ -14,6 +14,7 @@ import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.RoleRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.utils.OtpUtils;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -66,7 +67,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Transactional
     @Override
     //If login client already has email verified no need for further verification
-    public String addEmail(String email, String identifier, String token, String socialClient) {
+    public CredentialsResponse addEmail(String email, String identifier, String token, String socialClient) {
         if ((socialClient != null && token == null) || (socialClient == null && token != null))
             throw new HotifiException(UserErrorCodes.USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND);
         if (!socialService.isSocialUserVerified(token, null, email, SocialCodes.valueOf(socialClient)))
@@ -86,17 +87,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
                 authenticationRepository.save(authentication);
+                return new CredentialsResponse(authentication.getEmail(), authentication.getPassword());
             }
-            return token;
-        }
-        catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_EXISTS);
         } catch (Exception e) {
             log.error("Error Occurred ", e);
             throw new HotifiException(AuthenticationErrorCodes.UNEXPECTED_AUTHENTICATION_ERROR);
         }
-
+        return null;
     }
 
     @Transactional
@@ -141,8 +141,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void verifyPhone(String email, String countryCode, String phone, String idToken) {
-        //TODO id-token verifiaction
+    public void verifyPhone(String email, String countryCode, String phone) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);

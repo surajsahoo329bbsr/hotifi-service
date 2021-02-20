@@ -15,21 +15,42 @@ public class FirebaseMessagingServiceImpl implements IFirebaseMessagingService {
     }
 
     @Override
-    public String sendNotification(String note, String token) throws FirebaseMessagingException {
+    public void sendNotification(String subject, String content, String token) throws FirebaseMessagingException {
 
         Notification notification = Notification
                 .builder()
-                //.setTitle(note.getSubject())
-                //.setBody(note.getContent())
+                .setTitle(subject)
+                .setBody(content)
                 .build();
 
         Message message = Message
                 .builder()
                 .setToken(token)
-                //.setNotification(notification)
+                .setNotification(notification)
                 //.putAllData(note.getData())
                 .build();
 
-        return firebaseMessaging.send(message);
+        firebaseMessaging.send(message);
     }
+
+    @Override
+    public void sendPhotoNotification(String subject, String content, String photoUrl, String token) throws FirebaseMessagingException {
+        Notification notification = Notification
+                .builder()
+                .setTitle(subject)
+                .setBody(content)
+                .setImage(photoUrl)
+                .build();
+
+        Message message = Message
+                .builder()
+                .setToken(token)
+                .setNotification(notification)
+                //.putAllData(note.getData())
+                .build();
+
+        firebaseMessaging.send(message);
+    }
+
+
 }

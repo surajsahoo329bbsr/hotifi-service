@@ -6,6 +6,8 @@ public interface ICustomerAutorizationService {
 
     boolean isAuthorizedByUserId(Long userId, String bearerToken);
 
+    boolean isAuthorizedByEmail(String email, String bearerToken);
+
     boolean isAuthorizedByUsername(String username, String bearerToken);
 
     boolean isAuthorizedBySocialId(String socialId, String bearerToken);

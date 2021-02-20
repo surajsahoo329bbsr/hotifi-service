@@ -8,7 +8,7 @@ import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.web.request.EmailOtpRequest;
 import com.api.hotifi.identity.web.request.PhoneRequest;
-import com.api.hotifi.identity.web.response.PasswordTokenResponse;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +82,8 @@ public class AuthenticationController {
                                       @Length(max = 255, message = "{id.token.length.invalid}") String token,
                                       @PathVariable(value = "social-client")
                                       @SocialClient String socialClient) {
-        String passwordToken = authenticationService.addEmail(email, identifier, token, socialClient);
-        return new ResponseEntity<>(new PasswordTokenResponse(passwordToken), HttpStatus.OK);
+        CredentialsResponse credentialsResponse = authenticationService.addEmail(email, identifier, token, socialClient);
+        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
 
     @PutMapping(path = "/sign-up/resend/otp/{email}")
@@ -127,7 +127,7 @@ public class AuthenticationController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyPhone(@RequestBody @Valid PhoneRequest phoneRequest) {
-        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone(), phoneRequest.getIdToken());
+        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

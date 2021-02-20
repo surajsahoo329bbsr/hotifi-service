@@ -5,6 +5,20 @@ import com.api.hotifi.identity.models.EmailModel;
 
 public interface IEmailService {
 
-    void sendEmail(User user, EmailModel emailModel, int emailService);
+
+    void sendAccountDeletedEmail(User user, EmailModel emailModel);
+
+    void sendAccountFreezedEmail(User user, EmailModel emailModel);
+
+    void sendBuyerBannedEmail(User user, EmailModel emailModel);
+
+    void sendEmailOtpEmail(EmailModel emailModel);
+
+    void sendLinkedAccountFailed(User user, EmailModel emailModel);
+
+    void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel);
+
+    void sendWelcomeEmail(User user, EmailModel emailModel);
+
 
 }

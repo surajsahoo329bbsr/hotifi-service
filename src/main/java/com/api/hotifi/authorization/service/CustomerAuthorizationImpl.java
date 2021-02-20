@@ -3,10 +3,12 @@ package com.api.hotifi.authorization.service;
 
 import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.Device;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.DeviceErrorCodes;
 import com.api.hotifi.identity.errors.UserErrorCodes;
+import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.DeviceRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
@@ -24,19 +26,21 @@ import java.util.stream.Collectors;
 
 public class CustomerAuthorizationImpl implements ICustomerAutorizationService {
 
-    private final DeviceRepository deviceRepository;
+    private final AuthenticationRepository authenticationRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final PurchaseRepository purchaseRepository;
     private final SellerReceiptRepository sellerReceiptRepository;
+    private final DeviceRepository deviceRepository;
     private final JwtDecoder jwtDecoder;
 
-    public CustomerAuthorizationImpl(DeviceRepository deviceRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, JwtDecoder jwtDecoder) {
-        this.deviceRepository = deviceRepository;
+    public CustomerAuthorizationImpl(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder) {
+        this.authenticationRepository = authenticationRepository;
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.purchaseRepository = purchaseRepository;
         this.sellerReceiptRepository = sellerReceiptRepository;
+        this.deviceRepository = deviceRepository;
         this.jwtDecoder = jwtDecoder;
     }
 
@@ -58,6 +62,20 @@ public class CustomerAuthorizationImpl implements ICustomerAutorizationService {
     @Override
     public boolean isAuthorizedByUserId(Long userId, String bearerToken) {
         User user = userRepository.findById(userId).orElse(null);
+        if (user == null)
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
+        String jwtUsername = jwtDecoder.extractUsername(bearerToken);
+        if (jwtUsername == null || !jwtUsername.equals(user.getAuthentication().getEmail()))
+            throw new HotifiException(UserErrorCodes.USER_FORBIDDEN);
+        if (jwtDecoder.isTokenExpired(bearerToken))
+            throw new HotifiException(UserErrorCodes.USER_TOKEN_EXPIRED);
+        return true;
+    }
+
+    @Override
+    public boolean isAuthorizedByEmail(String email, String bearerToken) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         if (user == null)
             throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         String jwtUsername = jwtDecoder.extractUsername(bearerToken);
@@ -123,7 +141,7 @@ public class CustomerAuthorizationImpl implements ICustomerAutorizationService {
     public boolean isAuthorizedByPurchaseId(Long purchaseId, String bearerToken) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
         String jwtUsername = jwtDecoder.extractUsername(bearerToken);
         if (jwtUsername == null)
             throw new HotifiException(UserErrorCodes.USER_FORBIDDEN);

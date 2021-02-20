@@ -69,6 +69,10 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Date createdAt = new Timestamp(System.currentTimeMillis());
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Date loggedAt = new Timestamp(System.currentTimeMillis());
+
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<SpeedTest> speedTests;

@@ -4,5 +4,8 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 
 public interface IFirebaseMessagingService {
 
-    String sendNotification(String note, String token) throws FirebaseMessagingException;
+    void sendNotification(String subject, String content, String token) throws FirebaseMessagingException;
+
+    void sendPhotoNotification(String subject, String content, String photoUrl, String token) throws FirebaseMessagingException;
+
 }

@@ -26,14 +26,18 @@ public class Constants {
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
 
-    //TODO add Html files and it's paths and emails
+    //TODO email hosts, ports and password
     public static final String EMAIL_HOST = "";
     public static final int EMAIL_PORT = 8080;
     public static final String FROM_EMAIL = "";
     public static final String FROM_EMAIL_PASSWORD = "";
-    public static final String EMAIL_OTP_HTML_PATH = "D:\\PrivateProjects\\krishled-service-suraj\\src\\main\\java\\com\\online\\platform\\html\\email\\user_verification.html";
-    public static final String EMAIL_WELCOME_HTML_PATH = "D:\\PrivateProjects\\krishled-service-suraj\\src\\main\\java\\com\\online\\platform\\html\\email\\user_verified.html";
-    public static final String EMAIL_GOODBYE_HTML_PATH = "D:\\PrivateProjects\\krishled-service-suraj\\src\\main\\java\\com\\online\\platform\\html\\email\\user_verified.html";
+    public static final String EMAIL_OTP_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\email_otp.html";
+    public static final String EMAIL_WELCOME_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\welcome.html";
+    public static final String EMAIL_ACCOUNT_DELETED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\account_deleted.html";
+    public static final String EMAIL_ACCOUNT_FREEZED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\account_freezed.html";
+    public static final String EMAIL_BUYER_BANNED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\buyer_banned.html";
+    public static final String EMAIL_LINKED_ACCOUNT_FAILED_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\linked_account_failed.html";
+    public static final String EMAIL_LINKED_ACOOUNT_SUCCESS_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\linked_account_success.html";
 
     //Wifi password
     public static final String WIFI_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
@@ -64,7 +68,6 @@ public class Constants {
     public static final String VALID_PHONE_PATTERN = "^[0-9]{10,15}$";
     public static final String VALID_USERNAME_PATTERN = "^(?=[a-zA-Z0-9._]{6,30}$)(?!.*[_.]{2})[^_.].*[^_.]$";
     public static final String VALID_COUNTRY_CODE_PATTERN = "^[0-9]{1,5}$";
-    //public static final String VALID_UPI_ID_PATTERN = "[a-zA-Z0-9.\\\\-_]{3,256}@[a-zA-Z]{3,64}";
     public static final String VALID_ROLE_PATTERN = "(BUYER|SELLER|DELETE)";
 
     //Range

@@ -2,6 +2,7 @@ package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.entities.UserStatus;
@@ -12,7 +13,6 @@ import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.repositories.UserStatusRepository;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
-import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import com.api.hotifi.payment.repositories.BankAccountRepository;
@@ -156,6 +156,13 @@ public class UserStatusServiceImpl implements IUserStatusService {
         } else {
             authentication.setFreezed(freezeUser);
             authenticationRepository.save(authentication);
+            if(freezeUser) {
+                EmailModel emailModel = new EmailModel();
+                emailModel.setToEmail(user.getAuthentication().getEmail());
+                emailModel.setFromEmail(Constants.FROM_EMAIL);
+                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+                emailService.sendAccountFreezedEmail(user, emailModel);
+            }
         }
     }
 
@@ -175,6 +182,11 @@ public class UserStatusServiceImpl implements IUserStatusService {
             if (banUser) {
                 user.setLoggedIn(false);
                 userRepository.save(user);
+                EmailModel emailModel = new EmailModel();
+                emailModel.setToEmail(user.getAuthentication().getEmail());
+                emailModel.setFromEmail(Constants.FROM_EMAIL);
+                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+                emailService.sendBuyerBannedEmail(user, emailModel);
             }
             authentication.setBanned(banUser);
             authenticationRepository.save(authentication);
@@ -215,7 +227,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         emailModel.setToEmail(authentication.getEmail());
         emailModel.setFromEmail(Constants.FROM_EMAIL);
         emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
-        emailService.sendEmail(user, emailModel, 2);
+        emailService.sendAccountDeletedEmail(user, emailModel);
     }
 
     public boolean isFreezePeriodExpired(UserStatus userStatus) {

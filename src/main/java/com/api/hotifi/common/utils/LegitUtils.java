@@ -72,7 +72,7 @@ public class LegitUtils {
         if (seller.getAuthentication().isDeleted())
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         if (errorDescription != null && linkedAccountId != null)
-            throw new HotifiException(SellerBankAccountErrorCodes.NO_ERROR_DESCRIPTION_ON_LINKED_ACCOUNT);
+            throw new HotifiException(SellerBankAccountErrorCodes.ERROR_DESCRIPTION_ON_LINKED_ACCOUNT_NOT_FOUND);
         if (errorDescription == null && linkedAccountId == null)
             throw new HotifiException(SellerBankAccountErrorCodes.ERROR_DESCRIPTION_ON_UNLINKED_ACCOUNT);
         return true;
@@ -80,7 +80,7 @@ public class LegitUtils {
 
     public static boolean isPurchaseUpdateLegit(Purchase purchase, double dataUsed) {
         if (purchase == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
         if (purchase.getSessionCreatedAt() == null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_NOT_STARTED);
         if (purchase.getSessionFinishedAt() != null)

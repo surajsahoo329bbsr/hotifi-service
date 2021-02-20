@@ -168,7 +168,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public PurchaseReceiptResponse getPurchaseReceipt(Long purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
         try {
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             String wifiPassword = session != null ? session.getWifiPassword() : null;
@@ -197,7 +197,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public Date startBuyerWifiService(Long purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
-            throw new HotifiException(PurchaseErrorCodes.NO_PURCHASE_EXISTS);
+            throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
         if(purchase.getRefundStartedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
         if (purchase.getSessionCreatedAt() != null)
@@ -333,7 +333,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
         }
     }
 
-    //TODO buyer refunds logic
     @Transactional
     @Override
     public void withdrawBuyerRefunds(Long buyerId) {
@@ -349,7 +348,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             if (totalRefundAmount.compareTo(BigDecimal.ZERO) == 0)
-                throw new HotifiException(PurchaseErrorCodes.NO_BUYER_PENDING_REFUNDS);
+                throw new HotifiException(PurchaseErrorCodes.BUYER_PENDING_REFUNDS_NOT_FOUND);
 
             List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .collect(Collectors.toList());

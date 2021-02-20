@@ -1,9 +1,12 @@
 package com.api.hotifi.payment.services.implementations;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
+import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.error.SellerBankAccountErrorCodes;
@@ -22,10 +25,12 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final IEmailService emailService;
 
-    public BankAccountServiceImpl(UserRepository userRepository, BankAccountRepository bankAccountRepository) {
+    public BankAccountServiceImpl(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService) {
         this.userRepository = userRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -96,6 +101,16 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 bankAccount.setErrorDescription(errorDescription);
                 bankAccount.setUser(user);
                 bankAccountRepository.save(bankAccount);
+
+                EmailModel emailModel = new EmailModel();
+                emailModel.setToEmail(user.getAuthentication().getEmail());
+                emailModel.setFromEmail(Constants.FROM_EMAIL);
+                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+
+                if (errorDescription != null)
+                    emailService.sendLinkedAccountFailed(user, emailModel);
+                emailService.sendLinkedAccountSuccessEmail(user, emailModel);
+
             } catch (DataIntegrityViolationException e) {
                 throw new HotifiException(SellerBankAccountErrorCodes.BANK_ACCOUNT_DETAILS_ALREADY_EXISTS);
             } catch (Exception e) {

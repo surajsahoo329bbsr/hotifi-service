@@ -2,6 +2,7 @@ package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
@@ -10,14 +11,16 @@ import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 
 @Slf4j
 public class UserServiceImpl implements IUserService {
@@ -58,7 +61,7 @@ public class UserServiceImpl implements IUserService {
             emailModel.setToEmail(authentication.getEmail());
             emailModel.setFromEmail(Constants.FROM_EMAIL);
             emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
-            emailService.sendEmail(user, emailModel, 1);
+            emailService.sendWelcomeEmail(user, emailModel);
         } catch (DataIntegrityViolationException e) {
             throw new HotifiException(UserErrorCodes.USER_EXISTS);
         } catch (Exception e) {
@@ -110,7 +113,7 @@ public class UserServiceImpl implements IUserService {
 
     //DO NOT ADD @Transaction
     @Override
-    public void verifyEmailOtpAndLogin(String email, String emailOtp) {
+    public CredentialsResponse verifyEmailOtp(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (OtpUtils.isEmailOtpExpired(authentication)) {
             log.error("Otp Expired");
@@ -119,18 +122,29 @@ public class UserServiceImpl implements IUserService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
         }
 
-        User user = userRepository.findByAuthenticationId(authentication.getId());
         String encryptedEmailOtp = authentication.getEmailOtp();
         if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
             authentication.setEmailOtp(null);
             authentication.setEmailVerified(true);
             authenticationRepository.save(authentication);
-            //after successful otp verification log in
-            user.setLoggedIn(true);
-            userRepository.save(user);
             log.info("User Email Verified");
         } else
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_INVALID);
+
+        return new CredentialsResponse(authentication.getEmail(), authentication.getPassword());
+    }
+
+    @Override
+    @Transactional
+    public void updateUserLogin(String email, boolean isLogin){
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
+        if(LegitUtils.isUserLegit(user)) {
+            Date logTime = new Date(System.currentTimeMillis());
+            user.setLoggedIn(isLogin);
+            user.setLoggedAt(logTime);
+            userRepository.save(user);
+        }
     }
 
     @Override

@@ -35,8 +35,8 @@ import org.springframework.context.annotation.Configuration;
 public class ServicesConfiguration {
 
     @Bean
-    public ICustomerAutorizationService customerAutorizationService(DeviceRepository deviceRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, JwtDecoder jwtDecoder){
-        return new CustomerAuthorizationImpl(deviceRepository, userRepository, sessionRepository, purchaseRepository, sellerReceiptRepository, jwtDecoder);
+    public ICustomerAutorizationService customerAutorizationService(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder){
+        return new CustomerAuthorizationImpl(authenticationRepository, userRepository, sessionRepository, purchaseRepository, sellerReceiptRepository, deviceRepository, jwtDecoder);
     }
 
     @Bean
@@ -50,13 +50,13 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IEmailService emailService(){
-        return new EmailServiceImpl();
+    public IEmailService emailService(INotificationService notificationService){
+        return new EmailServiceImpl(notificationService);
     }
 
     @Bean
-    public INotificationService notificationService(IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService){
-        return new NotificationServiceImpl(deviceService, firebaseMessagingService);
+    public INotificationService notificationService(DeviceRepository deviceRepository, IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService){
+        return new NotificationServiceImpl(deviceRepository,deviceService, firebaseMessagingService);
     }
 
     @Bean
@@ -85,8 +85,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IBankAccountService sellerBankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository){
-        return new BankAccountServiceImpl(userRepository, bankAccountRepository);
+    public IBankAccountService sellerBankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService){
+        return new BankAccountServiceImpl(userRepository, bankAccountRepository, emailService);
     }
 
     @Bean
@@ -105,8 +105,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public ISessionService sessionService(UserRepository userRepository, SpeedTestRepository speedTestRepository, ISpeedTestService speedTestService, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService, PurchaseRepository purchaseRepository){
-        return new SessionServiceImpl(userRepository, speedTestRepository, speedTestService, sessionRepository, sellerPaymentRepository, feedbackService, purchaseRepository);
+    public ISessionService sessionService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, INotificationService notificationService){
+        return new SessionServiceImpl(userRepository, speedTestRepository, sessionRepository, sellerPaymentRepository, purchaseRepository, speedTestService, feedbackService, notificationService);
     }
 
     @Bean

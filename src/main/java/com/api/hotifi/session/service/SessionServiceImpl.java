@@ -2,9 +2,10 @@ package com.api.hotifi.session.service;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.processors.codes.CloudClientCodes;
+import com.api.hotifi.common.services.interfaces.INotificationService;
 import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
-import com.api.hotifi.identity.entities.Device;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
@@ -44,20 +45,22 @@ public class SessionServiceImpl implements ISessionService {
 
     private final UserRepository userRepository;
     private final SpeedTestRepository speedTestRepository;
-    private final ISpeedTestService speedTestService;
     private final SessionRepository sessionRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
-    private final IFeedbackService feedbackService;
     private final PurchaseRepository purchaseRepository;
+    private final ISpeedTestService speedTestService;
+    private final IFeedbackService feedbackService;
+    private final INotificationService notificationService;
 
-    public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, ISpeedTestService speedTestService, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService, PurchaseRepository purchaseRepository) {
+    public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, INotificationService notificationService) {
         this.userRepository = userRepository;
         this.speedTestRepository = speedTestRepository;
-        this.speedTestService = speedTestService;
         this.sessionRepository = sessionRepository;
         this.sellerPaymentRepository = sellerPaymentRepository;
-        this.feedbackService = feedbackService;
         this.purchaseRepository = purchaseRepository;
+        this.speedTestService = speedTestService;
+        this.feedbackService = feedbackService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -194,20 +197,18 @@ public class SessionServiceImpl implements ISessionService {
 
     @Override
     public void sendNotificationsToFinishSession(Long sessionId) {
-        //TODO send notification to all connected devices to finish wifi
         Set<String> usernames = getBuyers(sessionId, true)
                 .stream().map(Buyer::getUsername)
                 .collect(Collectors.toSet());
-        List<User> buyers = userRepository.findAllUsersByUsernames(usernames);
-        List<String> deviceTokens = new ArrayList<>();
-        buyers.forEach(buyer -> {
-            Set<Device> devices = buyer.getUserDevices();
-            devices.forEach(device -> deviceTokens.add(device.getToken()));
-        });
-
-        log.info("Tokens" + deviceTokens);
-        //TODO fetch device tokens
-
+        Session session = sessionRepository.findById(sessionId).orElse(null);
+        User seller = session != null ? session.getSpeedTest().getUser() : null;
+        String sellerPhotoUrl = seller != null ? seller.getPhotoUrl() : null;
+        String sellerUsername = seller != null ? seller.getUsername() : null;
+        List<Long> buyers = userRepository.findAllUsersByUsernames(usernames)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+        notificationService.sendCommonPhotoNotifications(buyers, " will stop wifi service", "Please finish your work in 5 minutes", sellerUsername, sellerPhotoUrl, CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
     }
 
     @Transactional
@@ -226,6 +227,8 @@ public class SessionServiceImpl implements ISessionService {
         if (LegitUtils.isBuyerLegit(buyer)) {
             session.setFinishedAt(new Date(System.currentTimeMillis()));
             sessionRepository.save(session);
+            User seller = session.getSpeedTest().getUser();
+            notificationService.sendNotification(seller.getId(), "Hotspot Stopped", "Wifi Hotspot Stopped", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } else {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         }

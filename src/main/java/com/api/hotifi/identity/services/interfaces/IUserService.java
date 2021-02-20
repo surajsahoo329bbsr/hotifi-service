@@ -2,6 +2,7 @@ package com.api.hotifi.identity.services.interfaces;
 
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.web.request.UserRequest;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 
 public interface IUserService {
 
@@ -15,9 +16,11 @@ public interface IUserService {
 
     void resendEmailOtpLogin(String email);
 
-    void verifyEmailOtpAndLogin(String email, String emailOtp);
+    CredentialsResponse verifyEmailOtp(String email, String emailOtp);
 
     void updateUser(UserRequest userRequest);
+
+    void updateUserLogin(String email, boolean isLogin);
 
     void updateLoginStatus(Long id, boolean loginStatus);
 

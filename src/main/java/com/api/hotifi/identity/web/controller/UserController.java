@@ -10,6 +10,7 @@ import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.web.request.UserRequest;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 import com.api.hotifi.identity.web.response.UsernameAvailabilityResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
@@ -147,7 +148,37 @@ public class UserController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") String emailOtp) {
-        userService.verifyEmailOtpAndLogin(email, emailOtp);
+        CredentialsResponse credentialsResponse = userService.verifyEmailOtp(email, emailOtp);
+        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/login/{email}")
+    @ApiOperation(
+            value = "Update user login by email",
+            notes = "Update user login by email",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
+        if(customerAutorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
+            userService.updateUserLogin(email, true);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/logout/{email}")
+    @ApiOperation(
+            value = "Update user logout by email",
+            notes = "Update user logout by email",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> updateUserLogout(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
+        if(customerAutorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
+            userService.updateUserLogin(email, false);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -161,7 +192,8 @@ public class UserController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest) {
-        userService.updateUser(userRequest);
+        if ((AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByAuthenticationId(userRequest.getAuthenticationId(), AuthorizationUtils.getUserToken())))
+            userService.updateUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
