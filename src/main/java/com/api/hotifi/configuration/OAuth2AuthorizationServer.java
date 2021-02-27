@@ -33,8 +33,8 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient("client")
-                .secret(passwordEncoder().encode("secret"))
+                .withClient(Constants.HOTIFI_OAUTH2_CLIENT_ID)
+                .secret(passwordEncoder().encode(Constants.HOTIFI_OAUTH2_CLIENT_SECRET))
                 .authorizedGrantTypes("password", "authorization_code", "refresh_token").scopes("read", "write")
                 .autoApprove(true);
     }

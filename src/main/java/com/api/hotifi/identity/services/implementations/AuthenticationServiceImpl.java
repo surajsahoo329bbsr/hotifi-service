@@ -1,9 +1,11 @@
 package com.api.hotifi.identity.services.implementations;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.SocialCodes;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.ISocialService;
+import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.Role;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
@@ -77,9 +79,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Authentication authentication = new Authentication();
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
             String uuid = UUID.randomUUID().toString();
+            String encryptedPassword = AESUtils.encrypt(uuid, Constants.AES_PASSWORD_SECRET_KEY);
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
-            authentication.setPassword(uuid);
+            authentication.setPassword(encryptedPassword);
             authentication.setRoles(Collections.singletonList(role));
             if (!isEmailVerified) //If email not verified, send email otps to verify as usual process
                 OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
@@ -87,7 +90,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
                 authenticationRepository.save(authentication);
-                return new CredentialsResponse(authentication.getEmail(), authentication.getPassword());
+                String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
+                return new CredentialsResponse(authentication.getEmail(), decryptedPassword);
             }
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
@@ -164,8 +168,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Authentication authentication = authenticationRepository.findByEmail(email);
-        if (email == null) throw new UsernameNotFoundException("Email not found");
-        List<GrantedAuthority> authorities = authentication.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
-        return new User(authentication.getEmail(), authentication.getPassword(), authorities);
+        if (email == null)
+            throw new UsernameNotFoundException("Email not found");
+        List<GrantedAuthority> authorities = authentication.getRoles()
+                .stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .collect(Collectors.toList());
+        String decryptedPassword = authentication.getPassword();
+        return new User(authentication.getEmail(), decryptedPassword, authorities);
     }
 }

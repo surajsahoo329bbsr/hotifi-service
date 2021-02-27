@@ -6,6 +6,7 @@ import com.api.hotifi.common.exception.errors.ErrorCodes;
 import java.util.Collections;
 
 public class SellerBankAccountErrorCodes extends ErrorCodes {
+    //Internal Error Codes
     public static final ErrorCode UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR = new ErrorCode("00", Collections.singletonList(getMessage("UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR", SellerBankAccountErrorMessages.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR)), 500);
     public static final ErrorCode ERROR_DESCRIPTION_ON_CREATION_BY_SELLER = new ErrorCode("01", Collections.singletonList(getMessage("ERROR_DESCRIPTION_ON_CREATION_BY_SELLER", SellerBankAccountErrorMessages.ERROR_DESCRIPTION_ON_CREATION_BY_SELLER)), 500);
     public static final ErrorCode ERROR_DESCRIPTION_ON_LINKED_ACCOUNT_NOT_FOUND = new ErrorCode("02", Collections.singletonList(getMessage("ERROR_DESCRIPTION_ON_LINKED_ACCOUNT_NOT_FOUND", SellerBankAccountErrorMessages.ERROR_DESCRIPTION_ON_LINKED_ACCOUNT_NOT_FOUND)), 500);

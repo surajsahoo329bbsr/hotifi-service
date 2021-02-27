@@ -6,6 +6,7 @@ import com.api.hotifi.common.exception.errors.ErrorCodes;
 import java.util.Collections;
 
 public class PurchaseErrorCodes extends ErrorCodes {
+    //Internal Error Codes
     public static final ErrorCode UNEXPECTED_PURCHASE_ERROR = new ErrorCode("00", Collections.singletonList(getMessage("UNEXPECTED_PURCHASE_ERROR", PurchaseErrorMessages.UNEXPECTED_PURCHASE_ERROR)), 500);
     public static final ErrorCode BUYER_NOT_LEGIT = new ErrorCode("01", Collections.singletonList(getMessage("BUYER_NOT_LEGIT", PurchaseErrorMessages.BUYER_NOT_LEGIT)), 500);
     public static final ErrorCode SESSION_NOT_FOUND = new ErrorCode("02", Collections.singletonList(getMessage("SESSION_NOT_FOUND", PurchaseErrorMessages.SESSION_NOT_FOUND)), 500);
@@ -20,7 +21,7 @@ public class PurchaseErrorCodes extends ErrorCodes {
     public static final ErrorCode BUYER_WIFI_SERVICE_NOT_STARTED = new ErrorCode("11", Collections.singletonList(getMessage("BUYER_WIFI_SERVICE_NOT_STARTED", PurchaseErrorMessages.BUYER_WIFI_SERVICE_NOT_STARTED)), 500);
     public static final ErrorCode DATA_USED_EXCEEDS_DATA_BOUGHT = new ErrorCode("12", Collections.singletonList(getMessage("DATA_USED_EXCEEDS_DATA_BOUGHT", PurchaseErrorMessages.DATA_USED_EXCEEDS_DATA_BOUGHT)), 500);
     public static final ErrorCode DATA_TO_UPDATE_DECEEDS_DATA_USED = new ErrorCode("13", Collections.singletonList(getMessage("DATA_TO_UPDATE_DECEEDS_DATA_USED", PurchaseErrorMessages.DATA_TO_UPDATE_DECEEDS_DATA_USED)), 500);
-    public static final ErrorCode PAYMENT_NOT_SUCCESSFUL = new ErrorCode("15", Collections.singletonList(getMessage("PAYMENT_NOT_SUCCESSFUL", PurchaseErrorMessages.PAYMENT_NOT_SUCCESSFUL)), 500);
-    public static final ErrorCode BUYER_PENDING_REFUNDS_NOT_FOUND = new ErrorCode("16", Collections.singletonList(getMessage("BUYER_PENDING_REFUNDS_NOT_FOUND", PurchaseErrorMessages.BUYER_PENDING_REFUNDS_NOT_FOUND)), 500);
-    public static final ErrorCode UPDATE_WIFI_SERVICE_BEFORE_FINISHING = new ErrorCode("17", Collections.singletonList(getMessage("UPDATE_WIFI_SERVICE_BEFORE_FINISHING", PurchaseErrorMessages.UPDATE_WIFI_SERVICE_BEFORE_FINISHING)), 500);
+    public static final ErrorCode PAYMENT_NOT_SUCCESSFUL = new ErrorCode("14", Collections.singletonList(getMessage("PAYMENT_NOT_SUCCESSFUL", PurchaseErrorMessages.PAYMENT_NOT_SUCCESSFUL)), 500);
+    public static final ErrorCode BUYER_PENDING_REFUNDS_NOT_FOUND = new ErrorCode("15", Collections.singletonList(getMessage("BUYER_PENDING_REFUNDS_NOT_FOUND", PurchaseErrorMessages.BUYER_PENDING_REFUNDS_NOT_FOUND)), 500);
+    public static final ErrorCode UPDATE_WIFI_SERVICE_BEFORE_FINISHING = new ErrorCode("16", Collections.singletonList(getMessage("UPDATE_WIFI_SERVICE_BEFORE_FINISHING", PurchaseErrorMessages.UPDATE_WIFI_SERVICE_BEFORE_FINISHING)), 500);
 }

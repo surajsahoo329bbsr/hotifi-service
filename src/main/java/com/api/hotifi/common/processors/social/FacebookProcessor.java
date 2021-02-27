@@ -14,7 +14,7 @@ public class FacebookProcessor {
     public boolean verifyEmail(String identifier, String userToken){
         RestTemplate restTemplate = new RestTemplate();
         String appUrl = Constants.FACEBOOK_GRAPH_API_URL + "/debug_token?input_token=" + userToken
-                + "&access_token=" + Constants.FACEBOOK_CLIENT_ID + "|" +Constants.FACEBOOK_CLIENT_KEY;
+                + "&access_token=" + Constants.FACEBOOK_APP_ID + "|" +Constants.FACEBOOK_APP_SECRET;
         try {
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(appUrl, String.class);
             ObjectMapper mapper = new ObjectMapper();

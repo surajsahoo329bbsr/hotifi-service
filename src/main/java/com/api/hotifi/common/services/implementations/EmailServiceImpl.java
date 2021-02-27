@@ -15,13 +15,13 @@ import org.simplejavamail.api.mailer.Mailer;
 import org.simplejavamail.api.mailer.config.TransportStrategy;
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.mailer.MailerBuilder;
+import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 
 @Slf4j
 public class EmailServiceImpl implements IEmailService {
 
-    //TODO service configuration
     private final INotificationService notificationService;
 
     public EmailServiceImpl(INotificationService notificationService) {
@@ -31,7 +31,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendWelcomeEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Welcome To Hotifi";
-            File file = new File(Constants.EMAIL_WELCOME_HTML_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_WELCOME_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername() + ",");
             sendEmail(document, emailModel, subject);
@@ -45,7 +45,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountDeletedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been deleted";
-            File file = new File(Constants.EMAIL_ACCOUNT_DELETED_HTML_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_ACCOUNT_DELETED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);
@@ -59,7 +59,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountFreezedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been freezed for " + Constants.MINIMUM_FREEZE_PERIOD_HOURS + " hours";
-            File file = new File(Constants.EMAIL_ACCOUNT_FREEZED_HTML_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_ACCOUNT_FREEZED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);
@@ -73,7 +73,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendBuyerBannedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your buying account has been banned";
-            File file = new File(Constants.EMAIL_BUYER_BANNED_HTML_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_BUYER_BANNED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);
@@ -87,7 +87,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendEmailOtpEmail(EmailModel emailModel) {
         try {
             String subject = "Email Otp Verification";
-            File file = new File(Constants.EMAIL_OTP_HTML_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_OTP_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi,");
             document.getElementById("email_otp").appendText("Your email otp is " + emailModel.getEmailOtp());
@@ -101,7 +101,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountFailed(User user, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment failed";
-            File file = new File(Constants.EMAIL_LINKED_ACCOUNT_FAILED_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACCOUNT_FAILED_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);
@@ -115,7 +115,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment is successful";
-            File file = new File(Constants.EMAIL_LINKED_ACOOUNT_SUCCESS_PATH);
+            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACOOUNT_SUCCESS_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);

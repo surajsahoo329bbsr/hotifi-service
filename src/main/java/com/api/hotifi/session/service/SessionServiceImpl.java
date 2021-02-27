@@ -93,7 +93,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
 
             //Everything is fine, so encrypt the password
-            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.WIFI_PASSWORD_SECRET_KEY);
+            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.AES_PASSWORD_SECRET_KEY);
             Session session = new Session();
             session.setSpeedTest(speedTest);
             session.setData(sessionRequest.getData());

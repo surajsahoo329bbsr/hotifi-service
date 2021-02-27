@@ -2,45 +2,51 @@ package com.api.hotifi.common.constant;
 
 public class Constants {
 
-    //TODO add hotifi upi and commission
+    //Hotifi Configuration
     public static final String APP_VERSION = "v1";
     public static final String APP_NAME = "Hotifi";
-    public static final String APP_PACKAGE_NAME = "com.api.hotifi";
+    //public static final String APP_PACKAGE_NAME = "com.api.hotifi";
     public static final String HOTIFI_BANK_ACCOUNT = "hotifi_bank";
     public static final int COMMISSION_PERCENTAGE = 20;
     public static final String SIGNING_KEY = "hotifi-api-connect";
+    //TODO encrpt secrets
+    public static final String HOTIFI_OAUTH2_CLIENT_ID = "H@x%ifi#12BefGh32";
+    public static final String HOTIFI_OAUTH2_CLIENT_SECRET = "@Wo#ifi#45feBah0b";
 
     //Razorpay Configuration
     public static final String RAZORPAY_CLIENT_ID = "";
     public static final String RAZORPAY_CLIENT_KEY = "";
 
-    //Google Configuration
-    public static final String GOOGLE_CLIENT_ID = "";
+    //TODO Google Configuration
+    //TODO encrpt secrets
+    public static final String GOOGLE_OAUTH2_SECRET = "";
+    public static final String GOOGLE_FIREBASE_PROJECT_NAME = "hotifi-app";
+    public static final String GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH = "hotifi_app_firebase_service_account.json";
 
-    //TODO Google Configuration As JSON from Firebase
     //Facebook Configuration
-    public static final String FACEBOOK_CLIENT_ID = "";
-    public static final String FACEBOOK_CLIENT_KEY = "";
+    //TODO encrpt secrets
+    public static final String FACEBOOK_APP_ID = "194688711814079";
+    public static final String FACEBOOK_APP_SECRET = "691045cba5118ebd9dec29a7c85510de";
     public static final String FACEBOOK_GRAPH_API_URL = "https://graph.facebook.com";
 
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
 
-    //TODO email hosts, ports and password
-    public static final String EMAIL_HOST = "";
-    public static final int EMAIL_PORT = 8080;
-    public static final String FROM_EMAIL = "";
+    //TODO email password
+    public static final String EMAIL_HOST = "smtp.gmail.com";
+    public static final int EMAIL_PORT = 587;
+    public static final String FROM_EMAIL = "hotifi.app@gmail.com";
     public static final String FROM_EMAIL_PASSWORD = "";
-    public static final String EMAIL_OTP_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\email_otp.html";
-    public static final String EMAIL_WELCOME_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\welcome.html";
-    public static final String EMAIL_ACCOUNT_DELETED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\account_deleted.html";
-    public static final String EMAIL_ACCOUNT_FREEZED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\account_freezed.html";
-    public static final String EMAIL_BUYER_BANNED_HTML_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\buyer_banned.html";
-    public static final String EMAIL_LINKED_ACCOUNT_FAILED_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\linked_account_failed.html";
-    public static final String EMAIL_LINKED_ACOOUNT_SUCCESS_PATH = "C:\\Users\\Suraj\\SpringProjects\\hotifi\\src\\main\\java\\com\\api\\hotifi\\htmls\\linked_account_success.html";
+    public static final String EMAIL_OTP_HTML_PATH = "static/email_otp.html";
+    public static final String EMAIL_WELCOME_HTML_PATH = "static/welcome.html";
+    public static final String EMAIL_ACCOUNT_DELETED_HTML_PATH = "static/account_deleted.html";
+    public static final String EMAIL_ACCOUNT_FREEZED_HTML_PATH = "static/account_freezed.html";
+    public static final String EMAIL_BUYER_BANNED_HTML_PATH = "static/buyer_banned.html";
+    public static final String EMAIL_LINKED_ACCOUNT_FAILED_PATH = "static/linked_account_failed.html";
+    public static final String EMAIL_LINKED_ACOOUNT_SUCCESS_PATH = "static/linked_account_success.html";
 
     //Wifi password
-    public static final String WIFI_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
+    public static final String AES_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
     public static final String WIFI_PASSWORD_PATTERN = "(?=^.{20}$)(?=(.*\\d){4,6})(?=(.*[A-Z]){4,6})(?=(.*[a-z]){4,6})(?=(.*[!@#$%^&*?]){6})(?!.*[\\s])^.*";
     public static final String WIFI_PASSWORD_ENCRYPTION_ALGORITHM = "AES";
 

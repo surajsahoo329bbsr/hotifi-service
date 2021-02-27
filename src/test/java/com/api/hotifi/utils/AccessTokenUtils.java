@@ -1,5 +1,6 @@
 package com.api.hotifi.utils;
 
+import com.api.hotifi.common.constant.Constants;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -16,14 +17,14 @@ public class AccessTokenUtils {
     public static String getAccessToken(String username, String password, MockMvc mockMvc) throws Exception {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "password");
-        params.add("client_id", "client");
+        params.add("client_id", Constants.HOTIFI_OAUTH2_CLIENT_ID);
         params.add("username", username);
         params.add("password", password);
 
         ResultActions result
                 = mockMvc.perform(post("/oauth/token")
                 .params(params)
-                .with(httpBasic("client", "secret"))
+                .with(httpBasic(Constants.HOTIFI_OAUTH2_CLIENT_ID, Constants.HOTIFI_OAUTH2_CLIENT_SECRET))
                 .accept("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"));

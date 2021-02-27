@@ -3,6 +3,7 @@ package com.api.hotifi.identity.services.implementations;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
+import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
@@ -131,7 +132,8 @@ public class UserServiceImpl implements IUserService {
         } else
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_INVALID);
 
-        return new CredentialsResponse(authentication.getEmail(), authentication.getPassword());
+        String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
+        return new CredentialsResponse(authentication.getEmail(), decryptedPassword);
     }
 
     @Override

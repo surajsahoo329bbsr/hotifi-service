@@ -179,7 +179,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setPurchaseStatus(purchase.getStatus());
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
             receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
-            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, Constants.WIFI_PASSWORD_SECRET_KEY));
+            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, Constants.AES_PASSWORD_SECRET_KEY));
             if (purchase.getRefundPaymentId() != null) {
                 receiptResponse.setRefundDoneAt(purchase.getRefundDoneAt());
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());

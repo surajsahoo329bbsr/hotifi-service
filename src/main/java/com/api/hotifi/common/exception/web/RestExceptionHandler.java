@@ -34,7 +34,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @NonNull
     @Override
     public ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException e, @NonNull HttpHeaders headers, @NonNull HttpStatus status, @NonNull WebRequest request) {
-        //TODO add JSON malformed error code
         return new ResponseEntity<>(ErrorCodes.INVALID_PAYLOAD, INTERNAL_SERVER_ERROR);
     }
 
