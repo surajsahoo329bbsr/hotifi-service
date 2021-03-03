@@ -5,7 +5,7 @@ import com.api.hotifi.common.exception.errors.ErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HotifiException extends RuntimeException{
+public class HotifiException extends RuntimeException {
 
     private final ErrorCode errorCode;
 

@@ -16,6 +16,8 @@ public class Buyer {
 
     public String macAddress;
 
+    public String ipAddress;
+
     public double dataUsed;
 
     public double dataBought;

@@ -38,6 +38,11 @@ public class PaymentUtils {
         return hoursDifference >= Constants.MAXIMUM_BUYER_REFUND_DUE_HOURS;
     }
 
+    public static BigDecimal getInrFromPaise(int paise){
+        return BigDecimal.valueOf(paise/Constants.UNIT_INR_IN_PAISE)
+                .setScale(2, RoundingMode.CEILING);
+    }
+
     public static BigDecimal divideThenMultiplyCeilingTwoScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
         return
                 numerator

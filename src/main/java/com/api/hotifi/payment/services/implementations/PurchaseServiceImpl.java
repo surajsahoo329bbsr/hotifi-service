@@ -110,8 +110,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             BigDecimal amountPaid = session != null ?
                     session.getPrice()
                             .divide(BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
-                                    .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
-                                    .setScale(0, RoundingMode.CEILING): BigDecimal.ZERO;
+                            .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
+                            .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
             Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -120,34 +120,27 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setPaymentId(getBuyerPurchase.getPaymentId());
             purchase.setStatus(getBuyerPurchase.getStatus());
             purchase.setMacAddress(purchaseRequest.getMacAddress());
+            purchase.setIpAddress(purchase.getIpAddress());
             purchase.setData(purchaseRequest.getData());
             purchase.setAmountPaid(amountPaid);
             purchase.setAmountRefund(amountPaid);
 
             //If payment failed or processing do not update session value
-            boolean updateSessionFlag = getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE > BuyerPaymentCodes.PAYMENT_PROCESSING.value();
-            //If seller has ended it's session while purchasing, inititate refund if payment is successful
-            if (session != null && session.getFinishedAt() != null && buyer != null) {
-                if (getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId(), buyer.getAuthentication().getEmail());
-                    purchase.setStatus(receiptResponse.getPurchase().getStatus());
-                    purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
-                    purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
-                    updateSessionFlag = false;
-                    log.info("Razor Refund Payment");
-                }
-            } else if (session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0) {
-                if (getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId(), buyer.getAuthentication().getEmail());
-                    purchase.setStatus(receiptResponse.getPurchase().getStatus());
-                    purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
-                    purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
-                    updateSessionFlag = false;
-                    log.info("Razor Refund Payment");
-                }
+            boolean isSessionCompleted = session != null && session.getFinishedAt() != null && buyer != null;
+            boolean isBothMacAndIpAddressAbsent = purchaseRequest.getMacAddress() == null && purchaseRequest.getIpAddress() == null && session != null && buyer != null;
+            boolean isDataBoughtMoreThanDataSold = session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0;
+            boolean isPurchaseAlreadySuccessful = getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value();
+
+            if ((isSessionCompleted || isBothMacAndIpAddressAbsent || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
+                RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId(), buyer.getAuthentication().getEmail());
+                purchase.setStatus(receiptResponse.getPurchase().getStatus());
+                purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
+                purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
+                log.info("Razor Refund Payment");
             }
 
             Long purchaseId = purchaseRepository.save(purchase).getId();
+            boolean updateSessionFlag = (!isSessionCompleted && !isBothMacAndIpAddressAbsent && !isDataBoughtMoreThanDataSold) || !isPurchaseAlreadySuccessful;
 
             //saving session data used column
             if (session != null && updateSessionFlag) {
@@ -198,7 +191,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase == null)
             throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
-        if(purchase.getRefundStartedAt() != null)
+        if (purchase.getRefundStartedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
         if (purchase.getSessionCreatedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);

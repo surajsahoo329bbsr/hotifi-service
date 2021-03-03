@@ -23,9 +23,11 @@ public class PurchaseRequest {
     @Range(min = 1, message = "{status.id.invalid}")
     private Long buyerId;
 
-    @NotBlank(message = "{mac.address.blank}")
-    @Length(max = 255, message = "{mac.address.invalid}")
+    @Length(max = 20, message = "{mac.address.invalid}")
     private String macAddress;
+
+    @Length(max = 45, message = "{mac.address.invalid}")
+    private String ipAddress;
 
     @PaymentMethod
     private String paymentMethod;

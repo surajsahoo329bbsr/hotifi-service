@@ -38,8 +38,11 @@ public class Purchase implements Serializable {
     @JoinColumn(name = "buyer_id", nullable = false)
     private User user;
 
-    @Column(length = 20, nullable = false)
+    @Column(length = 20)
     private String macAddress;
+
+    @Column(length = 45)
+    private String ipAddress;
 
     @Column(columnDefinition = "INT", nullable = false)
     private int data;

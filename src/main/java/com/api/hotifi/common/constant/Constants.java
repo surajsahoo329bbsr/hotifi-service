@@ -9,30 +9,25 @@ public class Constants {
     public static final String HOTIFI_BANK_ACCOUNT = "hotifi_bank";
     public static final int COMMISSION_PERCENTAGE = 20;
     public static final String SIGNING_KEY = "hotifi-api-connect";
-    //TODO encrpt secrets
-    public static final String HOTIFI_OAUTH2_CLIENT_ID = "H@x%ifi#12BefGh32";
-    public static final String HOTIFI_OAUTH2_CLIENT_SECRET = "@Wo#ifi#45feBah0b";
+    public static final String HOTIFI_OAUTH2_CLIENT_ID = "hotifi-android-user";
+    public static final String HOTIFI_OAUTH2_CLIENT_SECRET = "W@#ifi#45feBah0b";
 
     //Razorpay Configuration
     public static final String RAZORPAY_CLIENT_ID = "";
-    public static final String RAZORPAY_CLIENT_KEY = "";
+    public static final String RAZORPAY_CLIENT_SECRET = "";
 
-    //TODO Google Configuration
-    //TODO encrpt secrets
-    public static final String GOOGLE_OAUTH2_SECRET = "";
     public static final String GOOGLE_FIREBASE_PROJECT_NAME = "hotifi-app";
     public static final String GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH = "hotifi_app_firebase_service_account.json";
 
     //Facebook Configuration
-    //TODO encrpt secrets
     public static final String FACEBOOK_APP_ID = "194688711814079";
     public static final String FACEBOOK_APP_SECRET = "691045cba5118ebd9dec29a7c85510de";
     public static final String FACEBOOK_GRAPH_API_URL = "https://graph.facebook.com";
 
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
+    public static final int UNIT_INR_IN_PAISE = 100;
 
-    //TODO email password
     public static final String EMAIL_HOST = "smtp.gmail.com";
     public static final int EMAIL_PORT = 587;
     public static final String FROM_EMAIL = "hotifi.app@gmail.com";
@@ -104,6 +99,7 @@ public class Constants {
     public static final int PAYMENT_METHOD_START_VALUE_CODE = 100;
     public static final int CLOUD_CLIENT_START_VALUE_CODE = 100;
     public static final int SOCIAL_START_VALUE_CODE = 100;
+    public static final int RAZORPAY_STATUS_START_VALUE_CODE = 1;
     public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
     public static final int ACCOUNT_TYPE_START_VALUE_CODE = 1;
     public static final int BANK_ACCOUNT_TYPE_START_VALUE_CODE = 1;

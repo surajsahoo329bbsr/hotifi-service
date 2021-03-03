@@ -8,11 +8,10 @@ import java.util.stream.IntStream;
 
 public enum PaymentMethodCodes {
 
-    UPI_PAYMENT,
-    NETBANKING_PAYMENT,
-    CARD_PAYMENT,
-    WALLET_PAYMENT,
-    PAY_LATER_PAYMENT;
+    UPI,
+    NETBANKING,
+    CREDIT,
+    DEBIT;
 
     private static final Map<Integer, PaymentMethodCodes> paymentMethodUpi = new TreeMap<>();
 

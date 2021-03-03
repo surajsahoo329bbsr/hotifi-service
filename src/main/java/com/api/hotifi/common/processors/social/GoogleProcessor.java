@@ -18,7 +18,6 @@ public class GoogleProcessor {
         NetHttpTransport netHttpTransport = new NetHttpTransport();
         JacksonFactory jacksonFactory = new JacksonFactory();
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(netHttpTransport, jacksonFactory)
-                .setAudience(Collections.singletonList(Constants.GOOGLE_OAUTH2_SECRET))
                 .build();
 
         try {
@@ -41,7 +40,6 @@ public class GoogleProcessor {
         NetHttpTransport netHttpTransport = new NetHttpTransport();
         JacksonFactory jacksonFactory = new JacksonFactory();
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(netHttpTransport, jacksonFactory)
-                .setAudience(Collections.singletonList(Constants.GOOGLE_OAUTH2_SECRET))
                 .build();
 
         try {

@@ -181,6 +181,7 @@ public class SessionServiceImpl implements ISessionService {
                 buyer.setUsername(purchase.getUser().getUsername());
                 buyer.setPhotoUrl(purchase.getUser().getPhotoUrl());
                 buyer.setMacAddress(purchase.getMacAddress());
+                buyer.setIpAddress(purchase.getIpAddress());
                 buyer.setSessionCreatedAt(purchase.getSessionCreatedAt());
                 buyer.setSessionModifiedAt(purchase.getSessionModifiedAt());
                 buyer.setSessionFinishedAt(purchase.getSessionFinishedAt());

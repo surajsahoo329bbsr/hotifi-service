@@ -19,6 +19,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 
+//TODO replace html tag elements with otps, names in email templates
 @Slf4j
 public class EmailServiceImpl implements IEmailService {
 
