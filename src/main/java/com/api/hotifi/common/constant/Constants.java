@@ -38,7 +38,7 @@ public class Constants {
     public static final String EMAIL_ACCOUNT_FREEZED_HTML_PATH = "static/account_freezed.html";
     public static final String EMAIL_BUYER_BANNED_HTML_PATH = "static/buyer_banned.html";
     public static final String EMAIL_LINKED_ACCOUNT_FAILED_PATH = "static/linked_account_failed.html";
-    public static final String EMAIL_LINKED_ACOOUNT_SUCCESS_PATH = "static/linked_account_success.html";
+    public static final String EMAIL_LINKED_ACCOUNT_SUCCESS_PATH = "static/linked_account_success.html";
 
     //Wifi password
     public static final String AES_PASSWORD_SECRET_KEY = "23afDeg@34$SWk10"; //128 Bit Key
@@ -99,7 +99,9 @@ public class Constants {
     public static final int PAYMENT_METHOD_START_VALUE_CODE = 100;
     public static final int CLOUD_CLIENT_START_VALUE_CODE = 100;
     public static final int SOCIAL_START_VALUE_CODE = 100;
-    public static final int RAZORPAY_STATUS_START_VALUE_CODE = 1;
+    public static final int RAZORPAY_PAYMENT_STATUS_START_VALUE_CODE = 0;
+    public static final int RAZORPAY_REFUND_STATUS_START_VALUE_CODE = 0;
+    public static final int RAZORPAY_TRANSFER_STATUS_START_VALUE_CODE = 1;
     public static final int PAYMENT_GATEWAY_START_VALUE_CODE = 1;
     public static final int ACCOUNT_TYPE_START_VALUE_CODE = 1;
     public static final int BANK_ACCOUNT_TYPE_START_VALUE_CODE = 1;

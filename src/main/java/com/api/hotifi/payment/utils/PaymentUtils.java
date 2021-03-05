@@ -21,7 +21,7 @@ public class PaymentUtils {
                 .filter(p -> p.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.FINISH_WIFI_SERVICE.value())
                 .mapToDouble(Purchase::getDataUsed).sum();
         double activeDataSum = dataStreamSupplier.get()
-                .filter(p -> p.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() && p.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.FINISH_WIFI_SERVICE.value())
+                .filter(p -> p.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value() && p.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.FINISH_WIFI_SERVICE.value())
                 .mapToDouble(Purchase::getData).sum();
         return (int) Math.ceil(activeDataSum + finishedDataSum);
     }
@@ -41,6 +41,10 @@ public class PaymentUtils {
     public static BigDecimal getInrFromPaise(int paise){
         return BigDecimal.valueOf(paise/Constants.UNIT_INR_IN_PAISE)
                 .setScale(2, RoundingMode.CEILING);
+    }
+
+    public static int getPaiseFromInr(BigDecimal ruppee){
+        return ruppee.multiply(BigDecimal.valueOf(100)).intValue();
     }
 
     public static BigDecimal divideThenMultiplyCeilingTwoScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {

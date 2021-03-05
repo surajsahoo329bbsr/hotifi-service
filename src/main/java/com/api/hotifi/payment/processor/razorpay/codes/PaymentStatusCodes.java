@@ -1,4 +1,4 @@
-package com.api.hotifi.payment.processor.codes;
+package com.api.hotifi.payment.processor.razorpay.codes;
 
 import com.api.hotifi.common.constant.Constants;
 
@@ -25,17 +25,17 @@ import java.util.stream.IntStream;
     Failed#
     Any unsuccessful transaction is marked as failed and the customer will have to retry the payment.
     */
-public enum RazorpayStatusCodes {
+public enum PaymentStatusCodes {
 
     CREATED,
+    FAILED,
     AUTHORIZED,
     CAPTURED,
-    REFUNDED,
-    FAILED;
+    REFUNDED;
 
-    private static final Map<Integer, RazorpayStatusCodes> razorpayStatusCodes = new TreeMap<>();
+    private static final Map<Integer, PaymentStatusCodes> razorpayStatusCodes = new TreeMap<>();
 
-    private static final int START_VALUE = Constants.RAZORPAY_STATUS_START_VALUE_CODE;
+    private static final int START_VALUE = Constants.RAZORPAY_PAYMENT_STATUS_START_VALUE_CODE;
 
     static {
         IntStream.range(0, values().length).forEach(i -> {
@@ -46,7 +46,7 @@ public enum RazorpayStatusCodes {
 
     private int value;
 
-    public static RazorpayStatusCodes fromInt(int i) {
+    public static PaymentStatusCodes fromInt(int i) {
         return razorpayStatusCodes.get(i);
     }
 

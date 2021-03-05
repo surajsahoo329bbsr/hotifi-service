@@ -60,7 +60,7 @@ public class StatsServiceImpl implements IStatsService {
                 Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
                 BigDecimal totalPendingRefunds =
                         purchaseStreamSupplier.get()
-                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
+                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value())
                                 .map(Purchase::getAmountRefund)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

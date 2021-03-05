@@ -1,6 +1,8 @@
 package com.api.hotifi.payment.processor.razorpay;
 
 import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.payment.error.RazorpayErrorCodes;
 import com.razorpay.*;
 import org.json.JSONObject;
 
@@ -11,8 +13,12 @@ public class RazorpayProcessor {
 
     RazorpayClient razorpayClient;
 
-    public RazorpayProcessor() throws RazorpayException {
-        razorpayClient = new RazorpayClient(Constants.RAZORPAY_CLIENT_ID, Constants.RAZORPAY_CLIENT_SECRET);
+    public RazorpayProcessor() {
+        try {
+            razorpayClient = new RazorpayClient(Constants.RAZORPAY_CLIENT_ID, Constants.RAZORPAY_CLIENT_SECRET);
+        } catch (RazorpayException e) {
+            throw new HotifiException(RazorpayErrorCodes.INVALID_CLIENT_CREDENTIALS);
+        }
     }
 
     //Below methods have json response body above them in comments
@@ -55,14 +61,14 @@ public class RazorpayProcessor {
      * "created_at": 1606985209
      * }
      */
-    public Payment capturePaymentById(String paymentId, String amountInPaise, String currency) throws RazorpayException {
+    public void capturePaymentById(String paymentId, int amountInPaise, String currency) {
         try {
             JSONObject captureRequest = new JSONObject();
             captureRequest.put("amount", amountInPaise);
             captureRequest.put("currency", currency);
-            return razorpayClient.Payments.capture(paymentId, captureRequest);
+            razorpayClient.Payments.capture(paymentId, captureRequest);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.CAPTURE_PAYMENT_FAILED);
         }
     }
 
@@ -102,11 +108,11 @@ public class RazorpayProcessor {
      * "created_at": 1606985209
      * }
      */
-    public Payment getPaymentById(String paymentId) throws RazorpayException {
+    public Payment getPaymentById(String paymentId) {
         try {
             return razorpayClient.Payments.fetch(paymentId);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.PAYMENT_NOT_FOUND);
         }
     }
 
@@ -174,12 +180,12 @@ public class RazorpayProcessor {
      * ]
      * }
      */
-    public List<Payment> getPaymentsByLinkedAccountId(String linkedAccountId) throws RazorpayException {
+    public List<Payment> getPaymentsByLinkedAccount(String linkedAccountId) {
         try {
             razorpayClient.addHeaders(Map.of("X-Razorpay-Account", linkedAccountId));
             return razorpayClient.Payments.fetchAll();
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.PAYMENTS_OF_LINKED_ACCOUNT_NOT_FOUND);
         }
     }
 
@@ -202,11 +208,11 @@ public class RazorpayProcessor {
      * "speed_requested": "normal"
      * }
      */
-    public Refund startNormalFullRefund(String paymentId) throws RazorpayException {
+    public Refund startNormalFullRefund(String paymentId) {
         try {
             return razorpayClient.Payments.refund(paymentId);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.NORMAL_FULL_REFUND_FAILED);
         }
     }
 
@@ -229,13 +235,13 @@ public class RazorpayProcessor {
      * "speed_requested": "normal"
      * }
      */
-    public Refund startNormalPartialRefund(String paymentId, int amountInPaise) throws RazorpayException {
+    public Refund startNormalPartialRefund(String paymentId, int amountInPaise) {
         JSONObject refundRequest = new JSONObject();
         refundRequest.put("amount", amountInPaise); // Amount should be in paise
         try {
             return razorpayClient.Payments.refund(paymentId, refundRequest);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.NORMAL_PARTIAL_REFUND_FAILED);
         }
     }
 
@@ -260,11 +266,11 @@ public class RazorpayProcessor {
      * "speed_requested": "optimum"
      * }
      */
-    public Refund getSpecificRefundById(String paymentId, String refundId) throws RazorpayException {
+    public Refund getSpecificRefundById(String paymentId, String refundId) {
         try {
             return razorpayClient.Payments.fetchRefund(paymentId, refundId);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.SPECIFIC_REFUND_NOT_FOUND);
         }
     }
 
@@ -289,11 +295,11 @@ public class RazorpayProcessor {
      * "speed_requested": "optimum"
      * }
      */
-    public Refund getRefundById(String refundId) throws RazorpayException {
+    public Refund getRefundById(String refundId) {
         try {
             return razorpayClient.Refunds.fetch(refundId);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.REFUND_NOT_FOUND);
         }
     }
 
@@ -317,7 +323,7 @@ public class RazorpayProcessor {
      * "processed_at": 1580219046
      * }
      */
-    public Transfer startTransfer(String linkedAccountId, int amountInPaise, String currency) throws RazorpayException {
+    public Transfer startTransfer(String linkedAccountId, int amountInPaise, String currency) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("account", linkedAccountId);
         jsonObject.put("amount", amountInPaise);
@@ -325,7 +331,7 @@ public class RazorpayProcessor {
         try {
             return razorpayClient.Transfers.create(jsonObject);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.TRANSFER_FAILED);
         }
     }
 
@@ -349,11 +355,11 @@ public class RazorpayProcessor {
      * "processed_at": 1579691505
      * }
      */
-    public Transfer getTransferById(String transferId) throws RazorpayException {
+    public Transfer getTransferById(String transferId) {
         try {
             return razorpayClient.Transfers.fetch(transferId);
         } catch (RazorpayException e) {
-            throw new RazorpayException(e.getMessage());
+            throw new HotifiException(RazorpayErrorCodes.TRANSFER_NOT_FOUND);
         }
     }
 }

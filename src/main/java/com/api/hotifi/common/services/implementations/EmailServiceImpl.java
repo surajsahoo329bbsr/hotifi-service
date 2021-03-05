@@ -116,7 +116,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment is successful";
-            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACOOUNT_SUCCESS_PATH).getFile();
+            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACCOUNT_SUCCESS_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("username").appendText("Hi " + user.getUsername()+ ",");
             sendEmail(document, emailModel, subject);

@@ -85,8 +85,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         BigDecimal totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                 .stream()
-                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value() &&
-                        purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value())
+                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value() &&
+                        purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value())
                 .map(Purchase::getAmountRefund)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -112,7 +112,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                             .divide(BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
-            Purchase getBuyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId());
+            Purchase getBuyerPurchase = paymentProcessor.createBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();
             purchase.setSession(session);
             purchase.setUser(buyer);
@@ -129,10 +129,10 @@ public class PurchaseServiceImpl implements IPurchaseService {
             boolean isSessionCompleted = session != null && session.getFinishedAt() != null && buyer != null;
             boolean isBothMacAndIpAddressAbsent = purchaseRequest.getMacAddress() == null && purchaseRequest.getIpAddress() == null && session != null && buyer != null;
             boolean isDataBoughtMoreThanDataSold = session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0;
-            boolean isPurchaseAlreadySuccessful = getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_SUCCESSFUL.value();
+            boolean isPurchaseAlreadySuccessful = getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value();
 
-            if ((isSessionCompleted || isBothMacAndIpAddressAbsent || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
-                RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId(), buyer.getAuthentication().getEmail());
+            if ((isSessionCompleted || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
+                RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId());
                 purchase.setStatus(receiptResponse.getPurchase().getStatus());
                 purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
                 purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
@@ -197,7 +197,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);
         if (purchase.getSessionFinishedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
-        if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_PROCESSING.value())
+        if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_AUTHORIZED.value())
             throw new HotifiException(PurchaseErrorCodes.PAYMENT_NOT_SUCCESSFUL);
         try {
             Date sessionStartedAt = new Date(System.currentTimeMillis());
@@ -284,7 +284,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
                 sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned().add(sellerAmount), isUpdateTimeOnly);
 
-            RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId(), purchase.getUser().getAuthentication().getEmail());
+            RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId());
             purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(amountRefund);
@@ -336,21 +336,21 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Date currentTime = new Date(System.currentTimeMillis());
             Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
             BigDecimal totalRefundAmount = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .map(Purchase::getAmountRefund)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             if (totalRefundAmount.compareTo(BigDecimal.ZERO) == 0)
                 throw new HotifiException(PurchaseErrorCodes.BUYER_PENDING_REFUNDS_NOT_FOUND);
 
-            List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_STARTED.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+            List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .collect(Collectors.toList());
 
             purchases.forEach(purchase -> {
-                RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), purchase.getPaymentId(), buyer.getAuthentication().getEmail());
+                RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), purchase.getPaymentId());
                 String refundPaymentId = buyerRefund.getPurchase().getRefundPaymentId();
                 Date refundStartedAt = buyerRefund.getPurchase().getRefundStartedAt();
-                purchaseRepository.updatePurchaseRefundStatus(BuyerPaymentCodes.REFUND_SUCCESSFUL.value(), refundPaymentId, refundStartedAt, purchase.getId());
+                purchaseRepository.updatePurchaseRefundStatus(BuyerPaymentCodes.REFUND_PROCESSED.value(), refundPaymentId, refundStartedAt, purchase.getId());
             });
 
         } else
@@ -366,21 +366,23 @@ public class PurchaseServiceImpl implements IPurchaseService {
                     PageRequest.of(page, size, Sort.by("refund_done_at"));
             List<Purchase> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_STARTED.value())
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value())
                     .collect(Collectors.toList());
             List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             purchaseReceipts.forEach(purchase -> {
-                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_PROCESSING.value()) {
-                    RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), true);
-                    int status = receiptResponse.getPurchase().getStatus();
-                    Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
-                    String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
-                    purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, purchase.getId());
-                    purchase.setStatus(status);
-                    purchase.setRefundPaymentId(refundPaymentId);
-                    purchase.setRefundDoneAt(refundDoneAt);
-                }
+                /*The below case will arise only on instant refunds or payments older than 6 months
+                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_FAILED.value()) {
+
+                }*/
+                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), true);
+                int status = receiptResponse.getPurchase().getStatus();
+                Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
+                String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
+                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, purchase.getId());
+                purchase.setStatus(status);
+                purchase.setRefundPaymentId(refundPaymentId);
+                purchase.setRefundDoneAt(refundDoneAt);
                 RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
                 refundReceiptResponses.add(refundReceiptResponse);
             });

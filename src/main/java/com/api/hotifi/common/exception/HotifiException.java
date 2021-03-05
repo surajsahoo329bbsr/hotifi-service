@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HotifiException extends RuntimeException {
 
     private final ErrorCode errorCode;
+    private String errorMessage;
 
     public HotifiException(ErrorCode errorCode, Throwable throwable) {
         super(String.join(",", errorCode.getMessages()), throwable);

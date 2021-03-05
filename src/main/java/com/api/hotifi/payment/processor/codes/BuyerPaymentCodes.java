@@ -8,16 +8,16 @@ import java.util.stream.IntStream;
 
 public enum BuyerPaymentCodes {
 
+    PAYMENT_CREATED,
     PAYMENT_FAILED,
-    PAYMENT_PROCESSING,
-    PAYMENT_SUCCESSFUL,
+    PAYMENT_AUTHORIZED,
+    PAYMENT_CAPTURED,
     START_WIFI_SERVICE,
     UPDATE_WIFI_SERVICE,
     FINISH_WIFI_SERVICE,
-    REFUND_STARTED,
+    REFUND_PENDING,
     REFUND_FAILED,
-    REFUND_PROCESSING,
-    REFUND_SUCCESSFUL;
+    REFUND_PROCESSED;
 
     private static final Map<Integer, BuyerPaymentCodes> buyerPaymentMap = new TreeMap<>();
 
