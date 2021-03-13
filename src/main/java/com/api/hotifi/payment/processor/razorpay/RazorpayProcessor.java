@@ -3,9 +3,14 @@ package com.api.hotifi.payment.processor.razorpay;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.payment.error.RazorpayErrorCodes;
+import com.api.hotifi.payment.processor.response.Settlement;
 import com.razorpay.*;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -361,5 +366,51 @@ public class RazorpayProcessor {
         } catch (RazorpayException e) {
             throw new HotifiException(RazorpayErrorCodes.TRANSFER_NOT_FOUND);
         }
+    }
+
+
+    /**
+     * {
+     * "id": "setl_DGlQ1Rj8os78Ec",
+     * "entity": "settlement",
+     * "amount": 9973635,
+     * "status": "processed",
+     * "fees": 471699,
+     * "tax": 42070,
+     * "utr": "1568176960vxp0rj",
+     * "created_at": 1568176960
+     * }
+     */
+    public Settlement getSettlementById(String settlementId) {
+        try {
+            String url = "https://api.razorpay.com/v1/settlements/" + settlementId;
+            URL obj = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = bufferedReader.readLine()) != null) {
+                response.append(inputLine);
+            }
+            bufferedReader.close();
+            //Read JSON response and print
+            JSONObject jsonObject = new JSONObject(response.toString());
+            String id = jsonObject.getString("id");
+            String entity = jsonObject.getString("entity");
+            int amount = jsonObject.getInt("amount");
+            String status = jsonObject.getString("status");
+            int fees = jsonObject.getInt("fees");
+            int tax = jsonObject.getInt("tax");
+            String utr = jsonObject.getString("utr");
+            long createdAt = jsonObject.getLong("created_at");
+            return new Settlement(id, entity, amount, status, fees, tax, utr, createdAt);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

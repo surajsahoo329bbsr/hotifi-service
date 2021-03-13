@@ -108,7 +108,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
 
                 if (errorDescription != null)
-                    emailService.sendLinkedAccountFailed(user, emailModel);
+                    emailService.sendLinkedAccountFailed(user, errorDescription, emailModel);
                 emailService.sendLinkedAccountSuccessEmail(user, emailModel);
 
             } catch (DataIntegrityViolationException e) {

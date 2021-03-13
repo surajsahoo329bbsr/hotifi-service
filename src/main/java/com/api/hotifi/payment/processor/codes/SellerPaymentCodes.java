@@ -8,10 +8,9 @@ import java.util.stream.IntStream;
 
 public enum SellerPaymentCodes {
 
-    PAYMENT_STARTED,
+    PAYMENT_CREATED,
     PAYMENT_FAILED,
-    PAYMENT_PROCESSING,
-    PAYMENT_SUCCESSFUL;
+    PAYMENT_PROCESSED;
 
     private static final Map<Integer, SellerPaymentCodes> sellerPaymentMap = new TreeMap<>();
 

@@ -123,7 +123,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         User user = userRepository.findById(userId).orElse(null);
         Long authenticationId = user != null ? user.getAuthentication().getId() : null;
         Authentication authentication = authenticationId != null ? authenticationRepository.findById(authenticationId).orElse(null) : null;
-        if(authentication == null)
+        if (authentication == null)
             throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         //If we are unfreezing a freezed user
         if (!freezeUser) {
@@ -156,7 +156,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         } else {
             authentication.setFreezed(freezeUser);
             authenticationRepository.save(authentication);
-            if(freezeUser) {
+            if (freezeUser) {
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
                 emailModel.setFromEmail(Constants.FROM_EMAIL);

@@ -10,6 +10,7 @@ import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.processor.razorpay.RazorpayProcessor;
 import com.api.hotifi.payment.processor.razorpay.codes.PaymentStatusCodes;
 import com.api.hotifi.payment.processor.razorpay.codes.RefundStatusCodes;
+import com.api.hotifi.payment.processor.response.Settlement;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.utils.PaymentUtils;
@@ -17,15 +18,13 @@ import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import com.razorpay.Payment;
 import com.razorpay.Refund;
+import com.razorpay.Transfer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
@@ -60,7 +59,7 @@ public class PaymentProcessor {
                 if (razorpayStatus == PaymentStatusCodes.REFUNDED) return null;
                 //If auto-captured failed do the manual capture
                 if (razorpayStatus == PaymentStatusCodes.AUTHORIZED)
-                    razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, "INR");
+                    razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, Constants.CURRENCY_INR);
                 //Purchase entity model update
                 Purchase purchase = new Purchase();
                 purchase.setStatus(paymentMethod.value() + razorpayStatus.value());
@@ -105,15 +104,36 @@ public class PaymentProcessor {
         return null;
     }
 
-    public SellerReceiptResponse getSellerPaymentStatus(SellerReceiptRepository sellerReceiptRepository, String paymentId) {
+    public SellerReceiptResponse getSellerPaymentStatus(SellerReceiptRepository sellerReceiptRepository, String transferId) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("RAZORPAY PAYMENT");
-                SellerReceipt sellerReceipt = sellerReceiptRepository.findByPaymentId(paymentId);
-                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_SUCCESSFUL.value());
+                SellerReceipt sellerReceipt = sellerReceiptRepository.findByTransferId(transferId);
+                String linkedAccountId = sellerReceipt.getSellerPayment().getSeller().getBankAccount().getLinkedAccountId();
+                Transfer transfer = razorpayProcessor.getTransferById(transferId);
+                boolean isOnHold = transfer.get("on_hold");
+                String settlementId = transfer.get("recipient_settlement_id");
+
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
+                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
+                if (isOnHold) {
+                    long epochTime = transfer.get("on_hold_until");
+                    Date onHoldUntil = new Date(epochTime * 1000);
+                    sellerReceiptResponse.setOnHoldUntil(onHoldUntil);
+                }
+                if(settlementId != null) {
+                    Settlement settlement = razorpayProcessor.getSettlementById(settlementId);
+                    Date paidAt = new Date(settlement.getCreatedAt() * 1000);
+                    sellerReceipt.setPaidAt(paidAt);
+                    SellerPaymentCodes sellerPaymentCode = SellerPaymentCodes.valueOf(settlement.getStatus().toUpperCase());
+                    sellerReceipt.setStatus(sellerPaymentCode.value());
+                }
+                //Seller Receipt Response
+                sellerReceiptResponse.setOnHold(isOnHold);
                 sellerReceiptResponse.setSellerReceipt(sellerReceipt);
+                sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 sellerReceiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+
                 return sellerReceiptResponse;
             case STRIPE:
                 log.info("STRIPE PAYMENT");
@@ -152,19 +172,36 @@ public class PaymentProcessor {
         return null;
     }
 
-    public SellerReceiptResponse startSellerPayment(BigDecimal sellerPendingAmount, String linkedAccountId, String email) {
+    public SellerReceiptResponse startSellerPayment(BigDecimal sellerPendingAmount, String linkedAccountId, String bankAccountNumber, String bankIfscCode) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("TODO RAZORPAY PAYMENT");
+                Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount), Constants.CURRENCY_INR);
                 SellerReceipt sellerReceipt = new SellerReceipt();
-                Date now = new Date(System.currentTimeMillis());
-                //TODO transfer money to seller's account using razorpay's linkedAccountId
-                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_STARTED.value());
-                sellerReceipt.setCreatedAt(now);
+                sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
+                Date createdAt = new Date((long) transfer.get("created_at"));
+                Date modifiedAt = new Date((long) transfer.get("processed_at"));
+                String transferId = transfer.get("id");
+                String settlementId = transfer.get("recipient_settlement_id");
+                boolean isOnHold = transfer.get("on_hold");
+                Date onHoldUntil = new Date((long) transfer.get("on_hold_until") * 1000);
+
+                sellerReceipt.setCreatedAt(createdAt);
+                sellerReceipt.setModifiedAt(createdAt);
+                sellerReceipt.setModifiedAt(modifiedAt);
+                sellerReceipt.setTransferId(transferId);
                 sellerReceipt.setAmountPaid(sellerPendingAmount);
-                sellerReceipt.setPaymentId("pay_1234" + now);
+                sellerReceipt.setBankIfscCode(bankIfscCode);
+                sellerReceipt.setBankAccountNumber(bankAccountNumber);
+                sellerReceipt.setSettlementId(settlementId);
+
+                //Setup Seller Receipt
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
-                sellerReceiptResponse.setSellerReceipt(sellerReceipt);
+                sellerReceiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+                sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
+                sellerReceiptResponse.setOnHold(isOnHold);
+                sellerReceiptResponse.setOnHoldUntil(onHoldUntil);
+
                 return sellerReceiptResponse;
             case STRIPE:
                 log.info("TODO STRIPE PAYMENT");

@@ -1,5 +1,6 @@
 package com.api.hotifi.session.entity;
 
+import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,7 +39,7 @@ public class Session implements Serializable {
     private double dataUsed = 0.0;
 
     @Column(length = 10, nullable = false)
-    private String currency = "INR";
+    private String currency = Constants.CURRENCY_INR;
 
     @Column(nullable = false)
     private BigDecimal price;

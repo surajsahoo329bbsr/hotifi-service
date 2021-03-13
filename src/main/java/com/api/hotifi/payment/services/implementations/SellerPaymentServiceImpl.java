@@ -95,22 +95,10 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
         try {
             SellerReceiptResponse sellerReceiptResponse = sellerReceiptService.addSellerReceipt(seller, sellerPayment, sellerAmountPaid);
             //Following lines will continue after successful-1, processing-2, failure-3 payment
-            SellerPaymentCodes sellerPaymentCodes = SellerPaymentCodes.fromInt(sellerReceiptResponse.getSellerReceipt().getStatus());
             Date lastPaidAt = sellerReceiptResponse.getSellerReceipt().getPaidAt();
+            sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
+            sellerPayment.setLastPaidAt(lastPaidAt);
             sellerPayment.setModifiedAt(now);
-            switch (sellerPaymentCodes) {
-                case PAYMENT_STARTED:
-                case PAYMENT_SUCCESSFUL:
-                    sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
-                    sellerPayment.setLastPaidAt(lastPaidAt);
-                    break;
-                case PAYMENT_PROCESSING:
-                    //TODO RazorPay's processing status
-                    break;
-                case PAYMENT_FAILED:
-                    //TODO RazorPay's failure status
-                    break;
-            }
             sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
             sellerPaymentRepository.save(sellerPayment);
             return sellerReceiptResponse;

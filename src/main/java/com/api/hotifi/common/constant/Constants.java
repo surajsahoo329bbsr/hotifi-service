@@ -27,6 +27,7 @@ public class Constants {
     //1 GB in MB
     public static final int UNIT_GB_VALUE_IN_MB = 1024;
     public static final int UNIT_INR_IN_PAISE = 100;
+    public static final String CURRENCY_INR = "INR";
 
     public static final String EMAIL_HOST = "smtp.gmail.com";
     public static final int EMAIL_PORT = 587;

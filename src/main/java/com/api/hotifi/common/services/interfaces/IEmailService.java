@@ -14,7 +14,7 @@ public interface IEmailService {
 
     void sendEmailOtpEmail(EmailModel emailModel);
 
-    void sendLinkedAccountFailed(User user, EmailModel emailModel);
+    void sendLinkedAccountFailed(User user, String errorDescription, EmailModel emailModel);
 
     void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel);
 

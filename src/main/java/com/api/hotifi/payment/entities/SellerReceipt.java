@@ -27,7 +27,11 @@ public class SellerReceipt implements Serializable {
     private BigDecimal amountPaid;
 
     @Column(nullable = false)
-    private String paymentId;
+    private String transferId;
+
+    private String settlementId;
+
+    private String uniqueTransactionNumber;
 
     @Column(nullable = false)
     private String bankAccountNumber;
