@@ -24,7 +24,7 @@ import com.api.hotifi.session.repository.SessionRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CustomerAuthorizationImpl implements ICustomerAutorizationService {
+public class CustomerAuthorizationImpl implements ICustomerAuthorizationService {
 
     private final AuthenticationRepository authenticationRepository;
     private final UserRepository userRepository;

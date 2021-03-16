@@ -31,7 +31,7 @@ public class SellerPayment implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date createdAt = new Date(System.currentTimeMillis()); // Time at which first money was deposited
+    private Date createdAt = new Date(System.currentTimeMillis()); // Time at which first transfer was made
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt; // Time at which money started to accumulate

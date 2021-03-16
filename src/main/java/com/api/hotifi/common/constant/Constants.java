@@ -58,7 +58,7 @@ public class Constants {
     public static final String SELLER_RECEIPT_TAG = "seller-receipt";
     public static final String STATS_TAG = "stats";
     public static final String FEEDBACK_TAG = "feedback";
-    public static final String AUTHENTICAION_TAG = "authenticate";
+    public static final String AUTHENTICATION_TAG = "authenticate";
 
     //Patterns
     public static final String VALID_URL_PATTERN = "((http|https)://)(www.)?"

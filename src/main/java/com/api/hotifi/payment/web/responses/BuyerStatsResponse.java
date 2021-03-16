@@ -11,6 +11,8 @@ public class BuyerStatsResponse {
 
     public BigDecimal totalPendingRefunds;
 
+    public BigDecimal totalRefundsProcessed;
+
     public double totalDataBought;
 
     public double totalDataBoughtByWifi;

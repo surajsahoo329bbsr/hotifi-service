@@ -24,7 +24,7 @@ public class SocialServiceImpl implements ISocialService {
                 try {
                     return googleProcessor.verifyEmail(email, token);
                 } catch (FirebaseAuthException e) {
-                    log.error("Error Occured ", e);
+                    log.error("Error occurred ", e);
                     throw new HotifiException(AuthenticationErrorCodes.FIREBASE_AUTH_EXCEPTION);
                 }
             case FACEBOOK:

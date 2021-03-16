@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.web.controllers;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -31,7 +31,7 @@ public class BankAccountController {
     private IBankAccountService bankAccountService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/seller", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -43,7 +43,7 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addBankAccount(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
-        if (customerAutorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
             bankAccountService.addBankAccount(bankAccountRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -58,7 +58,7 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateBankAccountByCustomer(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
-        if (customerAutorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
             bankAccountService.updateBankAccountByCustomer(bankAccountRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -107,7 +107,7 @@ public class BankAccountController {
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         BankAccount bankAccount =
-                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+                (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
                 bankAccountService.getBankAccountByUserId(userId) : null;
         return new ResponseEntity<>(bankAccount, HttpStatus.OK);
     }

@@ -18,9 +18,6 @@ public class SellerStatsResponse {
 
     public BigDecimal totalAmountWithdrawn;
 
-    //4.0 or 4.5 format
-    public String averageRating;
-
     public double totalDataSold;
 
     public double totalDataSoldByWifi;

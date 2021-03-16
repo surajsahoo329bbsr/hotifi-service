@@ -1,6 +1,6 @@
 package com.api.hotifi.authorization.service;
 
-public interface ICustomerAutorizationService {
+public interface ICustomerAuthorizationService {
 
     boolean isAuthorizedByAndroidId(String androidId, String bearerToken);
 

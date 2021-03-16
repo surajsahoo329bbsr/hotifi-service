@@ -1,6 +1,6 @@
 package com.api.hotifi.speedtest.web.controller;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -31,7 +31,7 @@ public class SpeedTestController {
     private ISpeedTestService speedTestService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -43,7 +43,7 @@ public class SpeedTestController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addSpeedTest(@RequestBody @Validated SpeedTestRequest speedTestRequest) {
-        if (customerAutorizationService.isAuthorizedByUserId(speedTestRequest.getUserId(), AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByUserId(speedTestRequest.getUserId(), AuthorizationUtils.getUserToken()))
             speedTestService.addSpeedTest(speedTestRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -62,15 +62,15 @@ public class SpeedTestController {
                                                 @PathVariable(value = "pin-code") String pinCode,
                                                 @PathVariable(value = "is-wifi") boolean isWifi) {
         SpeedTest speedTest =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getLatestSpeedTest(userId, pinCode, isWifi) : null;
         return new ResponseEntity<>(speedTest, HttpStatus.OK);
     }
 
     @GetMapping(path = "/date-time/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Date-Time Speedtests By User Id And Pagenation Values",
-            notes = "Get Sorted Date-Time Speedtests By User Id And Pagenation Values",
+            value = "Get Sorted Date-Time Speedtests By User Id And Pagination Values",
+            notes = "Get Sorted Date-Time Speedtests By User Id And Pagination Values",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
@@ -81,15 +81,15 @@ public class SpeedTestController {
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
         List<SpeedTest> speedTests =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedSpeedTestByDateTime(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
     @GetMapping(path = "/upload-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Upload-Speed Speedtests By User Id And Pagenation Values",
-            notes = "Get Sorted Upload-Speed Speedtests By User Id And Pagenation Values",
+            value = "Get Sorted Upload-Speed Speedtests By User Id And Pagination Values",
+            notes = "Get Sorted Upload-Speed Speedtests By User Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
@@ -99,15 +99,15 @@ public class SpeedTestController {
                                                              @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                              @PathVariable(value = "is-descending") boolean isDescending) {
         List<SpeedTest> speedTests =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedSpeedTestByUploadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }
 
     @GetMapping(path = "/download-speed/{user-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Download-Speed Speedtests By User Id And Pagenation Values",
-            notes = "Get Sorted Download-Speed Speedtests By User Id And Pagenation Values",
+            value = "Get Sorted Download-Speed Speedtests By User Id And Pagination Values",
+            notes = "Get Sorted Download-Speed Speedtests By User Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
@@ -117,7 +117,7 @@ public class SpeedTestController {
                                                                @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
         List<SpeedTest> speedTests =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()) ?
                 speedTestService.getSortedTestByDownloadSpeed(userId, page, size, isDescending) : null;
         return new ResponseEntity<>(speedTests, HttpStatus.OK);
     }

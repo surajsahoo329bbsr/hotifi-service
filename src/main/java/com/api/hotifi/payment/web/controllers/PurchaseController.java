@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.web.controllers;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -32,7 +32,7 @@ public class PurchaseController {
     private IPurchaseService purchaseService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/buyer", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -44,7 +44,7 @@ public class PurchaseController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addPurchase(@RequestBody @Validated PurchaseRequest purchaseRequest) {
         PurchaseReceiptResponse receiptResponse =
-                (customerAutorizationService.isAuthorizedByPurchaseId(purchaseRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
+                (customerAuthorizationService.isAuthorizedByPurchaseId(purchaseRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
                         purchaseService.addPurchase(purchaseRequest) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }
@@ -61,7 +61,7 @@ public class PurchaseController {
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
         PurchaseReceiptResponse receiptResponse =
-                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+                (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
                         purchaseService.getPurchaseReceipt(purchaseId) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }
@@ -77,7 +77,7 @@ public class PurchaseController {
     public ResponseEntity<?> startBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
-        Date wifiStartTime = (customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+        Date wifiStartTime = (customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
                 purchaseService.startBuyerWifiService(purchaseId) : null;
         return new ResponseEntity<>(new WifiStartTimeResponse(wifiStartTime), HttpStatus.OK);
     }
@@ -96,7 +96,7 @@ public class PurchaseController {
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
         int updateStatus =
-                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
+                customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
                         purchaseService.updateBuyerWifiService(purchaseId, dataUsed) : -1; //-1 for failure
         return new ResponseEntity<>(new UpdateStatusResponse(updateStatus), HttpStatus.OK);
     }
@@ -115,15 +115,15 @@ public class PurchaseController {
             @PathVariable(value = "data-used")
             @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
         WifiSummaryResponse wifiSummaryResponse =
-                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
+                customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
                         purchaseService.finishBuyerWifiService(purchaseId, dataUsed) : null;
         return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
     }
 
     @GetMapping(path = "/buyer/usages/date-time/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagenation Values",
-            notes = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagenation Values",
+            value = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagination Values",
+            notes = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
@@ -137,15 +137,15 @@ public class PurchaseController {
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
         List<WifiSummaryResponse> wifiSummaryResponses =
-                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
+                (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
                         purchaseService.getSortedWifiUsagesDateTime(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(wifiSummaryResponses, HttpStatus.OK);
     }
 
     @GetMapping(path = "/buyer/usages/data-used/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagenation Values",
-            notes = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagenation Values",
+            value = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagination Values",
+            notes = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
@@ -159,7 +159,7 @@ public class PurchaseController {
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
         List<WifiSummaryResponse> wifiSummaryResponses =
-                (AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
+                (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
                         purchaseService.getSortedWifiUsagesDataUsed(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(wifiSummaryResponses, HttpStatus.OK);
     }
@@ -175,15 +175,15 @@ public class PurchaseController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> withdrawBuyerRefunds(@PathVariable(value = "buyer-id")
                                                   @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId) {
-        if (customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
             purchaseService.withdrawBuyerRefunds(buyerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(path = "/buyer/refunds/receipts/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Buyer Refund Receipts By Buyer Id And Pagenation Values",
-            notes = "Get Buyer Refund Receipts By Buyer Id And Pagenation Values",
+            value = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
+            notes = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
@@ -197,7 +197,7 @@ public class PurchaseController {
             @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
             @PathVariable(value = "is-descending") boolean isDescending) {
         List<RefundReceiptResponse> refundReceiptResponses =
-                customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
+                customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
                         purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(refundReceiptResponses, HttpStatus.OK);
     }
@@ -216,8 +216,8 @@ public class PurchaseController {
                                                         @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                                         @PathVariable(value = "data-to-be-used")
                                                         @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
-        boolean isBuyerCurrentSessionLegit = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
+        boolean isBuyerCurrentSessionLegit = (AuthorizationUtils.isAdministratorRole() ||
+                customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
                 && purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);
         return new ResponseEntity<>(new BuyerCurrentSessionLegitResponse(isBuyerCurrentSessionLegit), HttpStatus.OK);
     }

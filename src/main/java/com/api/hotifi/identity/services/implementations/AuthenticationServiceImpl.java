@@ -50,7 +50,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public Authentication getAuthenticationForAdminstrators(String email) {
+    public Authentication getAuthenticationForAdministrators(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);

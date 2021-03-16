@@ -54,10 +54,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 userRepository.save(user);
             }
         } catch (DataIntegrityViolationException e) {
-            log.error("Data Integrity Error occured", e);
+            log.error("Data Integrity Error occurred", e);
             throw new HotifiException(DeviceErrorCodes.DEVICE_ALREADY_ADDED);
         } catch (Exception e) {
-            log.error("Error occured", e);
+            log.error("Error occurred", e);
             throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
         }
     }
@@ -80,7 +80,7 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setTokenCreatedAt(now);
             deviceRepository.save(device);
         } catch (Exception e) {
-            log.error("Error occured", e);
+            log.error("Error occurred", e);
             throw new HotifiException(DeviceErrorCodes.UNEXPECTED_DEVICE_ERROR);
         }
     }

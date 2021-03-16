@@ -153,7 +153,7 @@ public class SessionServiceImpl implements ISessionService {
             });
             return activeSessionsResponses;
         } catch (Exception e) {
-            log.error("Error Occured ", e);
+            log.error("Error occurred ", e);
             throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
         }
     }

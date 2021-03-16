@@ -40,14 +40,12 @@ public class StatsServiceImpl implements IStatsService {
     private final PurchaseRepository purchaseRepository;
     private final SessionRepository sessionRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
-    private final IFeedbackService feedbackService;
 
-    public StatsServiceImpl(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService) {
+    public StatsServiceImpl(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository) {
         this.userRepository = userRepository;
         this.purchaseRepository = purchaseRepository;
         this.sessionRepository = sessionRepository;
         this.sellerPaymentRepository = sellerPaymentRepository;
-        this.feedbackService = feedbackService;
     }
 
     @Transactional(readOnly = true)
@@ -64,12 +62,18 @@ public class StatsServiceImpl implements IStatsService {
                                 .map(Purchase::getAmountRefund)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+                BigDecimal totalRefundsProcessed =
+                        purchaseStreamSupplier.get()
+                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_PROCESSED.value())
+                                .map(Purchase::getAmountRefund)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
                 double totalDataBought = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
                 double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkName().equals("WIFI"))
                         .mapToDouble(Purchase::getDataUsed)
                         .sum();
                 double totalDataBoughtByMobile = totalDataBought - totalDataBoughtByWifi;
-                return new BuyerStatsResponse(totalPendingRefunds, totalDataBought, totalDataBoughtByWifi, totalDataBoughtByMobile);
+                return new BuyerStatsResponse(totalPendingRefunds, totalRefundsProcessed, totalDataBought, totalDataBoughtByWifi, totalDataBoughtByMobile);
             } else
                 throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
         } catch (Exception e) {
@@ -82,7 +86,7 @@ public class StatsServiceImpl implements IStatsService {
     @Override
     public SellerStatsResponse getSellerStats(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller, false))
+        if (seller == null || seller.getAuthentication().isDeleted())
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
@@ -93,7 +97,6 @@ public class StatsServiceImpl implements IStatsService {
                     .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
                     .setScale(2, RoundingMode.FLOOR);
             BigDecimal totalAmountWithdrawn = sellerPayment.getAmountPaid();
-            String averageRating = feedbackService.getAverageRating(sellerId);
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
 
             List<Long> speedTestIds = seller.getSpeedTests()
@@ -109,7 +112,7 @@ public class StatsServiceImpl implements IStatsService {
                     .mapToDouble(Purchase::getDataUsed)
                     .sum();
             double totalDataSoldByMobile = totalDataSold - totalDataSoldByWifi;
-            return new SellerStatsResponse(sellerPayment.getId(), sellerPayment.getLastPaidAt(),totalEarnings, totalAmountWithdrawn, averageRating,totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
+            return new SellerStatsResponse(sellerPayment.getId(), sellerPayment.getLastPaidAt(), totalEarnings, totalAmountWithdrawn, totalDataSold, totalDataSoldByWifi, totalDataSoldByMobile);
         } catch (Exception e) {
             log.error("Error Occurred", e);
             throw new HotifiException(UserStatusErrorCodes.UNEXPECTED_USER_STATUS_ERROR);

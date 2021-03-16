@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.web.controllers;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -31,7 +31,7 @@ public class StatsController {
     private IStatsService statsService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @GetMapping(path = "/seller/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -40,10 +40,10 @@ public class StatsController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerStats(@PathVariable("id") @Range(min = 1, message = "{seller.id.invalid}") Long id) {
         SellerStatsResponse sellerStatsResponse =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getSellerStats(id) : null;
         return new ResponseEntity<>(sellerStatsResponse, HttpStatus.OK);
     }
@@ -55,10 +55,10 @@ public class StatsController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINSTARTOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getBuyerStats(@PathVariable("id") @Range(min = 1, message = "{buyer.id.invalid}") Long id) {
         BuyerStatsResponse buyerStatsResponse =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getBuyerStats(id) : null;
         return new ResponseEntity<>(buyerStatsResponse, HttpStatus.OK);
     }

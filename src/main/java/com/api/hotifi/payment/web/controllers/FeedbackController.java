@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.web.controllers;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -9,6 +9,7 @@ import com.api.hotifi.payment.entities.Feedback;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.web.request.FeedbackRequest;
 import com.api.hotifi.payment.web.responses.FeedbackResponse;
+import com.api.hotifi.payment.web.responses.SellerReviewsResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class FeedbackController {
     private IFeedbackService feedbackService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/buyer", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -43,7 +44,7 @@ public class FeedbackController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addFeedback(@RequestBody @Validated FeedbackRequest feedbackRequest) {
-        if (customerAutorizationService.isAuthorizedByPurchaseId(feedbackRequest.getPurchaseId(), AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByPurchaseId(feedbackRequest.getPurchaseId(), AuthorizationUtils.getUserToken()))
             feedbackService.addFeedback(feedbackRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -57,16 +58,16 @@ public class FeedbackController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getPurchaseFeedback(@PathVariable(value = "purchase-id") @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
-        Feedback feedback = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
+        Feedback feedback = (AuthorizationUtils.isAdministratorRole() ||
+                customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken())) ?
                 feedbackService.getPurchaseFeedback(purchaseId) : null;
         return new ResponseEntity<>(feedback, HttpStatus.OK);
     }
 
     @GetMapping(path = "/seller/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Seller Feeback By Seller Id And Pagenation Values",
-            notes = "Get Seller Feeback By Seller Id And Pagenation Values",
+            value = "Get Seller Feedback By Seller Id And Pagination Values",
+            notes = "Get Seller Feedback By Seller Id And Pagination Values",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
@@ -78,9 +79,25 @@ public class FeedbackController {
                                                 @PathVariable(value = "size")
                                                 @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                 @PathVariable(value = "is-descending") boolean isDescending) {
-        List<FeedbackResponse> feedbackResponses = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
+        List<FeedbackResponse> feedbackResponses = (AuthorizationUtils.isAdministratorRole() ||
+                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
                 feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(feedbackResponses, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/seller/details/{seller-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Seller Feedback By Seller Id And Pagination Values",
+            notes = "Get Seller Feedback By Seller Id And Pagination Values",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> getSellerRatingDetails(@PathVariable(value = "seller-id")
+                                                    @Range(min = 1, message = "{seller.id.invalid}") Long sellerId) {
+        SellerReviewsResponse sellerReviewsResponse = (AuthorizationUtils.isAdministratorRole() ||
+                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
+                feedbackService.getSellerRatingDetails(sellerId) : null;
+        return new ResponseEntity<>(sellerReviewsResponse, HttpStatus.OK);
     }
 }

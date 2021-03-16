@@ -2,7 +2,7 @@ package com.api.hotifi.configuration;
 
 import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.authorization.service.CustomerAuthorizationImpl;
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.common.services.implementations.EmailServiceImpl;
 import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
 import com.api.hotifi.common.services.implementations.SocialServiceImpl;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 public class ServicesConfiguration {
 
     @Bean
-    public ICustomerAutorizationService customerAutorizationService(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder){
+    public ICustomerAuthorizationService customerAuthorizationService(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder){
         return new CustomerAuthorizationImpl(authenticationRepository, userRepository, sessionRepository, purchaseRepository, sellerReceiptRepository, deviceRepository, jwtDecoder);
     }
 
@@ -100,8 +100,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IStatsService statsService(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, IFeedbackService feedbackService){
-        return new StatsServiceImpl(userRepository, purchaseRepository, sessionRepository, sellerPaymentRepository, feedbackService);
+    public IStatsService statsService(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository){
+        return new StatsServiceImpl(userRepository, purchaseRepository, sessionRepository, sellerPaymentRepository);
     }
 
     @Bean

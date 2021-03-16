@@ -343,14 +343,17 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (totalRefundAmount.compareTo(BigDecimal.ZERO) == 0)
                 throw new HotifiException(PurchaseErrorCodes.BUYER_PENDING_REFUNDS_NOT_FOUND);
 
-            List<Purchase> purchases = purchaseStreamSupplier.get().filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+            List<Purchase> purchases = purchaseStreamSupplier.get()
+                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value()
+                            && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .collect(Collectors.toList());
 
             purchases.forEach(purchase -> {
                 RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), purchase.getPaymentId());
                 String refundPaymentId = buyerRefund.getPurchase().getRefundPaymentId();
                 Date refundStartedAt = buyerRefund.getPurchase().getRefundStartedAt();
-                purchaseRepository.updatePurchaseRefundStatus(BuyerPaymentCodes.REFUND_PROCESSED.value(), refundPaymentId, refundStartedAt, purchase.getId());
+                int buyerPaymentStatus = buyerRefund.getPurchase().getStatus();
+                purchaseRepository.updatePurchaseRefundStatus(buyerPaymentStatus, refundPaymentId, refundStartedAt, purchase.getId());
             });
 
         } else

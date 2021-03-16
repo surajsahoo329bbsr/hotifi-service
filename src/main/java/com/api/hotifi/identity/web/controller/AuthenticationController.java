@@ -25,26 +25,26 @@ import javax.validation.constraints.NotBlank;
 
 @Validated
 @RestController
-@Api(tags = Constants.AUTHENTICAION_TAG)
+@Api(tags = Constants.AUTHENTICATION_TAG)
 @RequestMapping(path = "/authenticate")
 public class AuthenticationController {
 
     @Autowired
     private IAuthenticationService authenticationService;
 
-    @GetMapping(path = "/adminstrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/administrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Authentication Details By Email For Adminstrators",
-            notes = "Get Authentication Details By Email For Adminstrators",
+            value = "Get Authentication Details By Email For Administrators",
+            notes = "Get Authentication Details By Email For Administrators",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> getAuthenticationForAdminstrators(@PathVariable(value = "email")
+    public ResponseEntity<?> getAuthenticationForAdministrators(@PathVariable(value = "email")
                                       @NotBlank(message = "{email.blank}")
                                       @Email(message = "{email.pattern.invalid}")
                                       @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthenticationForAdminstrators(email);
+        Authentication authentication = authenticationService.getAuthenticationForAdministrators(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 

@@ -2,6 +2,8 @@ package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
+import com.api.hotifi.identity.errors.UserStatusErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Feedback;
 import com.api.hotifi.payment.entities.Purchase;
@@ -11,6 +13,7 @@ import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.web.request.FeedbackRequest;
 import com.api.hotifi.payment.web.responses.FeedbackResponse;
+import com.api.hotifi.payment.web.responses.SellerReviewsResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speedtest.entity.SpeedTest;
@@ -23,9 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class FeedbackServiceImpl implements IFeedbackService {
@@ -78,28 +85,13 @@ public class FeedbackServiceImpl implements IFeedbackService {
     @Transactional
     @Override
     public List<FeedbackResponse> getSellerFeedbacks(Long sellerId, int page, int size, boolean isDescending) {
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (seller == null || seller.getAuthentication().isDeleted())
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
         try {
-            Pageable sessionPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
-            User seller = userRepository.findById(sellerId).orElse(null);
-            List<Long> speedTestIds = seller != null ?
-                    seller.getSpeedTests()
-                            .stream().map(SpeedTest::getId)
-                            .collect(Collectors.toList()) : null;
-            List<Long> sessionIds = speedTestIds != null ?
-                    sessionRepository.findSessionsBySpeedTestIds(speedTestIds, sessionPageable)
-                            .stream().map(Session::getId)
-                            .collect(Collectors.toList()) : null;
-            List<Long> purchaseIds = sessionIds != null ?
-                    purchaseRepository.findPurchasesBySessionIds(sessionIds)
-                            .stream().map(Purchase::getId)
-                            .collect(Collectors.toList()) : null;
-
-            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("created_at").descending())
-                    : PageRequest.of(page, size, Sort.by("created_at"));
-
-            List<Feedback> feedbacks = purchaseIds != null ?
-                    feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable) : null;
-            if (feedbacks == null) return null;
+            List<Feedback> feedbacks = getFeedbacksFromSeller(seller, page, size, isDescending);
+            if (feedbacks == null)
+                return null;
             List<FeedbackResponse> feedbackResponses = new ArrayList<>();
             feedbacks.forEach(feedback -> {
                 User user = feedback.getPurchase().getSession().getSpeedTest().getUser();
@@ -124,32 +116,68 @@ public class FeedbackServiceImpl implements IFeedbackService {
     @Override
     public String getAverageRating(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
-        Pageable sessionPageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
-
-        List<Long> speedTestIds = seller != null ?
-                seller.getSpeedTests()
-                        .stream().map(SpeedTest::getId)
-                        .collect(Collectors.toList()) : null;
-        List<Long> sessionIds = speedTestIds != null ?
-                sessionRepository.findSessionsBySpeedTestIds(speedTestIds, sessionPageable)
-                        .stream().map(Session::getId)
-                        .collect(Collectors.toList()) : null;
-        List<Long> purchaseIds = sessionIds != null ?
-                purchaseRepository.findPurchasesBySessionIds(sessionIds)
-                        .stream().map(Purchase::getId)
-                        .collect(Collectors.toList()) : null;
-
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
-
-        OptionalDouble optionalDoubleRating = purchaseIds == null ? OptionalDouble.empty() :
-                feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable)
-                        .stream().mapToDouble(Feedback::getRating).average();
-
-        if (optionalDoubleRating.isEmpty())
-            return null;
-
+        if (seller == null) return null;
+        OptionalDouble optionalDoubleRating = getFeedbacksFromSeller(seller, 0, Integer.MAX_VALUE, true)
+                .stream().mapToDouble(Feedback::getRating).average();
+        if (optionalDoubleRating.isEmpty()) return null;
         double rating = optionalDoubleRating.orElseThrow(IllegalStateException::new);
         DecimalFormat decimalFormat = new DecimalFormat("#.#");
         return decimalFormat.format(rating);
+    }
+
+    @Transactional
+    @Override
+    public SellerReviewsResponse getSellerRatingDetails(Long sellerId) {
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (seller == null || seller.getAuthentication().isDeleted())
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
+        try {
+            List<Feedback> feedbacks = getFeedbacksFromSeller(seller, 0, Integer.MAX_VALUE, true);
+            String getAverageRating = getAverageRating(sellerId);
+            String averageRating = getAverageRating != null ? getAverageRating : "0.0";
+            long totalReviews = feedbacks != null ? feedbacks.stream()
+                    .filter(feedback -> feedback.getComment() != null)
+                    .count() : 0;
+            long totalRatings = feedbacks != null ? (long) feedbacks.size() : 0;
+            Supplier<Stream<Feedback>> feedbackSupplier = feedbacks != null ? feedbacks::stream : null;
+
+            long oneStarCount = feedbackSupplier != null ? feedbackSupplier.get()
+                    .filter(getFeedbackPredicate(1.0F, 1.0F)).count() : 0;
+            long twoStarCount = feedbackSupplier != null ? feedbackSupplier.get()
+                    .filter(getFeedbackPredicate(1.5F, 2.0F)).count() : 0;
+            long threeStarCount = feedbackSupplier != null ? feedbackSupplier.get()
+                    .filter(getFeedbackPredicate(2.5F, 3.0F)).count() : 0;
+            long fourStarCount = feedbackSupplier != null ? feedbackSupplier.get()
+                    .filter(getFeedbackPredicate(3.5F, 4.0F)).count() : 0;
+            long fiveStarCount = feedbackSupplier != null ? feedbackSupplier.get()
+                    .filter(getFeedbackPredicate(4.5F, 5.0F)).count() : 0;
+
+            List<Long> eachRatings = Arrays.asList(oneStarCount, twoStarCount, threeStarCount, fourStarCount, fiveStarCount);
+
+            return new SellerReviewsResponse(totalReviews, totalRatings, averageRating, eachRatings);
+
+        } catch (Exception e) {
+            log.error("Error Occurred", e);
+            throw new HotifiException(UserStatusErrorCodes.UNEXPECTED_USER_STATUS_ERROR);
+        }
+    }
+
+    public List<Feedback> getFeedbacksFromSeller(User seller, int page, int size, boolean isDescending) {
+        Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("created_at").descending())
+                : PageRequest.of(page, size, Sort.by("created_at"));
+        List<Long> speedTestIds = seller.getSpeedTests()
+                .stream().map(SpeedTest::getId)
+                .collect(Collectors.toList());
+        List<Long> sessionIds = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageable)
+                .stream().map(Session::getId)
+                .collect(Collectors.toList());
+        List<Long> purchaseIds = purchaseRepository.findPurchasesBySessionIds(sessionIds)
+                .stream().map(Purchase::getId)
+                .collect(Collectors.toList());
+        return feedbackRepository.findFeedbacksByPurchaseIds(purchaseIds, pageable);
+    }
+
+    public Predicate<Feedback> getFeedbackPredicate(Float firstRating, Float secondRating) {
+        return feedback -> Float.compare(feedback.getRating(), firstRating) == 0 || Float.compare(feedback.getRating(), secondRating) == 0;
     }
 }

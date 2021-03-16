@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.web.controller;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -32,7 +32,7 @@ public class UserStatusController {
     private IUserStatusService userStatusService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -56,8 +56,8 @@ public class UserStatusController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getUserStatusByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        List<UserStatus> userStatuses = (AuthorizationUtils.isAdminstratorRole() ||
-                customerAutorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
+        List<UserStatus> userStatuses = (AuthorizationUtils.isAdministratorRole() ||
+                customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
                 userStatusService.getUserStatusByUserId(userId) : null;
         return new ResponseEntity<>(userStatuses, HttpStatus.OK);
     }

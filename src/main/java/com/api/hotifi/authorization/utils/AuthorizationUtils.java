@@ -11,7 +11,7 @@ public class AuthorizationUtils {
         return  ((OAuth2AuthenticationDetails) authentication.getDetails()).getTokenValue();
     }
 
-    public static boolean isAdminstratorRole(){
+    public static boolean isAdministratorRole(){
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication
                 .getAuthorities().stream()

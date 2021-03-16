@@ -1,6 +1,6 @@
 package com.api.hotifi.session.web.controller;
 
-import com.api.hotifi.authorization.service.ICustomerAutorizationService;
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
@@ -36,7 +36,7 @@ public class SessionController {
     private ISessionService sessionService;
 
     @Autowired
-    private ICustomerAutorizationService customerAutorizationService;
+    private ICustomerAuthorizationService customerAuthorizationService;
 
     @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
@@ -47,7 +47,7 @@ public class SessionController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addSession(@RequestBody @Validated SessionRequest sessionRequest) {
-        Session session = customerAutorizationService.isAuthorizedByUserId(sessionRequest.getUserId(), AuthorizationUtils.getUserToken()) ?
+        Session session = customerAuthorizationService.isAuthorizedByUserId(sessionRequest.getUserId(), AuthorizationUtils.getUserToken()) ?
                 sessionService.addSession(sessionRequest) : null;
         return new ResponseEntity<>(session, HttpStatus.OK);
     }
@@ -79,7 +79,7 @@ public class SessionController {
                                        @Range(min = 1, message = "{user.id.invalid}") Long sessionId,
                                        @PathVariable(value = "is-active") boolean isActive) {
         List<Buyer> getBuyers =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
                 sessionService.getBuyers(sessionId, isActive) : null;
         return new ResponseEntity<>(getBuyers, HttpStatus.OK);
     }
@@ -95,7 +95,7 @@ public class SessionController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> sendNotificationsToFinishSession(@PathVariable(value = "session-id")
                                                               @Range(min = 1, message = "{user.id.invalid}") Long sessionId) {
-        if (customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()))
             sessionService.sendNotificationsToFinishSession(sessionId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -112,7 +112,7 @@ public class SessionController {
     public ResponseEntity<?> finishSession(@PathVariable(value = "session-id")
                                            @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                            @PathVariable(value = "is-force-stop") boolean isForceStop) {
-        if (customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()))
             sessionService.finishSession(sessionId, isForceStop);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -145,7 +145,7 @@ public class SessionController {
     public ResponseEntity<?> getSessionSummary(@PathVariable(value = "session-id")
                                                @Range(min = 1, message = "{session.id.invalid}") Long sessionId) {
         SessionSummaryResponse sessionSummaryResponse =
-                AuthorizationUtils.isAdminstratorRole() || customerAutorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
                         sessionService.getSessionSummary(sessionId) : null;
         return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);
     }
@@ -163,7 +163,7 @@ public class SessionController {
                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
         List<SessionSummaryResponse> sessionSummaryResponses =
-                customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
                         sessionService.getSortedSessionsByStartTime(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
@@ -176,12 +176,12 @@ public class SessionController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "seller-id") @Range(min = 1, message = "{selelr.id.invalid}") Long sellerId,
+    public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
                                                          @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
                                                          @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                          @PathVariable(value = "is-descending") boolean isDescending) {
         List<SessionSummaryResponse> sessionSummaryResponses =
-                customerAutorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
                         sessionService.getSortedSessionsByDataUsed(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }

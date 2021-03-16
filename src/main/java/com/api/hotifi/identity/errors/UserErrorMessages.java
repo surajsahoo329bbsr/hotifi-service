@@ -14,7 +14,7 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_SOCIAL_IDENTIFIER_INVALID = "User social identifier is invalid";
     public static final String EMAIL_OTP_ALREADY_GENERATED = "Email OTP already generated.";
     public static final String INVALID_TOKEN = "Invalid token";
-    public static final String INVALID_OTP = "Inavlid otp";
+    public static final String INVALID_OTP = "Invalid otp";
     public static final String INVALID_LINKED_ACCOUNT_ID = "Invalid Linked Account Id";
     public static final String TOKEN_EXPIRED = "Token has expired.";
     public static final String USER_ALREADY_VERIFIED = "User already verified";

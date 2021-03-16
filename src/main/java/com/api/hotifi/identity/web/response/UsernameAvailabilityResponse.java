@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UsernameAvailabilityResponse {
 
-    private boolean isUsernameAvailabe;
+    private boolean isUsernameAvailable;
 
 }
