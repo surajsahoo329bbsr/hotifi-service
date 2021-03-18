@@ -63,12 +63,11 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             //if (sellerReceipt.getStatus() == SellerPaymentCodes.PAYMENT_PROCESSING.value()) {
             SellerReceiptResponse receiptResponse = paymentProcessor.getSellerPaymentStatus(sellerReceiptRepository, sellerReceipt.getTransferId());
-            sellerReceipt.setStatus(receiptResponse.getSellerReceipt().getStatus());
-            sellerReceiptRepository.save(sellerReceipt);
+            SellerReceipt latestSellerReceipt = receiptResponse.getSellerReceipt();
+            sellerReceiptRepository.save(latestSellerReceipt);
             // }
             SellerPayment sellerPayment = sellerReceipt.getSellerPayment();
             String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
-            //SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setSellerLinkedAccountId(linkedAccountId);
             receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
@@ -124,17 +123,14 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             List<SellerReceiptResponse> sellerReceiptResponses = new ArrayList<>();
             for (SellerReceipt sellerReceipt : sellerReceipts) {
                 if (sellerReceipt.getStatus() <= SellerPaymentCodes.PAYMENT_CREATED.value()) {
-                    Date paidAt = new Date(System.currentTimeMillis());
                     SellerReceiptResponse receipt = paymentProcessor.getSellerPaymentStatus(sellerReceiptRepository, sellerReceipt.getTransferId());
-                    sellerReceipt.setStatus(receipt.getSellerReceipt().getStatus());
-                    sellerReceipt.setPaidAt(paidAt);
-                    sellerReceipt.setModifiedAt(paidAt);
+                    sellerReceipt = receipt.getSellerReceipt();
                     sellerReceiptRepository.save(sellerReceipt);
 
                     //updating seller_payment entity after withdrawing money
                     sellerPayment.setAmountPaid(sellerReceipt.getAmountPaid().add(sellerPayment.getAmountPaid()));
                     sellerPayment.setLastPaidAt(sellerReceipt.getPaidAt());
-                    sellerPayment.setModifiedAt(sellerReceipt.getPaidAt());
+                    sellerPayment.setModifiedAt(sellerReceipt.getModifiedAt());
                     sellerPaymentRepository.save(sellerPayment);
 
                 }

@@ -31,7 +31,7 @@ public class SellerReceipt implements Serializable {
 
     private String settlementId;
 
-    private String uniqueTransactionNumber;
+    private String transferTransactionId;
 
     @Column(nullable = false)
     private String bankAccountNumber;

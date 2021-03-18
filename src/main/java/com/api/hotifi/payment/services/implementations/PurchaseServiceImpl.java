@@ -112,13 +112,17 @@ public class PurchaseServiceImpl implements IPurchaseService {
                             .divide(BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
-            Purchase getBuyerPurchase = paymentProcessor.createBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
+            Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();
             purchase.setSession(session);
             purchase.setUser(buyer);
-            purchase.setPaymentDoneAt(getBuyerPurchase.getPaymentDoneAt());
-            purchase.setPaymentId(getBuyerPurchase.getPaymentId());
-            purchase.setStatus(getBuyerPurchase.getStatus());
+
+            //Getting values from payment processor
+            purchase.setPaymentDoneAt(buyerPurchase.getPaymentDoneAt());
+            purchase.setPaymentId(buyerPurchase.getPaymentId());
+            purchase.setPaymentTransactionId(buyerPurchase.getPaymentTransactionId());
+            purchase.setStatus(buyerPurchase.getStatus());
+            //Getting values from purchase request
             purchase.setMacAddress(purchaseRequest.getMacAddress());
             purchase.setIpAddress(purchase.getIpAddress());
             purchase.setData(purchaseRequest.getData());
@@ -129,13 +133,14 @@ public class PurchaseServiceImpl implements IPurchaseService {
             boolean isSessionCompleted = session != null && session.getFinishedAt() != null && buyer != null;
             boolean isBothMacAndIpAddressAbsent = purchaseRequest.getMacAddress() == null && purchaseRequest.getIpAddress() == null && session != null && buyer != null;
             boolean isDataBoughtMoreThanDataSold = session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0;
-            boolean isPurchaseAlreadySuccessful = getBuyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value();
+            boolean isPurchaseAlreadySuccessful = buyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value();
 
             if ((isSessionCompleted || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
-                RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, getBuyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId());
+                RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, buyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId());
                 purchase.setStatus(receiptResponse.getPurchase().getStatus());
                 purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
                 purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
+                purchase.setRefundTransactionId(receiptResponse.getPurchase().getRefundTransactionId());
                 log.info("Razor Refund Payment");
             }
 
@@ -352,8 +357,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), purchase.getPaymentId());
                 String refundPaymentId = buyerRefund.getPurchase().getRefundPaymentId();
                 Date refundStartedAt = buyerRefund.getPurchase().getRefundStartedAt();
+                String refundTransactionId = buyerRefund.getPurchase().getRefundTransactionId();
                 int buyerPaymentStatus = buyerRefund.getPurchase().getStatus();
-                purchaseRepository.updatePurchaseRefundStatus(buyerPaymentStatus, refundPaymentId, refundStartedAt, purchase.getId());
+                purchaseRepository.updatePurchaseRefundStatus(buyerPaymentStatus, refundPaymentId, refundStartedAt, refundTransactionId, purchase.getId());
             });
 
         } else
@@ -378,14 +384,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_FAILED.value()) {
 
                 }*/
-                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), true);
+                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true);
+                //Setting up values from payment processor
                 int status = receiptResponse.getPurchase().getStatus();
                 Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
                 String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
-                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, purchase.getId());
+                String refundTransactionId = receiptResponse.getPurchase().getRefundTransactionId();
+                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, refundTransactionId, purchase.getId());
+
                 purchase.setStatus(status);
                 purchase.setRefundPaymentId(refundPaymentId);
                 purchase.setRefundDoneAt(refundDoneAt);
+                purchase.setRefundTransactionId(refundTransactionId);
                 RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
                 refundReceiptResponses.add(refundReceiptResponse);
             });
@@ -422,7 +432,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
-        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), true) : paymentProcessor.getBuyerPaymentStatus(purchaseRepository, purchase.getPaymentId(), false);
+        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), false);
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
         wifiSummaryResponse.setSellerName(seller.getFirstName() + " " + seller.getLastName());
         wifiSummaryResponse.setSellerPhotoUrl(seller.getPhotoUrl());
@@ -433,6 +443,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
         wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
+        purchaseRepository.save(refundReceiptResponse.getPurchase());
         return wifiSummaryResponse;
     }
 

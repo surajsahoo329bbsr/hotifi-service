@@ -22,6 +22,7 @@ import com.razorpay.Transfer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -48,11 +49,15 @@ public class PaymentProcessor {
         razorpayProcessor = new RazorpayProcessor();
     }
 
-    public Purchase createBuyerPurchase(String paymentId, BigDecimal amountPaid) {
+    public Purchase getBuyerPurchase(String paymentId, BigDecimal amountPaid) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 Payment payment = razorpayProcessor.getPaymentById(paymentId);
                 Date paymentDoneAt = new Date((long) payment.get("created_at"));
+                String acquirerData = payment.get("acquirer_data");
+                JSONObject acquirerDataJson = new JSONObject(acquirerData);
+                String paymentTransactionId = acquirerDataJson.getString("rrn");
+
                 PaymentMethodCodes paymentMethod = PaymentMethodCodes.valueOf(payment.get("method").toString().toUpperCase());
                 PaymentStatusCodes razorpayStatus = PaymentStatusCodes.valueOf(payment.get("status").toString().toUpperCase());
                 int amountPaidInPaise = PaymentUtils.getPaiseFromInr(amountPaid);
@@ -65,6 +70,7 @@ public class PaymentProcessor {
                 purchase.setStatus(paymentMethod.value() + razorpayStatus.value());
                 purchase.setPaymentId(paymentId);
                 purchase.setPaymentDoneAt(paymentDoneAt);
+                purchase.setPaymentTransactionId(paymentTransactionId);
                 return purchase;
             case STRIPE:
                 log.info("STRIPE PAYMENT");
@@ -76,7 +82,7 @@ public class PaymentProcessor {
         return null;
     }
 
-    public RefundReceiptResponse getBuyerPaymentStatus(PurchaseRepository purchaseRepository, String paymentId, boolean isRefundToBeStarted) {
+    public RefundReceiptResponse getBuyerRefundStatus(PurchaseRepository purchaseRepository, String paymentId, boolean isRefundToBeStarted) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("RAZORPAY PAYMENT");
@@ -88,11 +94,15 @@ public class PaymentProcessor {
                 String refundId = refund.get("id");
                 Date refundCreatedAt = new Date((long) refund.get("created_at"));
                 RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
+                String acquirerData = refund.get("acquirer_data");
+                JSONObject acquirerDataJson = new JSONObject(acquirerData);
+                String refundTransactionId = acquirerDataJson.getString("arn");
                 int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
                 //modify purchase entity
-                purchase.setRefundPaymentId(refundId);
-                purchase.setRefundDoneAt(refundCreatedAt);
                 purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                purchase.setRefundDoneAt(refundCreatedAt);
+                purchase.setRefundPaymentId(refundId);
+                purchase.setRefundTransactionId(refundTransactionId);
                 return new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("STRIPE PAYMENT");
@@ -121,11 +131,15 @@ public class PaymentProcessor {
                     Date onHoldUntil = new Date(epochTime * 1000);
                     sellerReceiptResponse.setOnHoldUntil(onHoldUntil);
                 }
-                if(settlementId != null) {
+                if (settlementId != null) {
                     Settlement settlement = razorpayProcessor.getSettlementById(settlementId);
                     Date paidAt = new Date(settlement.getCreatedAt() * 1000);
-                    sellerReceipt.setPaidAt(paidAt);
+                    Date modifiedAt = new Date(System.currentTimeMillis());
+                    String transferTransactionId = settlement.getUtr();
                     SellerPaymentCodes sellerPaymentCode = SellerPaymentCodes.valueOf(settlement.getStatus().toUpperCase());
+                    sellerReceipt.setPaidAt(paidAt);
+                    sellerReceipt.setModifiedAt(modifiedAt);
+                    sellerReceipt.setTransferTransactionId(transferTransactionId);
                     sellerReceipt.setStatus(sellerPaymentCode.value());
                 }
                 //Seller Receipt Response

@@ -24,6 +24,6 @@ public interface PurchaseRepository extends PagingAndSortingRepository<Purchase,
     List<Purchase> findPurchasesBySessionIds(@Param("session_ids") List<Long> sessionIds);
 
     @Modifying
-    @Query(value = "UPDATE purchase SET status = status - status % "+ Constants.PAYMENT_METHOD_START_VALUE_CODE +" + ?1, refund_payment_id = ?2, refund_started_at = ?3 WHERE id = ?4", nativeQuery = true)
-    void updatePurchaseRefundStatus(int status, String refundPaymentId, Date refundDoneAt, Long purchaseId);
+    @Query(value = "UPDATE purchase SET status = status - status % "+ Constants.PAYMENT_METHOD_START_VALUE_CODE +" + ?1, refund_payment_id = ?2, refund_started_at = ?3, refund_transaction_id = ?4 WHERE id = ?5", nativeQuery = true)
+    void updatePurchaseRefundStatus(int status, String refundPaymentId, Date refundDoneAt, String refundTransactionId, Long purchaseId);
 }

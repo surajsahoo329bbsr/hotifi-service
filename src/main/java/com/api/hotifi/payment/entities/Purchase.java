@@ -25,6 +25,10 @@ public class Purchase implements Serializable {
 
     private String refundPaymentId;
 
+    private String paymentTransactionId;
+
+    private String refundTransactionId;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
