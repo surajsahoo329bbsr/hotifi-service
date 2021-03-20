@@ -7,8 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UsernameAvailabilityResponse {
+public class AvailabilityResponse {
 
-    private boolean isUsernameAvailable;
+    private Boolean isUsernameAvailable;
+
+    private Boolean isPhoneAvailable;
 
 }

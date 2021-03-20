@@ -14,6 +14,8 @@ public interface IUserService {
 
     boolean isUsernameAvailable(String username);
 
+    boolean isPhoneAvailable(String username);
+
     void resendEmailOtpLogin(String email);
 
     CredentialsResponse verifyEmailOtp(String email, String emailOtp);

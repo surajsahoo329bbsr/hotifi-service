@@ -71,6 +71,10 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    public void updatePhone(){
+
+    }
+
     //To check if username is available in database
     @Override
     @Transactional
@@ -97,6 +101,11 @@ public class UserServiceImpl implements IUserService {
     @Override
     public boolean isUsernameAvailable(String username) {
         return !userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public boolean isPhoneAvailable(String phone) {
+        return !authenticationRepository.existsByPhone(phone);
     }
 
     @Transactional

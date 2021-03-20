@@ -8,9 +8,7 @@ public interface IAuthenticationService extends UserDetailsService {
 
     CredentialsResponse addEmail(String email, String identifier, String token, String socialClient);
 
-    Authentication getAuthenticationForAdministrators(String email);
-
-    Authentication getAuthenticationForCustomer(String email);
+    Authentication getAuthentication(String email, boolean isAdmin);
 
     void resendEmailOtpSignUp(String email);
 

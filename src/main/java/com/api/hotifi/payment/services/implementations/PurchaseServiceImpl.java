@@ -443,7 +443,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
         wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
-        purchaseRepository.save(refundReceiptResponse.getPurchase());
+
+        //Below condition will save the entity only if complete payment with refund has not completed yet
+        if (refundReceiptResponse.getPurchase().getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.values().length)
+            purchaseRepository.save(refundReceiptResponse.getPurchase());
+
         return wifiSummaryResponse;
     }
 

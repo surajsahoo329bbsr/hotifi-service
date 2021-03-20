@@ -34,33 +34,33 @@ public class AuthenticationController {
 
     @GetMapping(path = "/administrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Authentication Details By Email For Administrators",
-            notes = "Get Authentication Details By Email For Administrators",
+            value = "Get Authentication Details By Email For Administrator",
+            notes = "Get Authentication Details By Email For Administrator",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> getAuthenticationForAdministrators(@PathVariable(value = "email")
-                                      @NotBlank(message = "{email.blank}")
-                                      @Email(message = "{email.pattern.invalid}")
-                                      @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthenticationForAdministrators(email);
+    public ResponseEntity<?> getAuthenticationForAdministrator(@PathVariable(value = "email")
+                                                                @NotBlank(message = "{email.blank}")
+                                                                @Email(message = "{email.pattern.invalid}")
+                                                                @Length(max = 255, message = "{email.length.invalid}") String email) {
+        Authentication authentication = authenticationService.getAuthentication(email, true);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
     @GetMapping(path = "/customer/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Authentication Details By Email For Customers",
-            notes = "Get Authentication Details By Email For Customers",
+            value = "Get Authentication Details By Email For Customer",
+            notes = "Get Authentication Details By Email For Customer",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getAuthenticationForCustomer(@PathVariable(value = "email")
-                                                               @NotBlank(message = "{email.blank}")
-                                                               @Email(message = "{email.pattern.invalid}")
-                                                               @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthenticationForCustomer(email);
+                                                          @NotBlank(message = "{email.blank}")
+                                                          @Email(message = "{email.pattern.invalid}")
+                                                          @Length(max = 255, message = "{email.length.invalid}") String email) {
+        Authentication authentication = authenticationService.getAuthentication(email, false);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 

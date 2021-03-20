@@ -50,19 +50,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public Authentication getAuthenticationForAdministrators(String email) {
+    public Authentication getAuthentication(String email, boolean isAdmin) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
-        authentication.setPassword(null);
-        return authentication;
-    }
-
-    @Override
-    public Authentication getAuthenticationForCustomer(String email) {
-        Authentication authentication = authenticationRepository.findByEmail(email);
-        if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+        if (isAdmin)
+            authentication.setPassword(null);
         return authentication;
     }
 
@@ -118,7 +111,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     }
 
-    //@Transaction cannot be added here
+    @Transactional
     @Override
     public void verifyEmail(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);

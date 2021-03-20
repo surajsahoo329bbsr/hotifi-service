@@ -10,8 +10,8 @@ import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.web.request.UserRequest;
+import com.api.hotifi.identity.web.response.AvailabilityResponse;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
-import com.api.hotifi.identity.web.response.UsernameAvailabilityResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
@@ -60,6 +60,8 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+
+
     @GetMapping(path = "/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get User Details By Username",
@@ -77,7 +79,7 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/is-available/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/is-available/username/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Checks If Username Is Available Or Not",
             notes = "Checks If Username Is Available Or Not",
@@ -88,10 +90,25 @@ public class UserController {
     public ResponseEntity<?> isUsernameAvailable(@PathVariable(value = "username")
                                                  @NotBlank(message = "{username.blank}")
                                                  @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
-
         //No need to check for role security here
         boolean isUsernameAvailable = userService.isUsernameAvailable(username);
-        return new ResponseEntity<>(new UsernameAvailabilityResponse(isUsernameAvailable), HttpStatus.OK);
+        return new ResponseEntity<>(new AvailabilityResponse(isUsernameAvailable, null), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/is-available/phone/{phone}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Checks If Phone Number Is Available Or Not",
+            notes = "Checks If Phone Number Is Available Or Not",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
+                                              @NotBlank(message = "{phone.blank}")
+                                              @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
+        //No need to check for role security here
+        boolean isPhoneAvailable = userService.isPhoneAvailable(phone);
+        return new ResponseEntity<>(new AvailabilityResponse(null, isPhoneAvailable), HttpStatus.OK);
     }
 
     @GetMapping(path = "/social/{identifier-id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -162,7 +179,7 @@ public class UserController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUserLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
-        if(customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
             userService.updateUserLogin(email, true);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -177,7 +194,7 @@ public class UserController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUserLogout(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
-        if(customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
+        if (customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))
             userService.updateUserLogin(email, false);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
