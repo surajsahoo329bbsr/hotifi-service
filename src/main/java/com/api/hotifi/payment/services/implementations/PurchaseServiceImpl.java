@@ -81,18 +81,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (sellerId.equals(buyerId))
             throw new HotifiException(PurchaseErrorCodes.BUYER_SELLER_SAME);
 
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-
-        BigDecimal totalPendingRefunds = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                .stream()
-                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value() &&
-                        purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value())
-                .map(Purchase::getAmountRefund)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        if (totalPendingRefunds.compareTo(BigDecimal.valueOf(Constants.MAXIMUM_REFUND_WITHDRAWAL_LIMIT)) > 0)
-            throw new HotifiException(PurchaseErrorCodes.WITHDRAW_PENDING_REFUNDS);
-
         return true;
     }
 

@@ -60,8 +60,6 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-
-
     @GetMapping(path = "/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get User Details By Username",
@@ -92,23 +90,7 @@ public class UserController {
                                                  @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
         //No need to check for role security here
         boolean isUsernameAvailable = userService.isUsernameAvailable(username);
-        return new ResponseEntity<>(new AvailabilityResponse(isUsernameAvailable, null), HttpStatus.OK);
-    }
-
-    @GetMapping(path = "/is-available/phone/{phone}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(
-            value = "Checks If Phone Number Is Available Or Not",
-            notes = "Checks If Phone Number Is Available Or Not",
-            response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
-                                              @NotBlank(message = "{phone.blank}")
-                                              @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
-        //No need to check for role security here
-        boolean isPhoneAvailable = userService.isPhoneAvailable(phone);
-        return new ResponseEntity<>(new AvailabilityResponse(null, isPhoneAvailable), HttpStatus.OK);
+        return new ResponseEntity<>(new AvailabilityResponse(isUsernameAvailable, null, null), HttpStatus.OK);
     }
 
     @GetMapping(path = "/social/{identifier-id}", produces = MediaType.APPLICATION_JSON_VALUE)

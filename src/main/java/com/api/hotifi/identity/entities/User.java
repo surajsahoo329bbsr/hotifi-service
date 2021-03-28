@@ -28,6 +28,7 @@ public class User implements Serializable {
     )
     Set<Device> userDevices;
 
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "seller_bank_account_id", referencedColumnName = "id")
     private BankAccount bankAccount;

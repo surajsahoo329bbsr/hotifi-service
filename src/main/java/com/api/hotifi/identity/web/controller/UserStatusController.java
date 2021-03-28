@@ -34,7 +34,7 @@ public class UserStatusController {
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
 
-    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add User Status Details",
             notes = "Add User Status Details",

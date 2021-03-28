@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.services.implementations;
 
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.SocialCodes;
@@ -27,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Console;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +67,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public CredentialsResponse addEmail(String email, String identifier, String token, String socialClient) {
         if ((socialClient != null && token == null) || (socialClient == null && token != null))
             throw new HotifiException(UserErrorCodes.USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND);
-        if (!socialService.isSocialUserVerified(token, null, email, SocialCodes.valueOf(socialClient)))
+        if (!socialService.isSocialUserVerified(token, identifier, email, SocialCodes.valueOf(socialClient)))
             throw new HotifiException(UserErrorCodes.USER_SOCIAL_IDENTIFIER_INVALID);
         try {
             boolean isEmailVerified = socialClient != null; //Do any not null check for social client or token
@@ -159,6 +161,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
+    public boolean isPhoneAvailable(String phone) {
+        return !authenticationRepository.existsByPhone(phone);
+    }
+
+    @Override
+    public boolean isEmailAvailable(String email) {
+        return false;
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (email == null)
@@ -167,7 +179,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 .stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
-        String decryptedPassword = authentication.getPassword();
+        String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
         return new User(authentication.getEmail(), decryptedPassword, authorities);
     }
 }

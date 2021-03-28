@@ -13,4 +13,6 @@ public class AvailabilityResponse {
 
     private Boolean isPhoneAvailable;
 
+    private Boolean isEmailAvailable;
+
 }

@@ -15,6 +15,7 @@ import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.services.interfaces.IStatsService;
+import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.responses.BuyerStatsResponse;
 import com.api.hotifi.payment.web.responses.SellerStatsResponse;
 import com.api.hotifi.session.entity.Session;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -56,9 +58,10 @@ public class StatsServiceImpl implements IStatsService {
             if (LegitUtils.isUserLegit(buyer)) {
                 Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("session_created_at").descending());
                 Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
+                Date currentTime = new Date(System.currentTimeMillis());
                 BigDecimal totalPendingRefunds =
                         purchaseStreamSupplier.get()
-                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value())
+                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                                 .map(Purchase::getAmountRefund)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

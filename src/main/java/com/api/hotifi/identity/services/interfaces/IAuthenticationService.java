@@ -16,4 +16,8 @@ public interface IAuthenticationService extends UserDetailsService {
 
     void verifyPhone(String email, String countryCode, String phone);
 
+    boolean isPhoneAvailable(String phone);
+
+    boolean isEmailAvailable(String email);
+
 }

@@ -1,5 +1,7 @@
 package com.api.hotifi.identity.web.controller;
 
+import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
+import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -8,6 +10,7 @@ import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.web.request.EmailOtpRequest;
 import com.api.hotifi.identity.web.request.PhoneRequest;
+import com.api.hotifi.identity.web.response.AvailabilityResponse;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @Validated
 @RestController
@@ -32,6 +36,9 @@ public class AuthenticationController {
     @Autowired
     private IAuthenticationService authenticationService;
 
+    @Autowired
+    private ICustomerAuthorizationService customerAuthorizationService;
+
     @GetMapping(path = "/administrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Authentication Details By Email For Administrator",
@@ -41,9 +48,9 @@ public class AuthenticationController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getAuthenticationForAdministrator(@PathVariable(value = "email")
-                                                                @NotBlank(message = "{email.blank}")
-                                                                @Email(message = "{email.pattern.invalid}")
-                                                                @Length(max = 255, message = "{email.length.invalid}") String email) {
+                                                               @NotBlank(message = "{email.blank}")
+                                                               @Email(message = "{email.pattern.invalid}")
+                                                               @Length(max = 255, message = "{email.length.invalid}") String email) {
         Authentication authentication = authenticationService.getAuthentication(email, true);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
@@ -55,16 +62,48 @@ public class AuthenticationController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getAuthenticationForCustomer(@PathVariable(value = "email")
                                                           @NotBlank(message = "{email.blank}")
                                                           @Email(message = "{email.pattern.invalid}")
                                                           @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthentication(email, false);
+        Authentication authentication = (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken())) ? authenticationService.getAuthentication(email, false) : null;
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/sign-up/{email}/{identifier}/{token}/{social-client}")
+    @GetMapping(path = "/is-available/phone/{phone}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Checks If Phone Number Is Available Or Not",
+            notes = "Checks If Phone Number Is Available Or Not",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
+                                              @NotBlank(message = "{phone.blank}")
+                                              @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
+        //No need to check for role security here
+        boolean isPhoneAvailable = authenticationService.isPhoneAvailable(phone);
+        return new ResponseEntity<>(new AvailabilityResponse(null, isPhoneAvailable, null), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/is-available/email/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Checks If Email Is Available Or Not",
+            notes = "Checks If Email Is Available Or Not",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> isEmailAvailable(@PathVariable(value = "email")
+                                              @NotBlank(message = "{email.blank}")
+                                              @Email(message = "{email.invalid}") String email) {
+        //No need to check for role security here
+        boolean isEmailAvailable = authenticationService.isEmailAvailable(email);
+        return new ResponseEntity<>(new AvailabilityResponse(null, null, isEmailAvailable), HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/sign-up/{email}")
     @ApiOperation(
             value = "Post Authentication By Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
@@ -76,12 +115,12 @@ public class AuthenticationController {
                                       @NotBlank(message = "{email.blank}")
                                       @Email(message = "{email.pattern.invalid}")
                                       @Length(max = 255, message = "{email.length.invalid}") String email,
-                                      @PathVariable(value = "identifier")
-                                      @Length(max = 255, message = "{id.identifier.length.invalid}") String identifier,
-                                      @PathVariable(value = "token")
-                                      @Length(max = 255, message = "{id.token.length.invalid}") String token,
-                                      @PathVariable(value = "social-client")
-                                      @SocialClient String socialClient) {
+                                      @ApiParam(name = "identifier", type = "String")
+                                      @Length(max = 255, message = "{id.identifier.length.invalid}") @RequestParam String identifier,
+                                      @ApiParam(name = "token", type = "String")
+                                      @Length(max = 255, message = "{id.token.length.invalid}") @RequestParam String token,
+                                      @ApiParam(name = "social-client", type = "String")
+                                      @SocialClient @RequestParam(name = "social-client") String socialClient) {
         CredentialsResponse credentialsResponse = authenticationService.addEmail(email, identifier, token, socialClient);
         return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
