@@ -118,7 +118,7 @@ public class AuthenticationController {
                                       @ApiParam(name = "identifier", type = "String")
                                       @Length(max = 255, message = "{id.identifier.length.invalid}") @RequestParam String identifier,
                                       @ApiParam(name = "token", type = "String")
-                                      @Length(max = 255, message = "{id.token.length.invalid}") @RequestParam String token,
+                                      @Length(max = 4048, message = "{id.token.length.invalid}") @RequestParam String token,
                                       @ApiParam(name = "social-client", type = "String")
                                       @SocialClient @RequestParam(name = "social-client") String socialClient) {
         CredentialsResponse credentialsResponse = authenticationService.addEmail(email, identifier, token, socialClient);

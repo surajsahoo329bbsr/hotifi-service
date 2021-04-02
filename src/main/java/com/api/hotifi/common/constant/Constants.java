@@ -16,6 +16,7 @@ public class Constants {
     public static final String RAZORPAY_CLIENT_ID = "";
     public static final String RAZORPAY_CLIENT_SECRET = "";
 
+    //Firebase Configuration
     public static final String GOOGLE_FIREBASE_PROJECT_NAME = "hotifi-app";
     public static final String GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH = "hotifi_app_firebase_service_account.json";
 

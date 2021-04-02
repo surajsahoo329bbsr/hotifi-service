@@ -41,7 +41,7 @@ public class UserServiceImpl implements IUserService {
     public void addUser(UserRequest userRequest) {
         Authentication authentication = authenticationRepository.findById(userRequest.getAuthenticationId()).orElse(null);
         if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         if (!authentication.isEmailVerified() || !authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_VERIFIED);
         if (userRepository.existsByFacebookId(userRequest.getFacebookId()) && userRequest.getFacebookId() != null)

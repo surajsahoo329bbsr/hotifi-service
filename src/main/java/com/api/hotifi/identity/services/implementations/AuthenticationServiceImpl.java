@@ -1,6 +1,5 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.SocialCodes;
@@ -28,7 +27,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Console;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -50,14 +48,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         this.socialService = socialService;
     }
 
-    @Transactional
     @Override
     public Authentication getAuthentication(String email, boolean isAdmin) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         if (isAdmin)
             authentication.setPassword(null);
+        if (!isAdmin) {
+            String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
+            authentication.setPassword(decryptedPassword);
+        }
         return authentication;
     }
 
@@ -104,7 +105,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         Authentication authentication = authenticationRepository.findByEmail(email);
         //Since it is signup so no need for verifying legit user
         if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
         //If token created at is null, it means otp is generated for first time or Otp duration expired and we are setting new Otp
@@ -118,7 +119,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public void verifyEmail(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         String encryptedEmailOtp = authentication.getEmailOtp();
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
@@ -143,7 +144,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public void verifyPhone(String email, String countryCode, String phone) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
-            throw new HotifiException(AuthenticationErrorCodes.EMAIL_DOES_NOT_EXIST);
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         if (!authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
         if (authentication.isPhoneVerified())
