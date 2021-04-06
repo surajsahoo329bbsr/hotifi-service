@@ -1,11 +1,10 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.processors.codes.CloudClientCodes;
 import com.api.hotifi.common.processors.codes.SocialCodes;
 import com.api.hotifi.common.services.interfaces.IEmailService;
-import com.api.hotifi.common.services.interfaces.ISocialService;
-import com.api.hotifi.common.utils.AESUtils;
+import com.api.hotifi.common.services.interfaces.IVerificationService;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.Role;
 import com.api.hotifi.identity.errors.AuthenticationErrorCodes;
@@ -39,26 +38,26 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final AuthenticationRepository authenticationRepository;
     private final RoleRepository roleRepository;
     private final IEmailService emailService;
-    private final ISocialService socialService;
+    private final IVerificationService verificationService;
 
-    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, ISocialService socialService) {
+    public AuthenticationServiceImpl(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, IVerificationService verificationService) {
         this.authenticationRepository = authenticationRepository;
         this.roleRepository = roleRepository;
         this.emailService = emailService;
-        this.socialService = socialService;
+        this.verificationService = verificationService;
     }
 
     @Override
-    public Authentication getAuthentication(String email, boolean isAdmin) {
+    public Authentication getAuthentication(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
-        if (authentication == null)
+        boolean isAdminEmail = authentication != null && authentication.getRoles()
+                .stream().anyMatch(role -> role.getName() == RoleName.ADMINISTRATOR);
+        if (authentication == null || isAdminEmail)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
-        if (isAdmin)
-            authentication.setPassword(null);
-        if (!isAdmin) {
-            String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
-            authentication.setPassword(decryptedPassword);
-        }
+        authentication.setCountryCode(null);
+        authentication.setPhone(null);
+        authentication.setEmailOtp(null);
+        authentication.setPassword(null);
         return authentication;
     }
 
@@ -66,16 +65,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     //If login client already has email verified no need for further verification
     public CredentialsResponse addEmail(String email, String identifier, String token, String socialClient) {
-        if ((socialClient != null && token == null) || (socialClient == null && token != null))
-            throw new HotifiException(UserErrorCodes.USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND);
-        if (!socialService.isSocialUserVerified(token, identifier, email, SocialCodes.valueOf(socialClient)))
+        boolean socialAddEmail = !(identifier == null && token == null && socialClient == null);
+        if (socialAddEmail && !verificationService.isSocialUserVerified(token, identifier, email, SocialCodes.valueOf(socialClient)))
             throw new HotifiException(UserErrorCodes.USER_SOCIAL_IDENTIFIER_INVALID);
         try {
             boolean isEmailVerified = socialClient != null; //Do any not null check for social client or token
             Authentication authentication = new Authentication();
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
-            String uuid = UUID.randomUUID().toString();
-            String encryptedPassword = AESUtils.encrypt(uuid, Constants.AES_PASSWORD_SECRET_KEY);
+            String password = UUID.randomUUID().toString();
+            String encryptedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            log.info("pass : " + password);
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
             authentication.setPassword(encryptedPassword);
@@ -86,8 +85,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
                 authenticationRepository.save(authentication);
-                String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
-                return new CredentialsResponse(authentication.getEmail(), decryptedPassword);
+                return new CredentialsResponse(authentication.getEmail(), password);
             }
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
@@ -116,11 +114,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void verifyEmail(String email, String emailOtp) {
+    public void verifyEmailOtpSignUp(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
-        String encryptedEmailOtp = authentication.getEmailOtp();
         if (authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_VERIFIED);
         if (OtpUtils.isEmailOtpExpired(authentication)) {
@@ -129,6 +126,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             authenticationRepository.save(authentication);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
         }
+        String encryptedEmailOtp = authentication.getEmailOtp();
         if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
             authentication.setEmailOtp(null);
             authentication.setEmailVerified(true);
@@ -141,7 +139,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Transactional
     @Override
-    public void verifyPhone(String email, String countryCode, String phone) {
+    public void verifyPhone(String email, String countryCode, String phone, String token) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (authentication == null)
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
@@ -149,6 +147,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
         if (authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
+        if (!verificationService.isPhoneUserVerified(countryCode, phone, token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
+            throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_EXISTS);
         try {
             authentication.setCountryCode(countryCode);
             authentication.setPhone(phone);
@@ -168,7 +168,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Override
     public boolean isEmailAvailable(String email) {
-        return false;
+        return !authenticationRepository.existsByEmail(email);
     }
 
     @Override
@@ -180,7 +180,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 .stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
-        String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
-        return new User(authentication.getEmail(), decryptedPassword, authorities);
+        return new User(authentication.getEmail(), authentication.getPassword(), authorities);
     }
 }

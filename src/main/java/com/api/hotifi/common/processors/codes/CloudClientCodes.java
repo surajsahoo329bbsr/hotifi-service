@@ -10,7 +10,8 @@ public enum CloudClientCodes {
 
     GOOGLE_CLOUD_PLATFORM, //100
     AMAZON_WEB_SERVICES, //101
-    AZURE; //102
+    AZURE, //102
+    TWILIO; //103
 
     private static final Map<Integer, CloudClientCodes> notificationClientCodes = new TreeMap<>();
 

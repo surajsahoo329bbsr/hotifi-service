@@ -5,6 +5,8 @@ import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.common.processors.codes.SocialCodes;
+import com.api.hotifi.common.validator.SocialClient;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
@@ -14,7 +16,6 @@ import com.api.hotifi.identity.web.response.AvailabilityResponse;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,10 +55,37 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest) {
         userService.addUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping(path = "/password/reset/custom/{email}/{email-otp}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Reset Password By Email Otp",
+            notes = "Reset Password By Email Otp",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    public ResponseEntity<?> resetPasswordForCustomUser(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email,
+                                                        @PathVariable(value = "email") @NotBlank(message = "{email.otp.blank}") String emailOtp) {
+        CredentialsResponse credentialsResponse = userService.resetPassword(email, emailOtp, null, null, null);
+        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/password/reset/custom/{email}/{identifier}/{token}/{social-code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Reset Password By Social Login Client",
+            notes = "Reset Password By Social Login Client",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    public ResponseEntity<?> resetPasswordForSocialUser(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email,
+                                                        @PathVariable(value = "identifier") @Length(max = 255, message = "{identifier.length.invalid}") @NotBlank(message = "{identifier.blank}") String identifier,
+                                                        @PathVariable(value = "token") @Length(max = 4048, message = "{token.length.invalid}") @NotBlank(message = "{token.blank}") String token,
+                                                        @PathVariable(value = "social-code") @Length(max = 255, message = "{social.code.length.invalid}") @SocialClient(message = "{social.code.blank}") String socialCode) {
+        CredentialsResponse credentialsResponse = userService.resetPassword(email, null, identifier, token, SocialCodes.valueOf(socialCode));
+        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
 
     @GetMapping(path = "/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -83,8 +111,6 @@ public class UserController {
             notes = "Checks If Username Is Available Or Not",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> isUsernameAvailable(@PathVariable(value = "username")
                                                  @NotBlank(message = "{username.blank}")
                                                  @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}") String username) {
@@ -111,27 +137,23 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/login/send/otp/{email}")
+    @PutMapping(path = "/login/otp/send/{email}")
     @ApiOperation(
             value = "Send Email Otp By Providing Email For Login",
             notes = "Send Email Otp By Providing Email For Login",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> sendEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
         userService.sendEmailOtpLogin(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/login/resend/otp/{email}")
+    @PutMapping(path = "/login/otp/resend/{email}")
     @ApiOperation(
             value = "Resend Email Otp By Providing Email For Login",
             notes = "Resend Email Otp By Providing Email For Login",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> resendEmailOtpLogin(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email) {
         userService.resendEmailOtpLogin(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -144,17 +166,15 @@ public class UserController {
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") String emailOtp) {
-        CredentialsResponse credentialsResponse = userService.verifyEmailOtp(email, emailOtp);
-        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
+    public ResponseEntity<?> verifyEmailOtp(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email, @PathVariable(value = "email-otp") @NotBlank(message = "email.otp.blank") String emailOtp) {
+        userService.verifyEmailOtpLogin(email, emailOtp);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping(path = "/login/{email}")
     @ApiOperation(
-            value = "Update user login by email",
-            notes = "Update user login by email",
+            value = "Update User Login By Email",
+            notes = "Update User Login By Email",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
@@ -168,8 +188,8 @@ public class UserController {
 
     @PutMapping(path = "/logout/{email}")
     @ApiOperation(
-            value = "Update user logout by email",
-            notes = "Update user logout by email",
+            value = "Update User Logout By Email",
+            notes = "Update User Logout By Email",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
@@ -189,26 +209,26 @@ public class UserController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateUser(@RequestBody @Valid UserRequest userRequest) {
-        if ((AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByAuthenticationId(userRequest.getAuthenticationId(), AuthorizationUtils.getUserToken())))
+        if (customerAuthorizationService.isAuthorizedByAuthenticationId(userRequest.getAuthenticationId(), AuthorizationUtils.getUserToken()))
             userService.updateUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/login/update/{id}/{login-status}")
+    @GetMapping(path = "/email/{email}")
     @ApiOperation(
-            value = "Update User Login Status",
-            notes = "Update User Login Status",
+            value = "Get User Details By Email",
+            notes = "Get User Details By Email",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> updateUserLogin(@PathVariable(value = "id") @Range(min = 1, message = "{user.id.invalid}") Long id, @PathVariable(value = "login-status") boolean loginStatus) {
-        if ((AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken())))
-            userService.updateLoginStatus(id, loginStatus);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<?> getUserByEmail(@PathVariable(value = "email") @Email(message = "{email.invalid}") String email) {
+        User user = ((AuthorizationUtils.isAdministratorRole()
+                || customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken()))) ? userService.getUserByEmail(email) : null;
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
 }

@@ -3,13 +3,14 @@ package com.api.hotifi.configuration;
 import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.authorization.service.CustomerAuthorizationImpl;
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
+import com.api.hotifi.common.processors.social.GoogleProcessor;
 import com.api.hotifi.common.services.implementations.EmailServiceImpl;
 import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
-import com.api.hotifi.common.services.implementations.SocialServiceImpl;
+import com.api.hotifi.common.services.implementations.VerificationServiceImpl;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.IFirebaseMessagingService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
-import com.api.hotifi.common.services.interfaces.ISocialService;
+import com.api.hotifi.common.services.interfaces.IVerificationService;
 import com.api.hotifi.identity.repositories.*;
 import com.api.hotifi.identity.services.implementations.AuthenticationServiceImpl;
 import com.api.hotifi.identity.services.implementations.DeviceServiceImpl;
@@ -40,8 +41,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IAuthenticationService authenticationService(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, ISocialService socialService) {
-        return new AuthenticationServiceImpl(authenticationRepository, roleRepository, emailService, socialService);
+    public IAuthenticationService authenticationService(AuthenticationRepository authenticationRepository, RoleRepository roleRepository, IEmailService emailService, IVerificationService verificationService) {
+        return new AuthenticationServiceImpl(authenticationRepository, roleRepository, emailService, verificationService);
     }
 
     @Bean
@@ -60,13 +61,13 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public ISocialService socialService(){
-        return new SocialServiceImpl();
+    public IVerificationService verificationService(){
+        return new VerificationServiceImpl();
     }
 
     @Bean
-    public IUserService userService(UserRepository userRepository, AuthenticationRepository authenticationRepository, IEmailService emailService) {
-        return new UserServiceImpl(userRepository, authenticationRepository, emailService);
+    public IUserService userService(UserRepository userRepository, AuthenticationRepository authenticationRepository, IVerificationService verificationService, IEmailService emailService) {
+        return new UserServiceImpl(userRepository, authenticationRepository, emailService, verificationService);
     }
 
     @Bean

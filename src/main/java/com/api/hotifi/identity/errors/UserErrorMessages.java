@@ -13,6 +13,8 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_SOCIAL_TOKEN_OR_IDENTIFIER_NOT_FOUND = "Either social token or identifier is null";
     public static final String USER_SOCIAL_IDENTIFIER_INVALID = "User social identifier is invalid";
     public static final String EMAIL_OTP_ALREADY_GENERATED = "Email OTP already generated.";
+    public static final String BAD_RESET_PASSWORD_REQUEST = "Bad reset password request";
+    public static final String EMAIL_OTP_NOT_FOUND = "Email Otp Not Found";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_OTP = "Invalid otp";
     public static final String INVALID_LINKED_ACCOUNT_ID = "Invalid Linked Account Id";
@@ -23,6 +25,7 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_ALREADY_LOGGED_OUT = "User already logged out";
     public static final String USER_NOT_LOGGED_IN = "User not logged in";
     public static final String USER_LINKED_ACCOUNT_ID_NULL = "User Linked Account not added";
+    public static final String USER_NOT_AUTHENTICATED = "User not authenticated";
     public static final String USER_ALREADY_ACTIVATED = "User already activated";
     public static final String USER_NOT_ACTIVATED = "User not activated";
     public static final String USER_ALREADY_NOT_ACTIVATED = "User already not activated";

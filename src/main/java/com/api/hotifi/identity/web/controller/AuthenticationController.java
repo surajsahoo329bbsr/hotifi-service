@@ -1,7 +1,6 @@
 package com.api.hotifi.identity.web.controller;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
-import com.api.hotifi.authorization.utils.AuthorizationUtils;
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,35 +37,18 @@ public class AuthenticationController {
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
 
-    @GetMapping(path = "/administrator/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(
-            value = "Get Authentication Details By Email For Administrator",
-            notes = "Get Authentication Details By Email For Administrator",
-            response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> getAuthenticationForAdministrator(@PathVariable(value = "email")
-                                                               @NotBlank(message = "{email.blank}")
-                                                               @Email(message = "{email.pattern.invalid}")
-                                                               @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = authenticationService.getAuthentication(email, true);
-        return new ResponseEntity<>(authentication, HttpStatus.OK);
-    }
-
-    @GetMapping(path = "/customer/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Authentication Details By Email For Customer",
             notes = "Get Authentication Details By Email For Customer",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> getAuthenticationForCustomer(@PathVariable(value = "email")
-                                                          @NotBlank(message = "{email.blank}")
-                                                          @Email(message = "{email.pattern.invalid}")
-                                                          @Length(max = 255, message = "{email.length.invalid}") String email) {
-        Authentication authentication = (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByEmail(email, AuthorizationUtils.getUserToken())) ? authenticationService.getAuthentication(email, false) : null;
+    public ResponseEntity<?> getAuthentication(
+            @PathVariable(value = "email")
+            @NotBlank(message = "{email.blank}")
+            @Email(message = "{email.pattern.invalid}")
+            @Length(max = 255, message = "{email.length.invalid}") String email) {
+        Authentication authentication = authenticationService.getAuthentication(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
 
@@ -77,8 +58,6 @@ public class AuthenticationController {
             notes = "Checks If Phone Number Is Available Or Not",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
                                               @NotBlank(message = "{phone.blank}")
                                               @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
@@ -93,8 +72,6 @@ public class AuthenticationController {
             notes = "Checks If Email Is Available Or Not",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> isEmailAvailable(@PathVariable(value = "email")
                                               @NotBlank(message = "{email.blank}")
                                               @Email(message = "{email.invalid}") String email) {
@@ -103,25 +80,38 @@ public class AuthenticationController {
         return new ResponseEntity<>(new AvailabilityResponse(null, null, isEmailAvailable), HttpStatus.OK);
     }
 
-    @PostMapping(path = "/sign-up/{email}")
+    @PostMapping(path = "/sign-up/social/{email}")
     @ApiOperation(
-            value = "Post Authentication By Email",
+            value = "Post Authentication By Social Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> addEmail(@PathVariable(value = "email")
-                                      @NotBlank(message = "{email.blank}")
-                                      @Email(message = "{email.pattern.invalid}")
-                                      @Length(max = 255, message = "{email.length.invalid}") String email,
-                                      @ApiParam(name = "identifier", type = "String")
-                                      @Length(max = 255, message = "{id.identifier.length.invalid}") @RequestParam String identifier,
-                                      @ApiParam(name = "token", type = "String")
-                                      @Length(max = 4048, message = "{id.token.length.invalid}") @RequestParam String token,
-                                      @ApiParam(name = "social-client", type = "String")
-                                      @SocialClient @RequestParam(name = "social-client") String socialClient) {
+    public ResponseEntity<?> addSocialEmail(@PathVariable(value = "email")
+                                            @NotBlank(message = "{email.blank}")
+                                            @Email(message = "{email.pattern.invalid}")
+                                            @Length(max = 255, message = "{email.length.invalid}") String email,
+                                            @ApiParam(name = "identifier", type = "String")
+                                            @NotBlank(message = "{identifier.blank}")
+                                            @Length(max = 255, message = "{id.identifier.length.invalid}") @RequestParam String identifier,
+                                            @NotBlank(message = "{token.blank}") @ApiParam(name = "token", type = "String")
+                                            @Length(max = 4048, message = "{id.token.length.invalid}") @RequestParam String token,
+                                            @NotBlank(message = "{social.client.blank}") @ApiParam(name = "social-client", type = "String")
+                                            @SocialClient @RequestParam(name = "social-client") String socialClient) {
         CredentialsResponse credentialsResponse = authenticationService.addEmail(email, identifier, token, socialClient);
+        return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/sign-up/custom/{email}")
+    @ApiOperation(
+            value = "Post Authentication By Custom Email",
+            notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    public ResponseEntity<?> addCustomEmail(@PathVariable(value = "email")
+                                            @NotBlank(message = "{email.blank}")
+                                            @Email(message = "{email.pattern.invalid}")
+                                            @Length(max = 255, message = "{email.length.invalid}") String email) {
+        CredentialsResponse credentialsResponse = authenticationService.addEmail(email, null, null, null);
         return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
 
@@ -132,8 +122,6 @@ public class AuthenticationController {
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> resendEmailOtpSignUp(@PathVariable(value = "email")
                                                   @NotBlank(message = "{email.blank}")
                                                   @Email(message = "{email.pattern.invalid}")
@@ -149,10 +137,8 @@ public class AuthenticationController {
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyEmail(@RequestBody @Valid EmailOtpRequest emailOtpRequest) {
-        authenticationService.verifyEmail(emailOtpRequest.getEmail(), emailOtpRequest.getOtp());
+        authenticationService.verifyEmailOtpSignUp(emailOtpRequest.getEmail(), emailOtpRequest.getOtp());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -163,10 +149,8 @@ public class AuthenticationController {
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> verifyPhone(@RequestBody @Valid PhoneRequest phoneRequest) {
-        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone());
+        authenticationService.verifyPhone(phoneRequest.getEmail(), phoneRequest.getCountryCode(), phoneRequest.getPhone(), phoneRequest.getToken());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

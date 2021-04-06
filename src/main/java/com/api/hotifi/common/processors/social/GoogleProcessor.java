@@ -35,6 +35,11 @@ public class GoogleProcessor {
         return false;
     }
 
+    public boolean verifyPhone(String countryCode, String phone,String token) {
+        //TODO
+        return false;
+    }
+
     public User getUserDetails(String token) {
 
         NetHttpTransport netHttpTransport = new NetHttpTransport();

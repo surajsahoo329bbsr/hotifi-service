@@ -41,9 +41,10 @@ public class UserStatusController {
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addUserStatus(@RequestBody @Validated UserStatusRequest userStatusRequest) {
-        List<UserStatus> userStatus = userStatusService.addUserStatus(userStatusRequest);
+        List<UserStatus> userStatus = customerAuthorizationService.isAuthorizedByUserId(userStatusRequest.getUserId(), AuthorizationUtils.getUserToken()) ?
+                userStatusService.addUserStatus(userStatusRequest) : null;
         return new ResponseEntity<>(userStatus, HttpStatus.OK);
     }
 
@@ -64,15 +65,16 @@ public class UserStatusController {
 
     @PutMapping(path = "/unfreeze/{user-id}")
     @ApiOperation(
-            value = "Freeze/Unfreeze User Status By User Id",
-            notes = "Freeze/Unfreeze User Status By User Id",
+            value = "Unfreeze User Status By User Id",
+            notes = "Unfreeze User Status By User Id",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> unfreezeUser(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
-        userStatusService.freezeUser(userId, false);
+        if (customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()))
+            userStatusService.freezeUser(userId, false);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

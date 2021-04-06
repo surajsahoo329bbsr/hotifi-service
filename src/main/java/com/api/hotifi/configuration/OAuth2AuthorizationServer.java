@@ -35,7 +35,8 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
         clients.inMemory()
                 .withClient(Constants.HOTIFI_OAUTH2_CLIENT_ID)
                 .secret(passwordEncoder().encode(Constants.HOTIFI_OAUTH2_CLIENT_SECRET))
-                .authorizedGrantTypes("password", "authorization_code", "refresh_token").scopes("read", "write")
+                .authorizedGrantTypes("password", "authorization_code", "refresh_token")
+                .scopes("read", "write")
                 .autoApprove(true);
     }
 

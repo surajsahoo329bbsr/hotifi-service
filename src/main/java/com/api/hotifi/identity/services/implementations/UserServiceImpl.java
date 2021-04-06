@@ -2,8 +2,9 @@ package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.constant.Constants;
 import com.api.hotifi.common.exception.HotifiException;
+import com.api.hotifi.common.processors.codes.SocialCodes;
 import com.api.hotifi.common.services.interfaces.IEmailService;
-import com.api.hotifi.common.utils.AESUtils;
+import com.api.hotifi.common.services.interfaces.IVerificationService;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
@@ -22,6 +23,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 public class UserServiceImpl implements IUserService {
@@ -29,11 +31,13 @@ public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final AuthenticationRepository authenticationRepository;
     private final IEmailService emailService;
+    private final IVerificationService verificationService;
 
-    public UserServiceImpl(UserRepository userRepository, AuthenticationRepository authenticationRepository, IEmailService emailService) {
+    public UserServiceImpl(UserRepository userRepository, AuthenticationRepository authenticationRepository, IEmailService emailService, IVerificationService verificationService) {
         this.userRepository = userRepository;
         this.authenticationRepository = authenticationRepository;
         this.emailService = emailService;
+        this.verificationService = verificationService;
     }
 
     @Override
@@ -71,6 +75,39 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    @Transactional
+    @Override
+    public CredentialsResponse resetPassword(String email, String emailOtp, String identifier, String token, SocialCodes socialCode) {
+        boolean isSocialLogin = identifier != null && token != null && socialCode != null;
+        boolean isCustomLogin = emailOtp != null;
+        boolean isBothSocialCustomLogin = isCustomLogin == isSocialLogin;
+        if (isBothSocialCustomLogin)
+            throw new HotifiException(UserErrorCodes.BAD_RESET_PASSWORD_REQUEST);
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
+        if (user == null)
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
+        if (!LegitUtils.isAuthenticationLegit(authentication))
+            throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
+
+        String newPassword = UUID.randomUUID().toString();
+        String encryptedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        boolean isSocialUserVerified = isSocialLogin && verificationService.isSocialUserVerified(email, identifier, token, socialCode);
+
+        if (!isSocialUserVerified && OtpUtils.isEmailOtpExpired(authentication)) {
+            log.error("Otp Expired");
+            throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_EXPIRED);
+        }
+        if (isSocialUserVerified || BCrypt.checkpw(emailOtp, authentication.getEmailOtp())) {
+            log.info("User Email Verified");
+            authentication.setPassword(encryptedPassword);
+            authenticationRepository.save(authentication);
+            return new CredentialsResponse(email, newPassword);
+        }
+
+        throw new HotifiException(UserErrorCodes.UNEXPECTED_USER_ERROR);
+    }
+
     //To check if username is available in database
     @Override
     @Transactional
@@ -82,10 +119,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public void sendEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
-        User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
         //If user doesn't exist no need to check legit authentication
-        if (user == null)
-            throw new HotifiException(UserErrorCodes.USER_EXISTS);
         if (authentication.getEmailOtp() != null)
             throw new HotifiException(UserErrorCodes.EMAIL_OTP_ALREADY_GENERATED);
         if (!LegitUtils.isAuthenticationLegit(authentication))
@@ -112,9 +146,9 @@ public class UserServiceImpl implements IUserService {
         OtpUtils.saveAuthenticationEmailOtp(authentication, authenticationRepository, emailService);
     }
 
-    //DO NOT ADD @Transaction
+    //DO NOT ADD @Transactional
     @Override
-    public CredentialsResponse verifyEmailOtp(String email, String emailOtp) {
+    public void verifyEmailOtpLogin(String email, String emailOtp) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         if (OtpUtils.isEmailOtpExpired(authentication)) {
             log.error("Otp Expired");
@@ -124,29 +158,33 @@ public class UserServiceImpl implements IUserService {
         }
 
         String encryptedEmailOtp = authentication.getEmailOtp();
+        String password = UUID.randomUUID().toString();
+        String encryptedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         if (BCrypt.checkpw(emailOtp, encryptedEmailOtp)) {
             authentication.setEmailOtp(null);
             authentication.setEmailVerified(true);
+            authentication.setPassword(encryptedPassword);
             authenticationRepository.save(authentication);
             log.info("User Email Verified");
         } else
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_OTP_INVALID);
-
-        String decryptedPassword = AESUtils.decrypt(authentication.getPassword(), Constants.AES_PASSWORD_SECRET_KEY);
-        return new CredentialsResponse(authentication.getEmail(), decryptedPassword);
     }
 
     @Override
     @Transactional
-    public void updateUserLogin(String email, boolean isLogin){
+    public void updateUserLogin(String email, boolean isLogin) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         User user = authentication != null ? userRepository.findByAuthenticationId(authentication.getId()) : null;
-        if(LegitUtils.isUserLegit(user)) {
-            Date logTime = new Date(System.currentTimeMillis());
-            user.setLoggedIn(isLogin);
-            user.setLoggedAt(logTime);
-            userRepository.save(user);
-        }
+        if (!LegitUtils.isUserLegit(user))
+            throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+        if (user.isLoggedIn() && isLogin)
+            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_IN);
+        if (!user.isLoggedIn() && !isLogin)
+            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_OUT);
+        Date logTime = new Date(System.currentTimeMillis());
+        user.setLoggedIn(isLogin);
+        user.setLoggedAt(logTime);
+        userRepository.save(user);
     }
 
     @Override
@@ -163,18 +201,13 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public void updateLoginStatus(Long id, boolean loginStatus) {
-        User user = userRepository.findById(id).orElse(null);
+    public User getUserByEmail(String email) {
+        Authentication authentication = authenticationRepository.findByEmail(email);
+        Long authenticationId = (authentication != null) ? authentication.getId() : null;
+        User user = userRepository.findByAuthenticationId(authenticationId);
         if (!LegitUtils.isUserLegit(user))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
-        if (user.isLoggedIn() && loginStatus)
-            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_IN);
-        else if (!user.isLoggedIn() && !loginStatus)
-            throw new HotifiException(UserErrorCodes.USER_ALREADY_LOGGED_OUT);
-        else {
-            user.setLoggedIn(loginStatus);
-            userRepository.save(user);
-        }
+        return user;
     }
 
     //user defined functions

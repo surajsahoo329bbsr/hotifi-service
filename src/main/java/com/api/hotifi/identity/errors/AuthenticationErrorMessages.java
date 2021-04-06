@@ -15,4 +15,5 @@ public class AuthenticationErrorMessages {
     public static final String AUTHENTICATION_NOT_LEGIT = "Authentication is not legit";
     public static final String UNEXPECTED_AUTHENTICATION_ERROR =  "Unexpected authentication error";
     public static final String FIREBASE_AUTH_EXCEPTION = "Firebase auth exception occurred";
+    public static final String PHONE_TOKEN_INVALID = "Phone token invalid";
 }

@@ -68,12 +68,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     }
 
-    /*@ExceptionHandler(Exception.class)
-    public final ResponseEntity<?> handleAllExceptions(Exception e) {
-        ErrorCode errorCode = new ErrorCode(NOT_FOUND.toString(), Collections.singletonList(e.getMessage()), NOT_FOUND.value());
-        return new ResponseEntity<>(errorCode, HttpStatus.valueOf(errorCode.getHttpStatusCode()));
-    }*/
-
     //other exception handlers below
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handlerConstraintViolationException(ConstraintViolationException exception) {

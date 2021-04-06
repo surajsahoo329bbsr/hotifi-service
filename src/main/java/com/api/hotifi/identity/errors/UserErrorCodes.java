@@ -34,4 +34,7 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode USER_BANNED = new ErrorCode("23", Collections.singletonList(getMessage("USER_BANNED", UserErrorMessages.USER_BANNED)), 500);
     public static final ErrorCode USER_DELETED = new ErrorCode("24", Collections.singletonList(getMessage("USER_DELETED", UserErrorMessages.USER_DELETED)), 500);
     public static final ErrorCode USER_LINKED_ACCOUNT_ID_NULL = new ErrorCode("25", Collections.singletonList(getMessage("USER_LINKED_ACCOUNT_ID_NULL", UserErrorMessages.USER_LINKED_ACCOUNT_ID_NULL)), 500);
+    public static final ErrorCode EMAIL_OTP_NOT_FOUND = new ErrorCode("26", Collections.singletonList(getMessage("EMAIL_OTP_NOT_FOUND", UserErrorMessages.EMAIL_OTP_ALREADY_GENERATED)), 400);
+    public static final ErrorCode BAD_RESET_PASSWORD_REQUEST = new ErrorCode("27", Collections.singletonList(getMessage("BAD_RESET_PASSWORD_REQUEST", UserErrorMessages.BAD_RESET_PASSWORD_REQUEST)), 400);
+
 }

@@ -22,5 +22,6 @@ public class AuthenticationErrorCodes extends ErrorCodes {
     public static final ErrorCode EMAIL_NOT_VERIFIED = new ErrorCode("04", Collections.singletonList(getMessage("EMAIL_NOT_VERIFIED", AuthenticationErrorMessages.EMAIL_NOT_VERIFIED)), 500);
     public static final ErrorCode PHONE_ALREADY_EXISTS = new ErrorCode("05", Collections.singletonList(getMessage("PHONE_ALREADY_EXISTS", AuthenticationErrorMessages.PHONE_ALREADY_EXISTS)), 500);
     public static final ErrorCode PHONE_ALREADY_VERIFIED = new ErrorCode("06", Collections.singletonList(getMessage("PHONE_ALREADY_VERIFIED", AuthenticationErrorMessages.PHONE_ALREADY_VERIFIED)), 500);
+    public static final ErrorCode PHONE_TOKEN_INVALID = new ErrorCode("07", Collections.singletonList(getMessage("PHONE_TOKEN_INVALID", AuthenticationErrorMessages.PHONE_TOKEN_INVALID)), 500);
 
 }

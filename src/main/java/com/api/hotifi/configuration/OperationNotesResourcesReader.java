@@ -36,17 +36,15 @@ public class OperationNotesResourcesReader implements OperationBuilderPlugin {
 
             // Check authorization
             Optional<PreAuthorize> preAuthorizeAnnotation = context.findAnnotation(PreAuthorize.class);
-            sb.append("<b>Access Privileges & Rules</b>: ");
             if (preAuthorizeAnnotation.isPresent()) {
+                sb.append("<b>Access Privileges & Rules</b>: ");
                 sb.append("<em>").append(preAuthorizeAnnotation.get().value()).append("</em>");
-            } else {
-                sb.append("<em>NOT_FOUND</em>");
             }
 
             // Check notes
             Optional<ApiOperation> annotation = context.findAnnotation(ApiOperation.class);
             if (annotation.isPresent() && StringUtils.hasText(annotation.get().notes())) {
-                sb.append("<br /><br />");
+                sb.append("<br />");
                 sb.append(annotation.get().notes());
             }
 

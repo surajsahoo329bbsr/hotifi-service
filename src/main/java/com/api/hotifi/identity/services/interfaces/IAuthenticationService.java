@@ -8,13 +8,13 @@ public interface IAuthenticationService extends UserDetailsService {
 
     CredentialsResponse addEmail(String email, String identifier, String token, String socialClient);
 
-    Authentication getAuthentication(String email, boolean isAdmin);
+    Authentication getAuthentication(String email);
 
     void resendEmailOtpSignUp(String email);
 
-    void verifyEmail(String email, String otp);
+    void verifyEmailOtpSignUp(String email, String otp);
 
-    void verifyPhone(String email, String countryCode, String phone);
+    void verifyPhone(String email, String countryCode, String phone, String token);
 
     boolean isPhoneAvailable(String phone);
 
