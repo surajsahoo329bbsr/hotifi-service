@@ -48,6 +48,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Authentication getAuthentication(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         boolean isAdminEmail = authentication != null && authentication.getRoles()
@@ -147,7 +148,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
         if (authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
-        if (!verificationService.isPhoneUserVerified(countryCode, phone, token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
+        if (!verificationService.isPhoneUserVerified(countryCode, phone , token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_EXISTS);
         try {
             authentication.setCountryCode(countryCode);

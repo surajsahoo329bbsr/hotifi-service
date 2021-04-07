@@ -46,8 +46,7 @@ public class AuthenticationController {
     public ResponseEntity<?> getAuthentication(
             @PathVariable(value = "email")
             @NotBlank(message = "{email.blank}")
-            @Email(message = "{email.pattern.invalid}")
-            @Length(max = 255, message = "{email.length.invalid}") String email) {
+            @Email(message = "{email.pattern.invalid}") String email) {
         Authentication authentication = authenticationService.getAuthentication(email);
         return new ResponseEntity<>(authentication, HttpStatus.OK);
     }
@@ -88,8 +87,7 @@ public class AuthenticationController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     public ResponseEntity<?> addSocialEmail(@PathVariable(value = "email")
                                             @NotBlank(message = "{email.blank}")
-                                            @Email(message = "{email.pattern.invalid}")
-                                            @Length(max = 255, message = "{email.length.invalid}") String email,
+                                            @Email(message = "{email.pattern.invalid}") String email,
                                             @ApiParam(name = "identifier", type = "String")
                                             @NotBlank(message = "{identifier.blank}")
                                             @Length(max = 255, message = "{id.identifier.length.invalid}") @RequestParam String identifier,
@@ -109,8 +107,7 @@ public class AuthenticationController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     public ResponseEntity<?> addCustomEmail(@PathVariable(value = "email")
                                             @NotBlank(message = "{email.blank}")
-                                            @Email(message = "{email.pattern.invalid}")
-                                            @Length(max = 255, message = "{email.length.invalid}") String email) {
+                                            @Email(message = "{email.pattern.invalid}") String email) {
         CredentialsResponse credentialsResponse = authenticationService.addEmail(email, null, null, null);
         return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
@@ -124,8 +121,7 @@ public class AuthenticationController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     public ResponseEntity<?> resendEmailOtpSignUp(@PathVariable(value = "email")
                                                   @NotBlank(message = "{email.blank}")
-                                                  @Email(message = "{email.pattern.invalid}")
-                                                  @Length(max = 255, message = "{email.length.invalid}") String email) {
+                                                  @Email(message = "{email.pattern.invalid}") String email) {
         authenticationService.resendEmailOtpSignUp(email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

@@ -90,8 +90,6 @@ public class UserServiceImpl implements IUserService {
         if (!LegitUtils.isAuthenticationLegit(authentication))
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
 
-        String newPassword = UUID.randomUUID().toString();
-        String encryptedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
         boolean isSocialUserVerified = isSocialLogin && verificationService.isSocialUserVerified(email, identifier, token, socialCode);
 
         if (!isSocialUserVerified && OtpUtils.isEmailOtpExpired(authentication)) {
@@ -100,6 +98,8 @@ public class UserServiceImpl implements IUserService {
         }
         if (isSocialUserVerified || BCrypt.checkpw(emailOtp, authentication.getEmailOtp())) {
             log.info("User Email Verified");
+            String newPassword = UUID.randomUUID().toString();
+            String encryptedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
             authentication.setPassword(encryptedPassword);
             authenticationRepository.save(authentication);
             return new CredentialsResponse(email, newPassword);

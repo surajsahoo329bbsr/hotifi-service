@@ -60,7 +60,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/password/reset/custom/{email}/{email-otp}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/password/reset/custom/{email}/{email-otp}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Reset Password By Email Otp",
             notes = "Reset Password By Email Otp",
@@ -68,12 +68,12 @@ public class UserController {
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     public ResponseEntity<?> resetPasswordForCustomUser(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email,
-                                                        @PathVariable(value = "email") @NotBlank(message = "{email.otp.blank}") String emailOtp) {
+                                                        @PathVariable(value = "email-otp") @NotBlank(message = "{email.otp.blank}") String emailOtp) {
         CredentialsResponse credentialsResponse = userService.resetPassword(email, emailOtp, null, null, null);
         return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/password/reset/custom/{email}/{identifier}/{token}/{social-code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/password/reset/social/{email}/{identifier}/{token}/{social-code}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Reset Password By Social Login Client",
             notes = "Reset Password By Social Login Client",
@@ -83,8 +83,8 @@ public class UserController {
     public ResponseEntity<?> resetPasswordForSocialUser(@PathVariable(value = "email") @Email(message = "{user.email.invalid}") String email,
                                                         @PathVariable(value = "identifier") @Length(max = 255, message = "{identifier.length.invalid}") @NotBlank(message = "{identifier.blank}") String identifier,
                                                         @PathVariable(value = "token") @Length(max = 4048, message = "{token.length.invalid}") @NotBlank(message = "{token.blank}") String token,
-                                                        @PathVariable(value = "social-code") @Length(max = 255, message = "{social.code.length.invalid}") @SocialClient(message = "{social.code.blank}") String socialCode) {
-        CredentialsResponse credentialsResponse = userService.resetPassword(email, null, identifier, token, SocialCodes.valueOf(socialCode));
+                                                        @PathVariable(value = "social-code") @Length(max = 255, message = "{social.code.length.invalid}") @SocialClient(message = "{social.code.blank}") String socialClient) {
+        CredentialsResponse credentialsResponse = userService.resetPassword(email, null, identifier, token, SocialCodes.valueOf(socialClient));
         return new ResponseEntity<>(credentialsResponse, HttpStatus.OK);
     }
 

@@ -15,7 +15,6 @@ public class PhoneRequest {
 
     @NotBlank(message = "{email.blank}")
     @Email(message = "{email.pattern.invalid}")
-    @Length(max = 255, message = "{email.length.invalid}")
     private String email;
 
     @NotBlank(message = "{phone.cc.blank}")

@@ -13,8 +13,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class CredentialsResponse {
 
-    @Email
-    @Length(max = 255, message = "{username.length.invalid}")
+    @Email(message = "{username.length.invalid}")
     private String username;
 
     @NotBlank
