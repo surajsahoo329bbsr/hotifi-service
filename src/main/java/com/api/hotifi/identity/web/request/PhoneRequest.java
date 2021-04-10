@@ -26,7 +26,6 @@ public class PhoneRequest {
     private String phone;
 
     @NotBlank(message = "{token.blank}")
-    @Length(max = 255, message = "{token.length.invalid}")
     private String token;
 
 }

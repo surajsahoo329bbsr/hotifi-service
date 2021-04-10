@@ -20,6 +20,8 @@ public class Constants {
     public static final String GOOGLE_FIREBASE_PROJECT_NAME = "hotifi-app";
     public static final String GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH = "hotifi_app_firebase_service_account.json";
     public static final String GOOGLE_FIREBASE_ANDROID_CLIENT_SECRET = "AIzaSyDIvatKdpJKNb2t8QdiU7fHo0DSN1Mebtc";
+    public static final String FIREBASE_GET_ACCOUNT_INFO_URL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo";
+
 
     //Facebook Configuration
     public static final String FACEBOOK_APP_ID = "194688711814079";

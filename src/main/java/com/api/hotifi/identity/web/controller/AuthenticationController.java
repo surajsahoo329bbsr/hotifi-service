@@ -24,7 +24,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-
 @Validated
 @RestController
 @Api(tags = Constants.AUTHENTICATION_TAG)

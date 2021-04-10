@@ -149,7 +149,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
         if (!verificationService.isPhoneUserVerified(countryCode, phone , token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
-            throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_EXISTS);
+            throw new HotifiException(AuthenticationErrorCodes.PHONE_TOKEN_INVALID);
         try {
             authentication.setCountryCode(countryCode);
             authentication.setPhone(phone);

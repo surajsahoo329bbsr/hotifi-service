@@ -3,7 +3,6 @@ package com.api.hotifi.configuration;
 import com.api.hotifi.authorization.jwt.JwtDecoder;
 import com.api.hotifi.authorization.service.CustomerAuthorizationImpl;
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
-import com.api.hotifi.common.processors.social.GoogleProcessor;
 import com.api.hotifi.common.services.implementations.EmailServiceImpl;
 import com.api.hotifi.common.services.implementations.NotificationServiceImpl;
 import com.api.hotifi.common.services.implementations.VerificationServiceImpl;
