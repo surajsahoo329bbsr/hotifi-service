@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.processor.razorpay;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.payment.error.RazorpayErrorCodes;
 import com.api.hotifi.payment.processor.response.Settlement;
@@ -20,7 +20,7 @@ public class RazorpayProcessor {
 
     public RazorpayProcessor() {
         try {
-            razorpayClient = new RazorpayClient(Constants.RAZORPAY_CLIENT_ID, Constants.RAZORPAY_CLIENT_SECRET);
+            razorpayClient = new RazorpayClient(AppConfigurations.RAZORPAY_CLIENT_ID, AppConfigurations.RAZORPAY_CLIENT_SECRET);
         } catch (RazorpayException e) {
             throw new HotifiException(RazorpayErrorCodes.INVALID_CLIENT_CREDENTIALS);
         }

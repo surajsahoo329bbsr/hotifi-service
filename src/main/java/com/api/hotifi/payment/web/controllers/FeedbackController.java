@@ -2,9 +2,11 @@ package com.api.hotifi.payment.web.controllers;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.entities.Feedback;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.web.request.FeedbackRequest;
@@ -24,7 +26,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = Constants.FEEDBACK_TAG)
+@Api(tags = AppConfigurations.FEEDBACK_TAG)
 @RequestMapping(path = "/feedback")
 public class FeedbackController {
 
@@ -54,7 +56,10 @@ public class FeedbackController {
             value = "Get Feedback Details By Purchase Id",
             notes = "Get Feedback Details By Purchase Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = Feedback.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getPurchaseFeedback(@PathVariable(value = "purchase-id") @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
@@ -69,7 +74,10 @@ public class FeedbackController {
             value = "Get Seller Feedback By Seller Id And Pagination Values",
             notes = "Get Seller Feedback By Seller Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = FeedbackResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerFeedbacks(@PathVariable(value = "seller-id")
@@ -90,7 +98,10 @@ public class FeedbackController {
             value = "Get Seller Feedback By Seller Id And Pagination Values",
             notes = "Get Seller Feedback By Seller Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReviewsResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerRatingDetails(@PathVariable(value = "seller-id")

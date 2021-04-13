@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.SocialCodes;
 import com.api.hotifi.common.services.interfaces.IEmailService;
@@ -64,8 +64,8 @@ public class UserServiceImpl implements IUserService {
 
             EmailModel emailModel = new EmailModel();
             emailModel.setToEmail(authentication.getEmail());
-            emailModel.setFromEmail(Constants.FROM_EMAIL);
-            emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+            emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+            emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
             emailService.sendWelcomeEmail(user, emailModel);
         } catch (DataIntegrityViolationException e) {
             throw new HotifiException(UserErrorCodes.USER_EXISTS);

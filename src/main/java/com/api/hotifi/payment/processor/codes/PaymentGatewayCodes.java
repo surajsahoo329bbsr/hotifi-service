@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.processor.codes;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -13,7 +13,7 @@ public enum PaymentGatewayCodes {
     PAYPAL;
 
     private static final Map<Integer, PaymentGatewayCodes> paymentGatewayMap = new TreeMap<>();
-    private static final int START_VALUE = Constants.PAYMENT_GATEWAY_START_VALUE_CODE;
+    private static final int START_VALUE = BusinessConfigurations.PAYMENT_GATEWAY_START_VALUE_CODE;
 
     static {
         IntStream.range(0, values().length).forEach(i -> {

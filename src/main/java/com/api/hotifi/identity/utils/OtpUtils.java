@@ -1,6 +1,7 @@
 package com.api.hotifi.identity.utils;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.errors.UserErrorCodes;
@@ -53,7 +54,7 @@ public class OtpUtils {
         Date currentTime = new Date(System.currentTimeMillis());
         long timeDifference =  currentTime.getTime() - authentication.getModifiedAt().getTime();
         long minutesDifference = timeDifference / (60L * 1000L);
-        return minutesDifference >= Constants.MAXIMUM_EMAIL_OTP_MINUTES; // If otp generated is more than 10 minutes
+        return minutesDifference >= BusinessConfigurations.MAXIMUM_EMAIL_OTP_MINUTES; // If otp generated is more than 10 minutes
     }
 
     //needs to be called from generateEmailOtpSignUp or generateEmailOtpLogin
@@ -70,8 +71,8 @@ public class OtpUtils {
             //Populating email model with values
             EmailModel emailModel = new EmailModel();
             emailModel.setToEmail(authentication.getEmail());
-            emailModel.setFromEmail(Constants.FROM_EMAIL);
-            emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+            emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+            emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
             emailModel.setEmailOtp(emailOtp);
 
             emailService.sendEmailOtpEmail(emailModel);

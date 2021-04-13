@@ -1,7 +1,8 @@
 package com.api.hotifi.common.services.implementations;
 
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.processors.codes.CloudClientCodes;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
@@ -31,7 +32,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendWelcomeEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Welcome To Hotifi";
-            File file = new ClassPathResource(Constants.EMAIL_WELCOME_HTML_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_WELCOME_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
@@ -45,7 +46,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountDeletedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been deleted";
-            File file = new ClassPathResource(Constants.EMAIL_ACCOUNT_DELETED_HTML_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_DELETED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
@@ -59,10 +60,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountFreezedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been freezed";
-            File file = new ClassPathResource(Constants.EMAIL_ACCOUNT_FREEZED_HTML_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_FREEZED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
-            document.getElementById("freeze_msg").appendText(Constants.MINIMUM_FREEZE_PERIOD_HOURS + "hours");
+            document.getElementById("freeze_msg").appendText(BusinessConfigurations.MINIMUM_FREEZE_PERIOD_HOURS + "hours");
             sendEmail(document, emailModel, subject);
             notificationService.sendNotification(user.getId(), "FREEEEEEZE THERE !", "Your hotifi account for buying data has been freeze.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
@@ -74,7 +75,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendBuyerBannedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your buying account has been banned";
-            File file = new ClassPathResource(Constants.EMAIL_BUYER_BANNED_HTML_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_BUYER_BANNED_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
@@ -88,7 +89,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendEmailOtpEmail(EmailModel emailModel) {
         try {
             String subject = "Email Otp Verification";
-            File file = new ClassPathResource(Constants.EMAIL_OTP_HTML_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_OTP_HTML_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi,");
             document.getElementById("email_otp").appendText(emailModel.getEmailOtp());
@@ -102,7 +103,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountFailed(User user, String errorDescription, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment failed";
-            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACCOUNT_FAILED_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_FAILED_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
             document.getElementById("error_msg").appendText(errorDescription);
@@ -117,7 +118,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment is successful";
-            File file = new ClassPathResource(Constants.EMAIL_LINKED_ACCOUNT_SUCCESS_PATH).getFile();
+            File file = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_SUCCESS_PATH).getFile();
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first_name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
@@ -136,7 +137,7 @@ public class EmailServiceImpl implements IEmailService {
                 .withHTMLText(htmlContent)
                 .buildEmail();
         Mailer mailer = MailerBuilder
-                .withSMTPServer(Constants.EMAIL_HOST, Constants.EMAIL_PORT, emailModel.getFromEmail(), emailModel.getFromEmailPassword())
+                .withSMTPServer(AppConfigurations.EMAIL_HOST, AppConfigurations.EMAIL_PORT, emailModel.getFromEmail(), emailModel.getFromEmailPassword())
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withSessionTimeout(10 * 1000)
                 .async()

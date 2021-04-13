@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.processor.codes;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -15,11 +15,11 @@ public enum PaymentMethodCodes {
 
     private static final Map<Integer, PaymentMethodCodes> paymentMethodUpi = new TreeMap<>();
 
-    private static final int START_VALUE = Constants.PAYMENT_METHOD_START_VALUE_CODE;
+    private static final int START_VALUE = BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE;
 
     static {
         IntStream.range(0, values().length).forEach(i -> {
-            values()[i].value = START_VALUE + i * Constants.PAYMENT_METHOD_START_VALUE_CODE;
+            values()[i].value = START_VALUE + i * BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE;
             paymentMethodUpi.put(values()[i].value, values()[i]);
         });
     }

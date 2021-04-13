@@ -2,9 +2,11 @@ package com.api.hotifi.payment.web.controllers;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.identity.web.response.CredentialsResponse;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
@@ -23,7 +25,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = Constants.BANK_ACCOUNT)
+@Api(tags = AppConfigurations.BANK_ACCOUNT)
 @RequestMapping(path = "/bank-account")
 public class BankAccountController {
 
@@ -102,7 +104,10 @@ public class BankAccountController {
             value = "Get Bank Account Details By User Id",
             notes = "Get Bank Account Details By User Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = BankAccount.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
@@ -117,7 +122,10 @@ public class BankAccountController {
             value = "Get Unlinked Bank Account Details",
             notes = "Get Unlinked Bank Account Details",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = BankAccount.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getUnlinkedBankAccounts() {

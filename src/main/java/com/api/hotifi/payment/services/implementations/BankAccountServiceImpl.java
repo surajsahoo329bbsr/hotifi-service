@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.utils.LegitUtils;
@@ -104,8 +104,8 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(Constants.FROM_EMAIL);
-                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
 
                 if (errorDescription != null)
                     emailService.sendLinkedAccountFailed(user, errorDescription, emailModel);

@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.web.request;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class UserRequest {
     private String lastName;
 
     @NotBlank(message = "Please provide a date of birth")
-    @Pattern(regexp = Constants.VALID_USERNAME_PATTERN, message = "{username.invalid}")
+    @Pattern(regexp = BusinessConfigurations.VALID_USERNAME_PATTERN, message = "{username.invalid}")
     private String username;
 
     @ApiModelProperty(required = true,example = "02-01-1998")
@@ -35,7 +35,7 @@ public class UserRequest {
 
     private String googleId;
 
-    @Pattern(regexp = Constants.VALID_URL_PATTERN, message = "{photo.url.invalid}")
+    @Pattern(regexp = BusinessConfigurations.VALID_URL_PATTERN, message = "{photo.url.invalid}")
     private String photoUrl;
 
     @Range(min = 1, message = "{authentication.id.invalid}")

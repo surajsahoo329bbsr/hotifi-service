@@ -1,6 +1,7 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.entities.Authentication;
@@ -86,15 +87,15 @@ public class UserStatusServiceImpl implements IUserStatusService {
             userStatus.setWarningCreatedAt(now);
 
             if (userStatuses != null) {
-                if (userStatuses.size() == Constants.MINIMUM_WARNINGS_TO_FREEZE - 1) {
+                if (userStatuses.size() == BusinessConfigurations.MINIMUM_WARNINGS_TO_FREEZE - 1) {
                     //freeze
                     if (userStatusRequest.getFreezeReason() == null)
                         throw new HotifiException(UserStatusErrorCodes.USER_FREEZE_REASON_ABSENT);
                     userStatus.setFreezeReason(userStatusRequest.getFreezeReason());
                     userStatus.setFreezeCreatedAt(now);
-                    userStatus.setFreezePeriod(Constants.MINIMUM_FREEZE_PERIOD_HOURS); //24 hours
+                    userStatus.setFreezePeriod(BusinessConfigurations.MINIMUM_FREEZE_PERIOD_HOURS); //24 hours
                     freezeUser(userId, true);
-                } else if (userStatuses.size() == Constants.MINIMUM_WARNINGS_TO_BAN - 1) {
+                } else if (userStatuses.size() == BusinessConfigurations.MINIMUM_WARNINGS_TO_BAN - 1) {
                     //ban
                     if (userStatusRequest.getBanReason() == null)
                         throw new HotifiException(UserStatusErrorCodes.USER_BAN_REASON_ABSENT);
@@ -159,8 +160,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
             if (freezeUser) {
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(Constants.FROM_EMAIL);
-                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
                 emailService.sendAccountFreezedEmail(user, emailModel);
             }
         }
@@ -184,8 +185,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
                 userRepository.save(user);
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(Constants.FROM_EMAIL);
-                emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
                 emailService.sendBuyerBannedEmail(user, emailModel);
             }
             authentication.setBanned(banUser);
@@ -225,8 +226,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
         EmailModel emailModel = new EmailModel();
         emailModel.setToEmail(authentication.getEmail());
-        emailModel.setFromEmail(Constants.FROM_EMAIL);
-        emailModel.setFromEmailPassword(Constants.FROM_EMAIL_PASSWORD);
+        emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
+        emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
         emailService.sendAccountDeletedEmail(user, emailModel);
     }
 

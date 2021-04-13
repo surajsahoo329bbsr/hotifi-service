@@ -31,7 +31,7 @@ public class OAuth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/swagger-resources/**", "/configuration/**",
                         "/swagger-ui/index.html", "/swagger-ui.html", "/webjars/**",
                         "/authenticate/**", "/user/", "/user/is-available/**",
-                        "/user/login/otp/**", "/user/login/verify/**");
+                        "/user/login/otp/**", "/user/login/verify/**", "/user/password/reset/**");
     }
 
     @Override

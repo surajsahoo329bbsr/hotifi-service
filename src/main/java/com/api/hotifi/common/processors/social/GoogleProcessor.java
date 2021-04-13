@@ -1,6 +1,6 @@
 package com.api.hotifi.common.processors.social;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.models.GoogleIdTokenJson;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -43,7 +42,7 @@ public class GoogleProcessor {
     }
 
     public boolean verifyPhone(String countryCode, String phone, String token) {
-        String url = Constants.FIREBASE_GET_ACCOUNT_INFO_URL + "?key=" + Constants.GOOGLE_FIREBASE_ANDROID_CLIENT_SECRET;
+        String url = AppConfigurations.FIREBASE_GET_ACCOUNT_INFO_URL + "?key=" + AppConfigurations.GOOGLE_FIREBASE_ANDROID_CLIENT_SECRET;
         GoogleIdTokenJson googleIdToken = new GoogleIdTokenJson(token);
         String json = new Gson().toJson(googleIdToken);
         try {

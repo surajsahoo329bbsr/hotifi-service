@@ -1,6 +1,6 @@
 package com.api.hotifi.identity.web.request;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
@@ -20,7 +20,7 @@ public class UserStatusRequest {
     private Long purchaseId;
 
     @NotBlank(message = "{role.name.blank}")
-    @Pattern(regexp = Constants.VALID_ROLE_PATTERN, message = "{role.name.invalid}")
+    @Pattern(regexp = BusinessConfigurations.VALID_ROLE_PATTERN, message = "{role.name.invalid}")
     private String role;
 
     @Length(max = 255, message = "{warning.reason.invalid}")

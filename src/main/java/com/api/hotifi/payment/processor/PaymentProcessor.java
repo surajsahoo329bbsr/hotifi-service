@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.processor;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerReceipt;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
@@ -64,7 +64,7 @@ public class PaymentProcessor {
                 if (razorpayStatus == PaymentStatusCodes.REFUNDED) return null;
                 //If auto-captured failed do the manual capture
                 if (razorpayStatus == PaymentStatusCodes.AUTHORIZED)
-                    razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, Constants.CURRENCY_INR);
+                    razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, BusinessConfigurations.CURRENCY_INR);
                 //Purchase entity model update
                 Purchase purchase = new Purchase();
                 purchase.setStatus(paymentMethod.value() + razorpayStatus.value());
@@ -99,11 +99,11 @@ public class PaymentProcessor {
                 String refundTransactionId = acquirerDataJson.getString("arn");
                 int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
                 //modify purchase entity
-                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
                 purchase.setRefundDoneAt(refundCreatedAt);
                 purchase.setRefundPaymentId(refundId);
                 purchase.setRefundTransactionId(refundTransactionId);
-                return new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
+                return new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("STRIPE PAYMENT");
                 break;
@@ -146,7 +146,7 @@ public class PaymentProcessor {
                 sellerReceiptResponse.setOnHold(isOnHold);
                 sellerReceiptResponse.setSellerReceipt(sellerReceipt);
                 sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
-                sellerReceiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+                sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
 
                 return sellerReceiptResponse;
             case STRIPE:
@@ -174,8 +174,8 @@ public class PaymentProcessor {
                 //Purchase entity setup
                 purchase.setRefundPaymentId(refundId);
                 purchase.setRefundStartedAt(refundStartedAt);
-                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
-                return new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
+                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                return new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("STRIPE PAYMENT");
                 break;
@@ -190,7 +190,7 @@ public class PaymentProcessor {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("TODO RAZORPAY PAYMENT");
-                Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount), Constants.CURRENCY_INR);
+                Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount), BusinessConfigurations.CURRENCY_INR);
                 SellerReceipt sellerReceipt = new SellerReceipt();
                 sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
                 Date createdAt = new Date((long) transfer.get("created_at"));
@@ -211,7 +211,7 @@ public class PaymentProcessor {
 
                 //Setup Seller Receipt
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
-                sellerReceiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+                sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 sellerReceiptResponse.setOnHold(isOnHold);
                 sellerReceiptResponse.setOnHoldUntil(onHoldUntil);

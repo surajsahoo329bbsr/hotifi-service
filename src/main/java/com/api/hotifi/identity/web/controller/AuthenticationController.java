@@ -1,7 +1,9 @@
 package com.api.hotifi.identity.web.controller;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.common.validator.SocialClient;
@@ -24,9 +26,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+
 @Validated
 @RestController
-@Api(tags = Constants.AUTHENTICATION_TAG)
+@Api(tags = AppConfigurations.AUTHENTICATION_TAG)
 @RequestMapping(path = "/authenticate")
 public class AuthenticationController {
 
@@ -41,7 +44,10 @@ public class AuthenticationController {
             value = "Get Authentication Details By Email For Customer",
             notes = "Get Authentication Details By Email For Customer",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = Authentication.class)
+    })
     public ResponseEntity<?> getAuthentication(
             @PathVariable(value = "email")
             @NotBlank(message = "{email.blank}")
@@ -55,10 +61,12 @@ public class AuthenticationController {
             value = "Checks If Phone Number Is Available Or Not",
             notes = "Checks If Phone Number Is Available Or Not",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = AvailabilityResponse.class)
+    })public ResponseEntity<?> isPhoneAvailable(@PathVariable(value = "phone")
                                               @NotBlank(message = "{phone.blank}")
-                                              @Pattern(regexp = Constants.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
+                                              @Pattern(regexp = BusinessConfigurations.VALID_PHONE_PATTERN, message = "{phone.invalid}") String phone) {
         //No need to check for role security here
         boolean isPhoneAvailable = authenticationService.isPhoneAvailable(phone);
         return new ResponseEntity<>(new AvailabilityResponse(null, isPhoneAvailable, null), HttpStatus.OK);
@@ -69,8 +77,10 @@ public class AuthenticationController {
             value = "Checks If Email Is Available Or Not",
             notes = "Checks If Email Is Available Or Not",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    public ResponseEntity<?> isEmailAvailable(@PathVariable(value = "email")
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = AvailabilityResponse.class)
+    })public ResponseEntity<?> isEmailAvailable(@PathVariable(value = "email")
                                               @NotBlank(message = "{email.blank}")
                                               @Email(message = "{email.invalid}") String email) {
         //No need to check for role security here
@@ -83,8 +93,10 @@ public class AuthenticationController {
             value = "Post Authentication By Social Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    public ResponseEntity<?> addSocialEmail(@PathVariable(value = "email")
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = CredentialsResponse.class)
+    })public ResponseEntity<?> addSocialEmail(@PathVariable(value = "email")
                                             @NotBlank(message = "{email.blank}")
                                             @Email(message = "{email.pattern.invalid}") String email,
                                             @ApiParam(name = "identifier", type = "String")
@@ -103,8 +115,10 @@ public class AuthenticationController {
             value = "Post Authentication By Custom Email",
             notes = "Post Authentication By Verified Or Unverified Email And Sends Password Token",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    public ResponseEntity<?> addCustomEmail(@PathVariable(value = "email")
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = CredentialsResponse.class)
+    })public ResponseEntity<?> addCustomEmail(@PathVariable(value = "email")
                                             @NotBlank(message = "{email.blank}")
                                             @Email(message = "{email.pattern.invalid}") String email) {
         CredentialsResponse credentialsResponse = authenticationService.addEmail(email, null, null, null);
@@ -137,10 +151,10 @@ public class AuthenticationController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/sign-up/verify/phone", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/verify/phone", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Verify Phone For Sign-Up",
-            notes = "Verify Phone For Sign-Up",
+            value = "Verify Phone For Authentication",
+            notes = "Verify Phone For Authentication",
             code = 204,
             response = String.class)
     @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))

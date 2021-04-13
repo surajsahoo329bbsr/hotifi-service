@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
@@ -13,7 +13,6 @@ import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
-import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.services.interfaces.IStatsService;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.responses.BuyerStatsResponse;
@@ -61,13 +60,13 @@ public class StatsServiceImpl implements IStatsService {
                 Date currentTime = new Date(System.currentTimeMillis());
                 BigDecimal totalPendingRefunds =
                         purchaseStreamSupplier.get()
-                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+                                .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                                 .map(Purchase::getAmountRefund)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 BigDecimal totalRefundsProcessed =
                         purchaseStreamSupplier.get()
-                                .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_PROCESSED.value())
+                                .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_PROCESSED.value())
                                 .map(Purchase::getAmountRefund)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -97,7 +96,7 @@ public class StatsServiceImpl implements IStatsService {
         try {
             BigDecimal totalEarnings = sellerPayment
                     .getAmountEarned()
-                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                    .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                     .setScale(2, RoundingMode.FLOOR);
             BigDecimal totalAmountWithdrawn = sellerPayment.getAmountPaid();
             Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());

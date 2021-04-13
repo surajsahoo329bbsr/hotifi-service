@@ -1,6 +1,6 @@
 package com.api.hotifi.configuration;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.fasterxml.classmate.TypeResolver;
 import io.swagger.annotations.SwaggerDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,12 +114,12 @@ public class SwaggerConfiguration {
     }
 
     private ApiInfo apiInfo() {
-        return info(String.format("%s Endpoints", Constants.APP_NAME));
+        return info(String.format("%s Endpoints", AppConfigurations.APP_NAME));
     }
 
     private ApiInfo info(String title) {
-        return new ApiInfo(title, "This page helps the user to try out the hotifi service endpoints in an more convenient manner", Constants.APP_VERSION, "https://www.hotifi.com/",
-                new Contact(Constants.APP_NAME, null, "support@hotifi.com"),
+        return new ApiInfo(title, "This page helps the user to try out the hotifi service endpoints in an more convenient manner", AppConfigurations.APP_VERSION, "https://www.hotifi.com/",
+                new Contact(AppConfigurations.APP_NAME, null, "support@hotifi.com"),
                 null,null, new ArrayList<>());
     }
 }

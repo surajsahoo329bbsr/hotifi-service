@@ -2,9 +2,11 @@ package com.api.hotifi.speedtest.web.controller;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.payment.web.responses.UpdateStatusResponse;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.api.hotifi.speedtest.service.ISpeedTestService;
 import com.api.hotifi.speedtest.web.request.SpeedTestRequest;
@@ -23,7 +25,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = Constants.SPEED_TEST_TAG)
+@Api(tags = AppConfigurations.SPEED_TEST_TAG)
 @RequestMapping(path = "/speed-test")
 public class SpeedTestController {
 
@@ -53,7 +55,10 @@ public class SpeedTestController {
             value = "Get Latest Speed Test Of A Pincode",
             notes = "Get Latest Speed Test Of A Pincode",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SpeedTest.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getLatestSpeedTest(@PathVariable(value = "user-id")
@@ -73,7 +78,10 @@ public class SpeedTestController {
             notes = "Get Sorted Date-Time Speedtests By User Id And Pagination Values",
             code = 204,
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SpeedTest.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByDateTime(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
@@ -91,7 +99,10 @@ public class SpeedTestController {
             value = "Get Sorted Upload-Speed Speedtests By User Id And Pagination Values",
             notes = "Get Sorted Upload-Speed Speedtests By User Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SpeedTest.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByUploadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,
@@ -109,7 +120,10 @@ public class SpeedTestController {
             value = "Get Sorted Download-Speed Speedtests By User Id And Pagination Values",
             notes = "Get Sorted Download-Speed Speedtests By User Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SpeedTest.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSortedSpeedTestByDownloadSpeed(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId,

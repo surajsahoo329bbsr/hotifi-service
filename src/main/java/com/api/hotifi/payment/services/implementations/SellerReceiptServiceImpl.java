@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.payment.entities.SellerPayment;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -70,7 +69,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
             String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setSellerLinkedAccountId(linkedAccountId);
-            receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+            receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             return receiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -137,7 +136,7 @@ public class SellerReceiptServiceImpl implements ISellerReceiptService {
                 String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
                 receiptResponse.setSellerReceipt(sellerReceipt);
                 receiptResponse.setSellerLinkedAccountId(linkedAccountId);
-                receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
+                receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponses.add(receiptResponse);
             }
             return sellerReceiptResponses;

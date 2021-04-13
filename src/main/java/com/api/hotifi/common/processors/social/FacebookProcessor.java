@@ -1,6 +1,6 @@
 package com.api.hotifi.common.processors.social;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.identity.entities.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,8 +13,8 @@ public class FacebookProcessor {
 
     public boolean verifyEmail(String identifier, String userToken){
         RestTemplate restTemplate = new RestTemplate();
-        String appUrl = Constants.FACEBOOK_GRAPH_API_URL + "/debug_token?input_token=" + userToken
-                + "&access_token=" + Constants.FACEBOOK_APP_ID + "|" +Constants.FACEBOOK_APP_SECRET;
+        String appUrl = AppConfigurations.FACEBOOK_GRAPH_API_URL + "/debug_token?input_token=" + userToken
+                + "&access_token=" + AppConfigurations.FACEBOOK_APP_ID + "|" + AppConfigurations.FACEBOOK_APP_SECRET;
         try {
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(appUrl, String.class);
             ObjectMapper mapper = new ObjectMapper();

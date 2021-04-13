@@ -1,6 +1,6 @@
 package com.api.hotifi.common.utils;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -21,7 +21,7 @@ public class AESUtils {
             sha = MessageDigest.getInstance("SHA-1");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 16);
-            secretKey = new SecretKeySpec(key, Constants.WIFI_PASSWORD_ENCRYPTION_ALGORITHM);
+            secretKey = new SecretKeySpec(key, BusinessConfigurations.WIFI_PASSWORD_ENCRYPTION_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

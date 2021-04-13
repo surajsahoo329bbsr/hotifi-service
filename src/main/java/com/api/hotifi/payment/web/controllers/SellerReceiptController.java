@@ -2,11 +2,13 @@ package com.api.hotifi.payment.web.controllers;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.payment.services.interfaces.ISellerReceiptService;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
+import com.api.hotifi.payment.web.responses.UpdateStatusResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = Constants.SELLER_RECEIPT_TAG)
+@Api(tags = AppConfigurations.SELLER_RECEIPT_TAG)
 @RequestMapping(path = "/seller-receipt")
 public class SellerReceiptController {
 
@@ -39,7 +41,10 @@ public class SellerReceiptController {
             value = "Get Seller Receipt By Seller Receipt Id",
             notes = "Get Seller Receipt By Seller Receipt Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerReceipt(@PathVariable(value = "id") @Range(min = 1, message = "{id.invalid}") Long id) {
@@ -54,7 +59,10 @@ public class SellerReceiptController {
             value = "Get Sorted Date-Time Seller Receipts By Seller Id",
             notes = "Get Sorted Date-Time Seller Receipts By Seller Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSortedSellerReceiptsByDateTime(@PathVariable(value = "seller-id")
@@ -75,7 +83,10 @@ public class SellerReceiptController {
             value = "Get Sorted Amount-Paid Seller Receipts By Seller Id",
             notes = "Get Sorted Amount-Paid Seller Receipts By Seller Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSortedSellerReceiptsByAmountPaid(@PathVariable(value = "seller-id")

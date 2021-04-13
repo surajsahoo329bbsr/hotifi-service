@@ -1,6 +1,6 @@
 package com.api.hotifi.session.service;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.CloudClientCodes;
 import com.api.hotifi.common.services.interfaces.INotificationService;
@@ -78,7 +78,7 @@ public class SessionServiceImpl implements ISessionService {
             throw new HotifiException(SessionErrorCodes.SPEED_TEST_ABSENT);
 
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
-        if (sellerPayment != null && sellerPayment.getAmountEarned().compareTo(BigDecimal.valueOf(Constants.MAXIMUM_SELLER_AMOUNT_EARNED)) > 0)
+        if (sellerPayment != null && sellerPayment.getAmountEarned().compareTo(BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_SELLER_AMOUNT_EARNED)) > 0)
             throw new HotifiException(SessionErrorCodes.WITHDRAW_SELLER_AMOUNT);
 
         try {
@@ -93,7 +93,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
 
             //Everything is fine, so encrypt the password
-            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), Constants.AES_PASSWORD_SECRET_KEY);
+            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), BusinessConfigurations.AES_PASSWORD_SECRET_KEY);
             Session session = new Session();
             session.setSpeedTest(speedTest);
             session.setData(sessionRequest.getData());
@@ -135,7 +135,7 @@ public class SessionServiceImpl implements ISessionService {
                 sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
                     BigDecimal availableDataPrice = PaymentUtils
-                            .divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
+                            .divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
@@ -170,11 +170,11 @@ public class SessionServiceImpl implements ISessionService {
             List<Purchase> purchases = isActive ?
                     purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                             .stream()
-                            .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value() && purchase.getSessionFinishedAt() == null)
+                            .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value() && purchase.getSessionFinishedAt() == null)
                             .collect(Collectors.toList()) :
                     purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                             .stream()
-                            .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                            .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                             .collect(Collectors.toList());
             purchases.forEach(purchase -> {
                 Buyer buyer = new Buyer();
@@ -246,7 +246,7 @@ public class SessionServiceImpl implements ISessionService {
         if (Double.compare(dataToBeUsed, availableData) > 0)
             throw new HotifiException(PurchaseErrorCodes.EXCESS_DATA_TO_BUY_ERROR);
         //return Math.ceil(session.getPrice() / Constants.UNIT_GB_VALUE_IN_MB * dataToBeUsed);
-        return PaymentUtils.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(dataToBeUsed));
+        return PaymentUtils.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(dataToBeUsed));
     }
 
     @Override
@@ -259,11 +259,11 @@ public class SessionServiceImpl implements ISessionService {
             List<Buyer> buyers = getBuyers(sessionId, false);
             BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal netEarnings = totalEarnings
-                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                    .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                     .setScale(2, RoundingMode.FLOOR);
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
@@ -331,12 +331,12 @@ public class SessionServiceImpl implements ISessionService {
         sessions.forEach(session -> {
             BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             BigDecimal netEarnings = totalEarnings
-                    .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100));
+                    .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100));
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());

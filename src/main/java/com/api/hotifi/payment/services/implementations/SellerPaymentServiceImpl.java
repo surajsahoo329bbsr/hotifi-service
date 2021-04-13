@@ -1,13 +1,12 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
-import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.services.interfaces.ISellerPaymentService;
@@ -75,20 +74,20 @@ public class SellerPaymentServiceImpl implements ISellerPaymentService {
 
         //double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
         BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
-                .multiply(BigDecimal.valueOf((double) (100 - Constants.COMMISSION_PERCENTAGE) / 100))
+                .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                 .setScale(0, RoundingMode.FLOOR);
 
         BigDecimal sellerAmountPaid =
-                sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(Constants.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
-                BigDecimal.valueOf(Constants.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
+                sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
+                BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
 
         Date now = new Date(System.currentTimeMillis());
 
-        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(Constants.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
                 throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
-            if(sellerAmountPaid.compareTo(BigDecimal.valueOf(Constants.MINIMUM_AMOUNT_INR)) < 0)
+            if(sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0)
                 throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
         }
 

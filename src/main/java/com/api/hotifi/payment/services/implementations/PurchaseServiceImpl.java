@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.services.implementations;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
@@ -97,7 +97,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         try {
             BigDecimal amountPaid = session != null ?
                     session.getPrice()
-                            .divide(BigDecimal.valueOf(Constants.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
+                            .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
             Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
@@ -121,7 +121,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             boolean isSessionCompleted = session != null && session.getFinishedAt() != null && buyer != null;
             boolean isBothMacAndIpAddressAbsent = purchaseRequest.getMacAddress() == null && purchaseRequest.getIpAddress() == null && session != null && buyer != null;
             boolean isDataBoughtMoreThanDataSold = session != null && buyer != null && Double.compare(purchaseRequest.getData(), (double) session.getData() - session.getDataUsed()) > 0;
-            boolean isPurchaseAlreadySuccessful = buyerPurchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value();
+            boolean isPurchaseAlreadySuccessful = buyerPurchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.PAYMENT_CAPTURED.value();
 
             if ((isSessionCompleted || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
                 RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, buyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId());
@@ -164,8 +164,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setCreatedAt(purchase.getPaymentDoneAt());
             receiptResponse.setPurchaseStatus(purchase.getStatus());
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
-            receiptResponse.setHotifiBankAccount(Constants.HOTIFI_BANK_ACCOUNT);
-            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, Constants.AES_PASSWORD_SECRET_KEY));
+            receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
+            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, BusinessConfigurations.AES_PASSWORD_SECRET_KEY));
             if (purchase.getRefundPaymentId() != null) {
                 receiptResponse.setRefundDoneAt(purchase.getRefundDoneAt());
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());
@@ -190,13 +190,13 @@ public class PurchaseServiceImpl implements IPurchaseService {
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_STARTED);
         if (purchase.getSessionFinishedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
-        if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_AUTHORIZED.value())
+        if (purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE <= BuyerPaymentCodes.PAYMENT_AUTHORIZED.value())
             throw new HotifiException(PurchaseErrorCodes.PAYMENT_NOT_SUCCESSFUL);
         try {
             Date sessionStartedAt = new Date(System.currentTimeMillis());
             purchase.setSessionCreatedAt(sessionStartedAt);
             purchase.setSessionModifiedAt(sessionStartedAt);
-            purchase.setStatus(purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.START_WIFI_SERVICE.value());
+            purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.START_WIFI_SERVICE.value());
             purchaseRepository.save(purchase);
             saveSessionWithWifiService(purchase);
             return sessionStartedAt;
@@ -212,7 +212,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (LegitUtils.isPurchaseUpdateLegit(purchase, dataUsed)) {
             int dataBought = purchase.getData();
-            int purchaseStatus = purchase.getStatus() - purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value();
+            int purchaseStatus = purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + BuyerPaymentCodes.UPDATE_WIFI_SERVICE.value();
             Date now = new Date(System.currentTimeMillis());
 
             double dataUsedBefore = purchase.getDataUsed();
@@ -238,7 +238,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchaseRepository.save(purchase);
 
             //Comparing if data is going to be exhausted
-            if (Double.compare((double) dataBought - dataUsed, Constants.MINIMUM_DATA_THRESHOLD_MB) < 0) {
+            if (Double.compare((double) dataBought - dataUsed, BusinessConfigurations.MINIMUM_DATA_THRESHOLD_MB) < 0) {
                 log.info("Finish wifi service");
                 return 2;
             }
@@ -329,7 +329,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Date currentTime = new Date(System.currentTimeMillis());
             Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
             BigDecimal totalRefundAmount = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .map(Purchase::getAmountRefund)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -337,7 +337,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 throw new HotifiException(PurchaseErrorCodes.BUYER_PENDING_REFUNDS_NOT_FOUND);
 
             List<Purchase> purchases = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value()
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value()
                             && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .collect(Collectors.toList());
 
@@ -363,7 +363,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                     PageRequest.of(page, size, Sort.by("refund_done_at"));
             List<Purchase> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                     .stream()
-                    .filter(purchase -> purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value())
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value())
                     .collect(Collectors.toList());
             List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
@@ -384,7 +384,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 purchase.setRefundPaymentId(refundPaymentId);
                 purchase.setRefundDoneAt(refundDoneAt);
                 purchase.setRefundTransactionId(refundTransactionId);
-                RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, Constants.HOTIFI_BANK_ACCOUNT);
+                RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 refundReceiptResponses.add(refundReceiptResponse);
             });
             return refundReceiptResponses;
@@ -433,7 +433,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
 
         //Below condition will save the entity only if complete payment with refund has not completed yet
-        if (refundReceiptResponse.getPurchase().getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.values().length)
+        if (refundReceiptResponse.getPurchase().getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.values().length)
             purchaseRepository.save(refundReceiptResponse.getPurchase());
 
         return wifiSummaryResponse;

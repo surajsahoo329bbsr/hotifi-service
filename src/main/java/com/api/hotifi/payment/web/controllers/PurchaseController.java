@@ -2,9 +2,12 @@ package com.api.hotifi.payment.web.controllers;
 
 import com.api.hotifi.authorization.service.ICustomerAuthorizationService;
 import com.api.hotifi.authorization.utils.AuthorizationUtils;
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
+import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.*;
@@ -24,7 +27,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = Constants.PURCHASE_TAG)
+@Api(tags = AppConfigurations.PURCHASE_TAG)
 @RequestMapping(path = "/purchase")
 public class PurchaseController {
 
@@ -39,7 +42,10 @@ public class PurchaseController {
             value = "Add Purchase",
             notes = "Add Purchase",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = PurchaseReceiptResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addPurchase(@RequestBody @Validated PurchaseRequest purchaseRequest) {
@@ -54,7 +60,10 @@ public class PurchaseController {
             value = "Get Purchase Receipt Of A Buyer By Purchase Id",
             notes = "Get Purchase Receipt Of A Buyer By Purchase Id",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = PurchaseReceiptResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getPurchaseReceipt(
@@ -71,7 +80,10 @@ public class PurchaseController {
             value = "Start Buyer Wifi-Service",
             notes = "Start Buyer Wifi-Service",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = WifiStartTimeResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> startBuyerWifiService(
@@ -87,14 +99,17 @@ public class PurchaseController {
             value = "Update Buyer Wifi-Service",
             notes = "Update Buyer Wifi-Service",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = UpdateStatusResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> updateBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
-            @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
+            @DecimalMin(BusinessConfigurations.MINIMUM_DATA_USED_MB) double dataUsed) {
         int updateStatus =
                 customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
                         purchaseService.updateBuyerWifiService(purchaseId, dataUsed) : -1; //-1 for failure
@@ -106,14 +121,17 @@ public class PurchaseController {
             value = "Finish Buyer Wifi-Service",
             notes = "Finish Buyer Wifi-Service",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = WifiSummaryResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> finishBuyerWifiService(
             @PathVariable(value = "purchase-id")
             @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId,
             @PathVariable(value = "data-used")
-            @DecimalMin(Constants.MINIMUM_DATA_USED_MB) double dataUsed) {
+            @DecimalMin(BusinessConfigurations.MINIMUM_DATA_USED_MB) double dataUsed) {
         WifiSummaryResponse wifiSummaryResponse =
                 customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
                         purchaseService.finishBuyerWifiService(purchaseId, dataUsed) : null;
@@ -125,7 +143,10 @@ public class PurchaseController {
             value = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagination Values",
             notes = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = WifiSummaryResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSortedWifiUsagesDateTime(
@@ -147,7 +168,10 @@ public class PurchaseController {
             value = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagination Values",
             notes = "Get Sorted Data-Used Wifi Summary By Buyer Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = WifiSummaryResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getSortedWifiUsagesDataUsed(
@@ -185,7 +209,10 @@ public class PurchaseController {
             value = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
             notes = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = RefundReceiptResponse.class, responseContainer = "List")
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getBuyerRefundReceipts(
@@ -207,7 +234,10 @@ public class PurchaseController {
             value = "Check If Current Session Is Legitimate",
             notes = "Check If Current Session Is Legitimate",
             response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = BuyerCurrentSessionLegitResponse.class)
+    })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> isBuyerCurrentSessionLegit(@PathVariable(value = "buyer-id")
@@ -215,7 +245,7 @@ public class PurchaseController {
                                                         @PathVariable(value = "session-id")
                                                         @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                                         @PathVariable(value = "data-to-be-used")
-                                                        @Range(min = Constants.MINIMUM_SELLING_DATA_MB, max = Constants.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
+                                                        @Range(min = BusinessConfigurations.MINIMUM_SELLING_DATA_MB, max = BusinessConfigurations.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
         boolean isBuyerCurrentSessionLegit = (AuthorizationUtils.isAdministratorRole() ||
                 customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
                 && purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);

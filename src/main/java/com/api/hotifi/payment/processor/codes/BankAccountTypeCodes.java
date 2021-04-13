@@ -1,6 +1,6 @@
 package com.api.hotifi.payment.processor.codes;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,7 +19,7 @@ public enum BankAccountTypeCodes {
 
     private static final Map<Integer, BankAccountTypeCodes> bankAccountTypeCodes = new TreeMap<>();
 
-    private static final int START_VALUE = Constants.BANK_ACCOUNT_TYPE_START_VALUE_CODE;
+    private static final int START_VALUE = BusinessConfigurations.BANK_ACCOUNT_TYPE_START_VALUE_CODE;
 
     static {
         IntStream.range(0, values().length).forEach(i -> {

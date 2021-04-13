@@ -1,6 +1,6 @@
 package com.api.hotifi.configuration;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.services.implementations.FirebaseMessagingServiceImpl;
 import com.api.hotifi.common.services.interfaces.IFirebaseMessagingService;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -24,12 +24,12 @@ public class FirebaseConfiguration {
     @Bean
     public FirebaseMessaging firebaseMessaging() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
-                .fromStream(new ClassPathResource(Constants.GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH).getInputStream());
+                .fromStream(new ClassPathResource(AppConfigurations.GOOGLE_FIREBASE_JSON_FILE_CONFIGURATION_PATH).getInputStream());
         FirebaseOptions firebaseOptions = FirebaseOptions
                 .builder()
                 .setCredentials(googleCredentials)
                 .build();
-        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, Constants.GOOGLE_FIREBASE_PROJECT_NAME);
+        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, AppConfigurations.GOOGLE_FIREBASE_PROJECT_NAME);
         return FirebaseMessaging.getInstance(app);
     }
 

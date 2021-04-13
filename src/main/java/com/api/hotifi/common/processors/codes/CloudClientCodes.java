@@ -1,6 +1,6 @@
 package com.api.hotifi.common.processors.codes;
 
-import com.api.hotifi.common.constant.Constants;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -15,7 +15,7 @@ public enum CloudClientCodes {
 
     private static final Map<Integer, CloudClientCodes> notificationClientCodes = new TreeMap<>();
 
-    private static final int START_VALUE = Constants.CLOUD_CLIENT_START_VALUE_CODE;
+    private static final int START_VALUE = BusinessConfigurations.CLOUD_CLIENT_START_VALUE_CODE;
 
     static {
         IntStream.range(0, values().length).forEach(i -> {
