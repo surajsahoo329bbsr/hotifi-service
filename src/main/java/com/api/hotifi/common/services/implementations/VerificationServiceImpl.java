@@ -23,7 +23,7 @@ public class VerificationServiceImpl implements IVerificationService {
     }
 
     @Override
-    public boolean isSocialUserVerified(String token, String identifier, String email, SocialCodes socialCode) {
+    public boolean isSocialUserVerified(String email, String identifier, String token, SocialCodes socialCode) {
         switch (socialCode) {
             case GOOGLE:
                 try {

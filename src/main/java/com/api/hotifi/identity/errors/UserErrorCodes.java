@@ -14,8 +14,6 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode GOOGLE_USER_EXISTS = new ErrorCode("03", Collections.singletonList(getMessage("GOOGLE_USER_EXISTS", UserErrorMessages.GOOGLE_USER_EXISTS)), 400);
     public static final ErrorCode USERNAME_EXISTS = new ErrorCode("04", Collections.singletonList(getMessage("USERNAME_EXISTS", UserErrorMessages.USERNAME_EXISTS)), 400);
     public static final ErrorCode USER_EXISTS = new ErrorCode("05", Collections.singletonList(getMessage("USER_EXISTS", UserErrorMessages.USER_EXISTS)), 400);
-    public static final ErrorCode USER_ALREADY_LOGGED_IN = new ErrorCode("06", Collections.singletonList(getMessage("USER_ALREADY_LOGGED_IN", UserErrorMessages.USER_ALREADY_LOGGED_IN)), 400);
-    public static final ErrorCode USER_ALREADY_LOGGED_OUT = new ErrorCode("07", Collections.singletonList(getMessage("USER_ALREADY_LOGGED_OUT", UserErrorMessages.USER_ALREADY_LOGGED_OUT)), 400);
     public static final ErrorCode USER_ALREADY_FREEZED = new ErrorCode("08", Collections.singletonList(getMessage("USER_ALREADY_FREEZED", UserErrorMessages.USER_ALREADY_FREEZED)), 400);
     public static final ErrorCode USER_ALREADY_NOT_FREEZED = new ErrorCode("09", Collections.singletonList(getMessage("USER_ALREADY_NOT_FREEZED", UserErrorMessages.USER_ALREADY_NOT_FREEZED)), 400);
     public static final ErrorCode USER_ALREADY_BANNED = new ErrorCode("10", Collections.singletonList(getMessage("USER_ALREADY_BANNED", UserErrorMessages.USER_ALREADY_BANNED)), 400);

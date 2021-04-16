@@ -21,8 +21,6 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String TOKEN_EXPIRED = "Token has expired.";
     public static final String USER_ALREADY_VERIFIED = "User already verified";
     public static final String USER_ALREADY_NOT_VERIFIED = "User already not verified";
-    public static final String USER_ALREADY_LOGGED_IN = "User already logged in";
-    public static final String USER_ALREADY_LOGGED_OUT = "User already logged out";
     public static final String USER_NOT_LOGGED_IN = "User not logged in";
     public static final String USER_LINKED_ACCOUNT_ID_NULL = "User Linked Account not added";
     public static final String USER_NOT_AUTHENTICATED = "User not authenticated";

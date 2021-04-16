@@ -67,7 +67,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     //If login client already has email verified no need for further verification
     public CredentialsResponse addEmail(String email, String identifier, String token, String socialClient) {
         boolean socialAddEmail = !(identifier == null && token == null && socialClient == null);
-        if (socialAddEmail && !verificationService.isSocialUserVerified(token, identifier, email, SocialCodes.valueOf(socialClient)))
+        if (socialAddEmail && !verificationService.isSocialUserVerified(email, identifier, token, SocialCodes.valueOf(socialClient)))
             throw new HotifiException(UserErrorCodes.USER_SOCIAL_IDENTIFIER_INVALID);
         try {
             boolean isEmailVerified = socialClient != null; //Do any not null check for social client or token
@@ -86,8 +86,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 authentication.setModifiedAt(modifiedAt);
                 authenticationRepository.save(authentication);
-                return new CredentialsResponse(authentication.getEmail(), password);
             }
+            return new CredentialsResponse(authentication.getEmail(), password);
         } catch (DataIntegrityViolationException e) {
             log.error(UserErrorMessages.USER_EXISTS);
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_ALREADY_EXISTS);
@@ -95,7 +95,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             log.error("Error Occurred ", e);
             throw new HotifiException(AuthenticationErrorCodes.UNEXPECTED_AUTHENTICATION_ERROR);
         }
-        return null;
     }
 
     @Transactional
@@ -148,7 +147,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
         if (authentication.isPhoneVerified())
             throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
-        if (!verificationService.isPhoneUserVerified(countryCode, phone , token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
+        if (!verificationService.isPhoneUserVerified(countryCode, phone, token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
             throw new HotifiException(AuthenticationErrorCodes.PHONE_TOKEN_INVALID);
         try {
             authentication.setCountryCode(countryCode);
