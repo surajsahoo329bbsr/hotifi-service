@@ -6,7 +6,6 @@ import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.identity.web.response.CredentialsResponse;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
@@ -25,7 +24,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@Api(tags = AppConfigurations.BANK_ACCOUNT)
+@Api(tags = AppConfigurations.BANK_ACCOUNT_TAG)
 @RequestMapping(path = "/bank-account")
 public class BankAccountController {
 

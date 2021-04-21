@@ -19,11 +19,11 @@ public class DeviceRequest {
     private String androidId;
 
     @NotBlank(message = "{device.name.blank}")
-    @Length(max = 255, message = "{device.name.invalid}")
+    @Length(max = 1024, message = "{device.name.invalid}")
     private String deviceName;
 
     @NotBlank(message = "{token.blank}")
-    @Length(max = 255, message = "{token.invalid}")
+    @Length(max = 4096, message = "{token.invalid}")
     private String token;
 
 }

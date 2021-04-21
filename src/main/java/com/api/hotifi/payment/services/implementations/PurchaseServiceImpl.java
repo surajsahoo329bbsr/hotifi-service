@@ -17,7 +17,7 @@ import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
-import com.api.hotifi.payment.services.interfaces.ISellerPaymentService;
+import com.api.hotifi.payment.services.interfaces.IPaymentService;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
@@ -38,9 +38,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 public class PurchaseServiceImpl implements IPurchaseService {
@@ -50,9 +47,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
     private final SessionRepository sessionRepository;
     private final PurchaseRepository purchaseRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
-    private final ISellerPaymentService sellerPaymentService;
+    private final IPaymentService sellerPaymentService;
 
-    public PurchaseServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, ISellerPaymentService sellerPaymentService) {
+    public PurchaseServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
         this.userRepository = userRepository;
         this.speedTestRepository = speedTestRepository;
         this.sessionRepository = sessionRepository;
@@ -317,80 +314,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
             log.error("Error occurred ", e);
             throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
         }
-    }
-
-    @Transactional
-    @Override
-    public void withdrawBuyerRefunds(Long buyerId) {
-        User buyer = userRepository.findById(buyerId).orElse(null);
-        if (LegitUtils.isBuyerLegit(buyer)) {
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-            Date currentTime = new Date(System.currentTimeMillis());
-            Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
-            BigDecimal totalRefundAmount = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
-                    .map(Purchase::getAmountRefund)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            if (totalRefundAmount.compareTo(BigDecimal.ZERO) == 0)
-                throw new HotifiException(PurchaseErrorCodes.BUYER_PENDING_REFUNDS_NOT_FOUND);
-
-            List<Purchase> purchases = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value()
-                            && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
-                    .collect(Collectors.toList());
-
-            purchases.forEach(purchase -> {
-                RefundReceiptResponse buyerRefund = paymentProcessor.startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), purchase.getPaymentId());
-                String refundPaymentId = buyerRefund.getPurchase().getRefundPaymentId();
-                Date refundStartedAt = buyerRefund.getPurchase().getRefundStartedAt();
-                String refundTransactionId = buyerRefund.getPurchase().getRefundTransactionId();
-                int buyerPaymentStatus = buyerRefund.getPurchase().getStatus();
-                purchaseRepository.updatePurchaseRefundStatus(buyerPaymentStatus, refundPaymentId, refundStartedAt, refundTransactionId, purchase.getId());
-            });
-
-        } else
-            throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
-        User buyer = userRepository.findById(buyerId).orElse(null);
-        if (LegitUtils.isBuyerLegit(buyer)) {
-            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
-                    PageRequest.of(page, size, Sort.by("refund_done_at"));
-            List<Purchase> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
-                    .stream()
-                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value())
-                    .collect(Collectors.toList());
-            List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
-            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-            purchaseReceipts.forEach(purchase -> {
-                /*The below case will arise only on instant refunds or payments older than 6 months
-                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_FAILED.value()) {
-
-                }*/
-                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true);
-                //Setting up values from payment processor
-                int status = receiptResponse.getPurchase().getStatus();
-                Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
-                String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
-                String refundTransactionId = receiptResponse.getPurchase().getRefundTransactionId();
-                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, refundTransactionId, purchase.getId());
-
-                purchase.setStatus(status);
-                purchase.setRefundPaymentId(refundPaymentId);
-                purchase.setRefundDoneAt(refundDoneAt);
-                purchase.setRefundTransactionId(refundTransactionId);
-                RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
-                refundReceiptResponses.add(refundReceiptResponse);
-            });
-            return refundReceiptResponses;
-        }
-
-        throw new HotifiException(PurchaseErrorCodes.BUYER_NOT_LEGIT);
     }
 
     //User defined functions

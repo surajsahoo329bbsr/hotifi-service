@@ -80,23 +80,18 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IPurchaseService purchaseService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, ISellerPaymentService sellerPaymentService){
+    public IPurchaseService purchaseService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService){
         return new PurchaseServiceImpl(userRepository, speedTestRepository, sessionRepository, purchaseRepository, sellerPaymentRepository, sellerPaymentService);
     }
 
     @Bean
-    public IBankAccountService sellerBankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService){
+    public IBankAccountService bankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService){
         return new BankAccountServiceImpl(userRepository, bankAccountRepository, emailService);
     }
 
     @Bean
-    public ISellerPaymentService sellerPaymentService(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, ISellerReceiptService sellerReceiptService){
-        return new SellerPaymentServiceImpl(sellerPaymentRepository, sellerReceiptRepository, userRepository, sellerReceiptService);
-    }
-
-    @Bean
-    public ISellerReceiptService sellerReceiptServiceSellerReceiptServiceImpl(SellerReceiptRepository sellerReceiptRepository, SellerPaymentRepository sellerPaymentRepository){
-        return new SellerReceiptServiceImpl(sellerReceiptRepository, sellerPaymentRepository);
+    public IPaymentService paymentService(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, PurchaseRepository purchaseRepository){
+        return new PaymentServiceImpl(sellerPaymentRepository, sellerReceiptRepository, userRepository, purchaseRepository);
     }
 
     @Bean

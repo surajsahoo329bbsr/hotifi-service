@@ -26,10 +26,10 @@ public class Device implements Serializable {
     @Column(unique = true, nullable = false)
     private String androidId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1024)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 4096)
     private String token;
 
     @Temporal(TemporalType.TIMESTAMP)

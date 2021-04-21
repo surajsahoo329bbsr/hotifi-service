@@ -64,7 +64,7 @@ public class DeviceController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addDevice(@RequestBody @Validated DeviceRequest deviceRequest) {
-        if ((customerAuthorizationService.isAuthorizedByAndroidId(deviceRequest.getAndroidId(), AuthorizationUtils.getUserToken())))
+        if ((customerAuthorizationService.isAuthorizedByUserId(deviceRequest.getUserId(), AuthorizationUtils.getUserToken())))
             deviceService.addDevice(deviceRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

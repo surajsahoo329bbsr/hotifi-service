@@ -36,14 +36,14 @@ public class StatsController {
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
 
-    @GetMapping(path = "/seller/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/seller/{user-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Seller Stats By User Id",
             notes = "Get Seller Stats By User Id",
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerStatsResponse.class)
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
@@ -54,7 +54,7 @@ public class StatsController {
         return new ResponseEntity<>(sellerStatsResponse, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/buyer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/buyer/{user-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Buyer Stats By User Id",
             notes = "Get Buyer Stats By User Id",

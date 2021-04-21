@@ -1,7 +1,8 @@
 package com.api.hotifi.identity.services.interfaces;
 
 import com.api.hotifi.identity.entities.Device;
-import com.api.hotifi.identity.web.request.DeviceRequest;
+import com.api.hotifi.identity.web.request.
+        DeviceRequest;
 
 import java.util.Set;
 

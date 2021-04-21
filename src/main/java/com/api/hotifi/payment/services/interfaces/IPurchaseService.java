@@ -20,8 +20,6 @@ public interface IPurchaseService {
 
     Date startBuyerWifiService(Long purchaseId);
 
-    void withdrawBuyerRefunds(Long buyerId);
-
     /*
         Below method returns the following codes
             0 if successfully updated
@@ -36,7 +34,4 @@ public interface IPurchaseService {
     List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending);
 
     List<WifiSummaryResponse> getSortedWifiUsagesDataUsed(Long buyerId, int page, int size, boolean isDescending);
-
-    @Transactional(readOnly = true)
-    List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending);
 }

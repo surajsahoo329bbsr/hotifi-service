@@ -102,15 +102,13 @@ public class SwaggerConfiguration {
         Predicate<String> feedbacks = PathSelectors.regex("/feedback.*")::apply;
         Predicate<String> bankAccounts = PathSelectors.regex("/bank-account.*")::apply;
         Predicate<String> purchases = PathSelectors.regex("/purchase.*")::apply;
-        Predicate<String> sellerBankAccounts = PathSelectors.regex("/seller-bank-account.*")::apply;
-        Predicate<String> sellerPayments = PathSelectors.regex("/seller-payment.*")::apply;
-        Predicate<String> sellerReceipts = PathSelectors.regex("/seller-receipt.*")::apply;
+        Predicate<String> sellerPayments = PathSelectors.regex("/payment.*")::apply;
         Predicate<String> stats = PathSelectors.regex("/stats.*")::apply;
         Predicate<String> speedTests = PathSelectors.regex("/speed-test.*")::apply;
         Predicate<String> sessions = PathSelectors.regex("/session.*")::apply;
         return authentications.or(devices).or(users).or(userStatuses)
-                .or(feedbacks).or(bankAccounts).or(purchases).or(sellerBankAccounts)
-                .or(sellerPayments).or(sellerReceipts).or(stats).or(speedTests).or(sessions);
+                .or(feedbacks).or(bankAccounts).or(purchases)
+                .or(sellerPayments).or(stats).or(speedTests).or(sessions);
     }
 
     private ApiInfo apiInfo() {

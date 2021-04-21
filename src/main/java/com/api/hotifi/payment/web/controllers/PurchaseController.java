@@ -94,7 +94,7 @@ public class PurchaseController {
         return new ResponseEntity<>(new WifiStartTimeResponse(wifiStartTime), HttpStatus.OK);
     }
 
-    @PutMapping(path = "/buyer/wifi-service/update/{purchase-id}/{status}/{data-used}")
+    @PutMapping(path = "/buyer/wifi-service/update/{purchase-id}/{data-used}")
     @ApiOperation(
             value = "Update Buyer Wifi-Service",
             notes = "Update Buyer Wifi-Service",
@@ -116,7 +116,7 @@ public class PurchaseController {
         return new ResponseEntity<>(new UpdateStatusResponse(updateStatus), HttpStatus.OK);
     }
 
-    @PutMapping(path = "/buyer/wifi-service/finish/{purchase-id}/{status}/{data-used}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/buyer/wifi-service/finish/{purchase-id}/{data-used}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Finish Buyer Wifi-Service",
             notes = "Finish Buyer Wifi-Service",
@@ -186,47 +186,6 @@ public class PurchaseController {
                 (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken())) ?
                         purchaseService.getSortedWifiUsagesDataUsed(buyerId, page, size, isDescending) : null;
         return new ResponseEntity<>(wifiSummaryResponses, HttpStatus.OK);
-    }
-
-    @PutMapping(path = "/buyer/refunds/withdraw/{buyer-id}")
-    @ApiOperation(
-            value = "Withdraw Buyer Refunds By Buyer Id",
-            notes = "Withdraw Buyer Refunds By Buyer Id",
-            code = 204,
-            response = String.class)
-    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> withdrawBuyerRefunds(@PathVariable(value = "buyer-id")
-                                                  @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId) {
-        if (customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
-            purchaseService.withdrawBuyerRefunds(buyerId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @GetMapping(path = "/buyer/refunds/receipts/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(
-            value = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
-            notes = "Get Buyer Refund Receipts By Buyer Id And Pagination Values",
-            response = String.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 200, message = SuccessMessages.OK, response = RefundReceiptResponse.class, responseContainer = "List")
-    })
-    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getBuyerRefundReceipts(
-            @PathVariable(value = "buyer-id")
-            @Range(min = 1, message = "{buyer.id.invalid}") Long buyerId,
-            @PathVariable(value = "page")
-            @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
-            @PathVariable(value = "size")
-            @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
-            @PathVariable(value = "is-descending") boolean isDescending) {
-        List<RefundReceiptResponse> refundReceiptResponses =
-                customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()) ?
-                        purchaseService.getBuyerRefundReceipts(buyerId, page, size, isDescending) : null;
-        return new ResponseEntity<>(refundReceiptResponses, HttpStatus.OK);
     }
 
     @GetMapping(path = "/buyer/check-current-session/{buyer-id}/{session-id}/{data-to-be-used}")
