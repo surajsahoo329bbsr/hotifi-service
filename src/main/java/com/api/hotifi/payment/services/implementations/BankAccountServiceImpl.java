@@ -13,12 +13,14 @@ import com.api.hotifi.payment.error.SellerBankAccountErrorCodes;
 import com.api.hotifi.payment.repositories.BankAccountRepository;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
+import com.api.hotifi.payment.web.responses.BankAccountAdminResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class BankAccountServiceImpl implements IBankAccountService {
@@ -107,8 +109,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
                 emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
 
-                if (errorDescription != null)
+                if (errorDescription != null) {
                     emailService.sendLinkedAccountFailed(user, errorDescription, emailModel);
+                    return;
+                }
                 emailService.sendLinkedAccountSuccessEmail(user, emailModel);
 
             } catch (DataIntegrityViolationException e) {
@@ -128,7 +132,11 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     @Transactional
     @Override
-    public List<BankAccount> getUnlinkedBankAccounts() {
-        return bankAccountRepository.findUnverifiedBankAccounts();
+    public List<BankAccountAdminResponse> getUnlinkedBankAccounts() {
+        List<BankAccount> bankAccounts = bankAccountRepository.findUnverifiedBankAccounts();
+        return bankAccounts.
+                stream()
+                .map(bankAccount -> new BankAccountAdminResponse(bankAccount, bankAccount.getUser().getId()))
+                .collect(Collectors.toList());
     }
 }

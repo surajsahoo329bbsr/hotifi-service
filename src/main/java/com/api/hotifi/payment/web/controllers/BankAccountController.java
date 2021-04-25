@@ -9,6 +9,7 @@ import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
+import com.api.hotifi.payment.web.responses.BankAccountAdminResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
@@ -128,8 +129,8 @@ public class BankAccountController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<?> getUnlinkedBankAccounts() {
-        List<BankAccount> bankAccounts = bankAccountService.getUnlinkedBankAccounts();
-        return new ResponseEntity<>(bankAccounts, HttpStatus.OK);
+        List<BankAccountAdminResponse> bankAccountAdminResponses = bankAccountService.getUnlinkedBankAccounts();
+        return new ResponseEntity<>(bankAccountAdminResponses, HttpStatus.OK);
     }
 
 }

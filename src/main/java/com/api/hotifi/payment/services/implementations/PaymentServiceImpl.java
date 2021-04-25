@@ -243,7 +243,7 @@ public class PaymentServiceImpl implements IPaymentService {
         BigDecimal sellerAmount = new BigDecimal("0.00");
         BigDecimal buyerRefund = new BigDecimal("0.00");
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller, true))
+        if (seller == null || seller.getBankAccount() == null)
             return new PendingMoneyResponse(false, sellerAmount, null,
                     false, buyerRefund, null);
 

@@ -52,11 +52,9 @@ public class CustomerAuthorizationImpl implements ICustomerAuthorizationService 
         String jwtUsername = jwtDecoder.extractUsername(bearerToken);
         if (jwtUsername == null)
             throw new HotifiException(DeviceErrorCodes.FORBIDDEN_ANDROID_DEVICE_ID);
-        List<User> users = device.getUsers()
+        return device.getUsers()
                 .stream()
-                .filter(user -> user.getAuthentication().getEmail().equals(jwtUsername))
-                .collect(Collectors.toList());
-        return users.size() > 0;
+                .anyMatch(user -> user.getAuthentication().getEmail().equals(jwtUsername));
     }
 
     @Override
