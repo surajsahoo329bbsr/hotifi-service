@@ -6,7 +6,6 @@ import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.payment.web.responses.UpdateStatusResponse;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.api.hotifi.speedtest.service.ISpeedTestService;
 import com.api.hotifi.speedtest.web.request.SpeedTestRequest;

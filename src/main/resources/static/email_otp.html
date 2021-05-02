@@ -1,95 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhrml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Email Verification</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE-edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Otp</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/style.css">
+        table {
+            border-spacing: 0;
+        }
+
+        td {
+            padding: 0;
+        }
+
+        img {
+            border: 0;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            padding-bottom: 40px;
+        }
+
+        .webkit {
+            max-width: 600px;
+        }
+
+        .outer {
+            margin: 0 auto;
+            width: 100%;
+            border-spacing: 0;
+            border-radius: 12px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+            color: #388CDA;
+        }
+        
+    </style>
 </head>
-<body>x
 
-<div class="container">
+<body>
+    <center class="wrapper">
+        <div class="webkit">
+            <table class="outer" align="center">
+                <tr>
+                    <td>
+                        <table width="100%" style="border-spacing: 0;">
+                            <tr>
+                                <td
+                                    style="padding: 32px; text-align: center; background-color: #6200EE; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                                    <a href=""><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Flogo-white.png?alt=media&token=afb8c38b-dbb8-4e81-8729-d775d226b380"
+                                            width="80" alt="logo" title="logo">
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-family:Verdana, Geneva, Tahoma, sans-serif; padding: 10px;">
+                                    <p id="first-name"></p>
+                                    <p>Thanks for signing up with hotifi. Please use the code provided below to complete the verification..</p>
+                                    <b id="email-otp"></b>
+                                    <p style="font-weight: bold;">This code will expire in <b id="expires-in"> 10 minutes</b>.</p>
+                                    <p>If you have not requested for it, then please ignore this email.</p>
+                                    <p>Regards</p>
+                                    <p>Team Hotifi</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
+                <tr>
+                    <td>
+                        <table width="100%" style="border-spacing: 0;">
+                            <tr>
+                                <td style="background-color: #EFEFEF; padding: 10px; text-align: center;">
+                                    <a href="#"><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Fgoogle-play-badge.png?alt=media&token=c659434f-264d-4b5c-8796-bb6b955e90e4"
+                                            width="
+                                            200" alt="google-playstore"></a>
+                                    <p style="color: #000000; margin-bottom: 20px;">Connect with us</p>
+                                    <a href="#"><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Ffacebook.png?alt=media&token=7fafa19e-9727-42c1-9984-f725ff7ea281"
+                                            width="
+                                            30" alt="facebook" style="margin-left: 8px;"></a>
+                                    <a href="#"><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Finstagram.png?alt=media&token=4e4ec599-54ad-4b39-8f55-32349881d99f"
+                                            width="30" alt="instagram" style="margin-left: 8px;"></a>
+                                    <a href="#"><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Ftwitter.png?alt=media&token=23585c4b-fdc6-45b8-9ee3-d20463bcbd5f"
+                                            width="30" alt="twitter" style="margin-left: 8px;"></a>
+                                    <a href="#"><img
+                                            src="https://firebasestorage.googleapis.com/v0/b/hotifi-app.appspot.com/o/logos%2Flinkedin.png?alt=media&token=9cd47e98-effa-4a44-b55d-71594e0cd5f0"
+                                            width="30" alt="linkedin" style="margin-left: 8px;"></a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-    <div class="outer-panel text-center rounded">
-
-        <div class="middle-panel text rounded">
-            <h4 class="mt-3"
-                style="font-size: 40px;color: #ffffff; background-image: linear-gradient(-180deg, #6200EE, #9B4DFF);">
-                hotifi</h4>
-        </div>
-
-        <div class="inner-panel  rounded">
-            <br>
-            <div class="row">
-                <p id="first_name" style="font-size:20px"></p>
-                <p style="font-size:17px">Thanks for using Hotifi. Please use the code provided below to complete the
-                    verification.</p>
-
-                <!--<img src="images/flare.png" alt="logo" style="width: 100%; height: 95%;">-->
-                <br>
-                <div style="display: table; margin:auto;" id="email_otp">
-                </div>
-
-            </div>
-
-            <hr>
-            <div class="col-md-12">
-                <p>If you need any assistance, just send us an email. We're always happy to help.
-                <p>
-                    <button type="button" class="btn btn-link">hotifi.help@gmail.com</button>
-
-            </div>
-            <div class="text-left">
-                <p>Cheers!<br>Team Hotifi</p>
-
-            </div>
-            <hr>
-        </div>
-        <div class="social-links">
-            <table class="row1 rounded">
-                <tr class="links-images-top">
-                    <td class="es-p10t es-p10b es-p5r es-p5l " style="padding-bottom: 30px; padding-top: 35px;
-                      " bgcolor="transparent" align="center">
-                        <a target="_blank" style="font-size: 20px;" href="#"><img src="images/facebook2x.png" alt title
-                                                                                  class="es-p5b" height="27"
-                                                                                  align="absmiddle"></a></td>
-
-                    <td class="es-p10t es-p10b es-p5r es-p5l " style="padding-bottom: 30px; padding-top: 35px;
-                      " width="25.00%" bgcolor="transparent" align="center">
-                        <a target="_blank" style=" font-size: 20px;" href="#"><img src="images/twitter2x.png" alt title
-                                                                                   class="es-p5b" height="27"
-                                                                                   align="absmiddle"></a></td>
-
-                    <td class="es-p10t es-p10b es-p5r es-p5l " style="padding-bottom: 30px; padding-top: 35px;
-                      " width="25.00%" bgcolor="transparent" align="center">
-                        <a target="_blank" style=" font-size: 20px;" href="#"><img src="images/instagram2x.png" alt
-                                                                                   title class="es-p5b" height="27"
-                                                                                   align="absmiddle"></a></td>
-
-                    <td class="es-p10t es-p10b es-p5r es-p5l " style="padding-bottom: 30px; padding-top: 35px;
-                      " width="25.00%" bgcolor="transparent" align="center">
-                        <a target="_blank" style="color: #ffffff; font-size: 20px;" href="#"><img
-                                src="images/linkedin2x.png" alt title class="es-p5b" height="27" align="absmiddle"></a>
+                <tr>
+                    <td
+                        style="background-color: #EFEFEF; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                        <table width="100%" style="border-spacing: 0;">
+                            <tr>
+                                <td style="text-align: center;">
+                                    <p>For any questions please send email to <a
+                                            href="mailto:hotifi.help@gmail.com">hotifi.help@gmail.com</a></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;">
+                                    <p>
+                                        <a href="#">Terms</a> &nbsp;
+                                        <a href="#">Privacy Policy</a> &nbsp;
+                                        <a href="#">Refund Policy</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </table>
-            <div>
-                <div>
-                    <a href="#">About us</a>&nbsp; |&nbsp;<a href="#"> Unsubscribe</a>
-                    <p style="font-size: 14px; line-height: 1.5;  text-align: center; mso-line-height-alt: 21px;margin:0;">
-                        Copyright@2021 - hotifi inc., All rights reserved</p>
-                    <br>
-                </div>
-            </div>
-
         </div>
-    </div>
-</div>
+    </center>
 </body>
-</html>
 
+</html>

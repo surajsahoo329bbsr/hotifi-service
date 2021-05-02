@@ -22,7 +22,7 @@ public class SpeedTest implements Serializable {
     private Long id;
 
     @Column(nullable = false)
-    private String networkName;
+    private String networkProvider;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)

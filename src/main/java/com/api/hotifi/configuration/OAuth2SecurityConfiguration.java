@@ -30,7 +30,7 @@ public class OAuth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/v2/api-docs", "/configuration/ui",
                         "/swagger-resources/**", "/configuration/**",
                         "/swagger-ui/index.html", "/swagger-ui.html", "/webjars/**",
-                        "/authenticate/**", "/user/", "/user/is-available/**",
+                        "/authenticate/**", "/user/", "/user/is-available/**", "/email/**",
                         "/user/login/otp/**", "/user/login/verify/**", "/user/password/reset/**");
     }
 

@@ -5,7 +5,6 @@ import com.api.hotifi.identity.models.EmailModel;
 
 public interface IEmailService {
 
-
     void sendAccountDeletedEmail(User user, EmailModel emailModel);
 
     void sendAccountFreezedEmail(User user, EmailModel emailModel);
@@ -19,6 +18,5 @@ public interface IEmailService {
     void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel);
 
     void sendWelcomeEmail(User user, EmailModel emailModel);
-
 
 }

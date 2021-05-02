@@ -106,9 +106,11 @@ public class SwaggerConfiguration {
         Predicate<String> stats = PathSelectors.regex("/stats.*")::apply;
         Predicate<String> speedTests = PathSelectors.regex("/speed-test.*")::apply;
         Predicate<String> sessions = PathSelectors.regex("/session.*")::apply;
+        Predicate<String> emails = PathSelectors.regex("/email.*")::apply;
+
         return authentications.or(devices).or(users).or(userStatuses)
                 .or(feedbacks).or(bankAccounts).or(purchases)
-                .or(sellerPayments).or(stats).or(speedTests).or(sessions);
+                .or(sellerPayments).or(stats).or(speedTests).or(sessions).or(emails);
     }
 
     private ApiInfo apiInfo() {

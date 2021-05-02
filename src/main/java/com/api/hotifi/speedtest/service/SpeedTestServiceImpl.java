@@ -36,7 +36,7 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         try {
             SpeedTest speedTest = new SpeedTest();
-            speedTest.setNetworkName(speedTestRequest.getNetworkName());
+            speedTest.setNetworkProvider(speedTestRequest.getNetworkProvider());
             speedTest.setDownloadSpeed(speedTestRequest.getDownloadSpeed());
             speedTest.setUploadSpeed(speedTestRequest.getUploadSpeed());
             speedTest.setPinCode(speedTestRequest.getPinCode());
