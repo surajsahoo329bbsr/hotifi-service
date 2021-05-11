@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = NetworkProviderValidator.class)
 public @interface NetworkProvider {
 
-    String message() default "Value must be one in {BROADBAND, JIO, AIRTEL, BSNL, VODAFONE, OTHERS}";
+    String message() default "Value must be one in {WIFI, JIO, AIRTEL, BSNL, VODAFONE, OTHERS}";
 
     Class<?>[] groups() default {};
 

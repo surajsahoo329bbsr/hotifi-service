@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public enum NetworkProviderCodes {
 
-    BROADBAND,
+    WIFI,
     JIO,
     AIRTEL,
     BSNL,
