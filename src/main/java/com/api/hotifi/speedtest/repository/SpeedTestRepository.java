@@ -18,10 +18,10 @@ public interface SpeedTestRepository extends PagingAndSortingRepository<SpeedTes
     @Query(value = "SELECT * FROM speed_test WHERE user_id in :userIds", nativeQuery = true)
     List<SpeedTest> findSpeedTestsByUserIds(@Param("userIds") List<Long> userIds, Pageable pageable);
 
-    @Query(value = "SELECT * FROM speed_test WHERE user_id = ?1 AND pin_code = ?2 AND network_name != 'WIFI' ORDER BY 1 DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM speed_test WHERE user_id = ?1 AND pin_code = ?2 AND network_provider != 'WIFI' ORDER BY 1 DESC LIMIT 1", nativeQuery = true)
     SpeedTest findLatestNonWifiSpeedTest(Long userId, String pinCode);
 
-    @Query(value = "SELECT * FROM speed_test WHERE user_id = ?1 AND pin_code = ?2 AND network_name = 'WIFI' ORDER BY 1 DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM speed_test WHERE user_id = ?1 AND pin_code = ?2 AND network_provider = 'WIFI' ORDER BY 1 DESC LIMIT 1", nativeQuery = true)
     SpeedTest findLatestWifiSpeedTest(Long userId, String pinCode);
 
 }

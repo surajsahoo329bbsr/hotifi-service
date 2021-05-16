@@ -1,10 +1,12 @@
 package com.api.hotifi.speedtest.service;
 
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
+import com.api.hotifi.speedtest.codes.NetworkProviderCodes;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.api.hotifi.speedtest.error.SpeedTestErrorCodes;
 import com.api.hotifi.speedtest.repository.SpeedTestRepository;
@@ -31,6 +33,17 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     @Transactional
     @Override
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
+
+        boolean isBelowWifiDownloadSpeed = Double.compare(speedTestRequest.getDownloadSpeed(), BusinessConfigurations.MINIMUM_WIFI_DOWNLOAD_SPEED) < 0
+                && speedTestRequest.getNetworkProvider().equals(NetworkProviderCodes.WIFI.name());
+
+        boolean isBelowWifiUploadSpeed = Double.compare(speedTestRequest.getUploadSpeed(), BusinessConfigurations.MINIMUM_WIFI_UPLOAD_SPEED) < 0
+                && speedTestRequest.getNetworkProvider().equals(NetworkProviderCodes.WIFI.name());
+
+        if(isBelowWifiDownloadSpeed || isBelowWifiUploadSpeed){
+            throw new HotifiException(SpeedTestErrorCodes.SPEED_TEST_INVALID_WIFI_RECORD);
+        }
+
         User user = userRepository.findById(speedTestRequest.getUserId()).orElse(null);
         if (!LegitUtils.isUserLegit(user) && !(user != null && user.isLoggedIn()))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
