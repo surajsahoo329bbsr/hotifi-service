@@ -94,7 +94,7 @@ public class EmailServiceImpl implements IEmailService {
             Document document = Jsoup.parse(file, "UTF-8");
             document.getElementById("first-name").appendText("Hi,");
             document.getElementById("email-otp").appendText(emailModel.getEmailOtp());
-            document.getElementById("expires-in").appendText(BusinessConfigurations.MINIMUM_FREEZE_PERIOD_HOURS + " hours");
+            document.getElementById("expires-in").appendText(BusinessConfigurations.MAXIMUM_EMAIL_OTP_MINUTES + " minutes");
             sendEmail(document, emailModel, subject);
         } catch (Exception e) {
             e.printStackTrace();
