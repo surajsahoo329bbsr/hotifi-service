@@ -28,7 +28,7 @@ public class OtpUtils {
     public static String generateEmailOtp() {
         //do stuff
         try {
-            TimeBasedOneTimePasswordGenerator timeOtp = new TimeBasedOneTimePasswordGenerator(Duration.ofMinutes(10));
+            TimeBasedOneTimePasswordGenerator timeOtp = new TimeBasedOneTimePasswordGenerator(Duration.ofMinutes(10), 6);
 
             Key key;
             {

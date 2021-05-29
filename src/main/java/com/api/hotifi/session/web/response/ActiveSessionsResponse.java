@@ -20,6 +20,8 @@ public class ActiveSessionsResponse {
 
     private String averageRating;
 
+    private String networkProvider;
+
     private double downloadSpeed;
 
     private double uploadSpeed;

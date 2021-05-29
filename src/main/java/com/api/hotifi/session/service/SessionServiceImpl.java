@@ -143,6 +143,7 @@ public class SessionServiceImpl implements ISessionService {
                     activeSessionsResponse.setSellerId(speedTest.getUser().getId());
                     activeSessionsResponse.setUsername(speedTest.getUser().getUsername());
                     activeSessionsResponse.setUserPhotoUrl(speedTest.getUser().getPhotoUrl());
+                    activeSessionsResponse.setNetworkProvider(speedTest.getNetworkProvider());
                     activeSessionsResponse.setData(availableData);
                     activeSessionsResponse.setPrice(availableDataPrice);
                     activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(speedTest.getUser().getId()));

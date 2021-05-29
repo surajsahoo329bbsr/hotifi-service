@@ -122,7 +122,7 @@ public class UserServiceImpl implements IUserService {
     public void sendEmailOtpLogin(String email) {
         Authentication authentication = authenticationRepository.findByEmail(email);
         //If user doesn't exist no need to check legit authentication
-        if (authentication.getEmailOtp() != null)
+        if (authentication.getEmailOtp() != null && !OtpUtils.isEmailOtpExpired(authentication))
             throw new HotifiException(UserErrorCodes.EMAIL_OTP_ALREADY_GENERATED);
         if (!LegitUtils.isAuthenticationLegit(authentication))
             throw new HotifiException(AuthenticationErrorCodes.AUTHENTICATION_NOT_LEGIT);
