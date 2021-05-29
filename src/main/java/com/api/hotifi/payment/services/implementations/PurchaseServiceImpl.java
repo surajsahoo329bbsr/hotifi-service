@@ -94,8 +94,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
         try {
             BigDecimal amountPaid = session != null ?
                     session.getPrice()
-                            .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
+                            .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
             Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();

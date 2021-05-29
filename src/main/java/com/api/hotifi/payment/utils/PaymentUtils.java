@@ -50,32 +50,32 @@ public class PaymentUtils {
     public static BigDecimal divideThenMultiplyCeilingTwoScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
         return
                 numerator
-                        .divide(denominator, 2, RoundingMode.CEILING)
                         .multiply(multiplier)
+                        .divide(denominator, 2, RoundingMode.CEILING)
                         .setScale(2, RoundingMode.CEILING);
     }
 
     public static BigDecimal divideThenMultiplyCeilingZeroScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
         return
                 numerator
-                        .divide(denominator, 2, RoundingMode.CEILING)
                         .multiply(multiplier)
+                        .divide(denominator, 2, RoundingMode.CEILING)
                         .setScale(0, RoundingMode.CEILING);
     }
 
     public static BigDecimal divideThenMultiplyFloorTwoScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
         return
                 numerator
-                        .divide(denominator, 2, RoundingMode.FLOOR)
                         .multiply(multiplier)
+                        .divide(denominator, 2, RoundingMode.FLOOR)
                         .setScale(2, RoundingMode.FLOOR);
     }
 
     public static BigDecimal divideThenMultiplyFloorZeroScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
         return
                 numerator
-                        .divide(denominator, 2, RoundingMode.FLOOR)
                         .multiply(multiplier)
+                        .divide(denominator, 2, RoundingMode.FLOOR)
                         .setScale(0, RoundingMode.CEILING);
     }
 

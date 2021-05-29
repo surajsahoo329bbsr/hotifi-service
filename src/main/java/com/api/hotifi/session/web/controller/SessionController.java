@@ -17,6 +17,7 @@ import com.api.hotifi.session.web.response.SessionSummaryResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +70,7 @@ public class SessionController {
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
     //Any customer / admin can view this no need to check for particular customer
-    public ResponseEntity<?> getActiveSessions(@PathVariable(value = "usernames") Set<String> usernames) {
+    public ResponseEntity<?> getActiveSessions(@RequestParam(value = "usernames") Set<String> usernames) {
         //Not required to check for role security
         List<ActiveSessionsResponse> activeSessionsResponses = sessionService.getActiveSessions(usernames);
         return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
