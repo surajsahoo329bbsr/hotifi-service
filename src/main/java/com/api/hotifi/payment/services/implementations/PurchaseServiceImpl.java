@@ -89,7 +89,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         Long sessionId = purchaseRequest.getSessionId();
         Session session = sessionRepository.findById(sessionId).orElse(null);
         User buyer = userRepository.findById(buyerId).orElse(null);
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY, PaymentMethodCodes.valueOf(purchaseRequest.getPaymentMethod()));
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
         try {
             BigDecimal amountPaid = session != null ?

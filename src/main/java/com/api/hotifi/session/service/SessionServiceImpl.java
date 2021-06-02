@@ -134,8 +134,8 @@ public class SessionServiceImpl implements ISessionService {
 
                 sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
-                    BigDecimal availableDataPrice = PaymentUtils
-                            .divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
+                    //BigDecimal availableDataPrice = PaymentUtils
+                            //.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
@@ -145,7 +145,7 @@ public class SessionServiceImpl implements ISessionService {
                     activeSessionsResponse.setUserPhotoUrl(speedTest.getUser().getPhotoUrl());
                     activeSessionsResponse.setNetworkProvider(speedTest.getNetworkProvider());
                     activeSessionsResponse.setData(availableData);
-                    activeSessionsResponse.setPrice(availableDataPrice);
+                    activeSessionsResponse.setPrice(session.getPrice());
                     activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(speedTest.getUser().getId()));
                     activeSessionsResponse.setDownloadSpeed(downloadSpeed);
                     activeSessionsResponse.setUploadSpeed(uploadSpeed);

@@ -43,12 +43,6 @@ public class PaymentProcessor {
         razorpayProcessor = new RazorpayProcessor();
     }
 
-    public PaymentProcessor(PaymentGatewayCodes paymentGatewayCodes, PaymentMethodCodes paymentMethodCodes) {
-        this.paymentGatewayCodes = paymentGatewayCodes;
-        this.paymentMethodCodes = paymentMethodCodes;
-        razorpayProcessor = new RazorpayProcessor();
-    }
-
     public Purchase getBuyerPurchase(String paymentId, BigDecimal amountPaid) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:

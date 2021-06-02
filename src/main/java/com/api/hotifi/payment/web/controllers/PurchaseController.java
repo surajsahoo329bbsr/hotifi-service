@@ -7,7 +7,6 @@ import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.*;
