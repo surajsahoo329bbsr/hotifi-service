@@ -49,7 +49,7 @@ public class PurchaseController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<?> addPurchase(@RequestBody @Validated PurchaseRequest purchaseRequest) {
         PurchaseReceiptResponse receiptResponse =
-                (customerAuthorizationService.isAuthorizedByPurchaseId(purchaseRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
+                (customerAuthorizationService.isAuthorizedByUserId(purchaseRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
                         purchaseService.addPurchase(purchaseRequest) : null;
         return new ResponseEntity<>(receiptResponse, HttpStatus.OK);
     }

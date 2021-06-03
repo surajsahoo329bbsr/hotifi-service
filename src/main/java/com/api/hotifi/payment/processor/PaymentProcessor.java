@@ -43,13 +43,28 @@ public class PaymentProcessor {
         razorpayProcessor = new RazorpayProcessor();
     }
 
+    public void capturePayment(String paymentId, int amountInr) {
+        switch (paymentGatewayCodes) {
+            case RAZORPAY:
+                int amount = amountInr * BusinessConfigurations.UNIT_INR_IN_PAISE;
+                razorpayProcessor.capturePaymentById(paymentId, amount, "INR");
+            case STRIPE:
+                log.info("STRIPE PAYMENT");
+                break;
+            case PAYPAL:
+                log.info("PAYPAL PAYMENT");
+                break;
+        }
+
+    }
+
     public Purchase getBuyerPurchase(String paymentId, BigDecimal amountPaid) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 Payment payment = razorpayProcessor.getPaymentById(paymentId);
-                Date paymentDoneAt = new Date((long) payment.get("created_at"));
-                String acquirerData = payment.get("acquirer_data");
-                JSONObject acquirerDataJson = new JSONObject(acquirerData);
+
+                Date paymentDoneAt = payment.get("created_at");
+                JSONObject acquirerDataJson = payment.get("acquirer_data");
                 String paymentTransactionId = acquirerDataJson.getString("rrn");
 
                 PaymentMethodCodes paymentMethod = PaymentMethodCodes.valueOf(payment.get("method").toString().toUpperCase());
@@ -86,10 +101,9 @@ public class PaymentProcessor {
 
                 Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId());
                 String refundId = refund.get("id");
-                Date refundCreatedAt = new Date((long) refund.get("created_at"));
+                Date refundCreatedAt = refund.get("created_at");
                 RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
-                String acquirerData = refund.get("acquirer_data");
-                JSONObject acquirerDataJson = new JSONObject(acquirerData);
+                JSONObject acquirerDataJson = refund.get("acquirer_data");
                 String refundTransactionId = acquirerDataJson.getString("arn");
                 int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
                 //modify purchase entity
@@ -121,13 +135,12 @@ public class PaymentProcessor {
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
                 sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
                 if (isOnHold) {
-                    long epochTime = transfer.get("on_hold_until");
-                    Date onHoldUntil = new Date(epochTime * 1000);
+                    Date onHoldUntil = transfer.get("on_hold_until");
                     sellerReceiptResponse.setOnHoldUntil(onHoldUntil);
                 }
                 if (settlementId != null) {
                     Settlement settlement = razorpayProcessor.getSettlementById(settlementId);
-                    Date paidAt = new Date(settlement.getCreatedAt() * 1000);
+                    Date paidAt = PaymentUtils.convertEpochToDate(settlement.getCreatedAt());
                     Date modifiedAt = new Date(System.currentTimeMillis());
                     String transferTransactionId = settlement.getUtr();
                     SellerPaymentCodes sellerPaymentCode = SellerPaymentCodes.valueOf(settlement.getStatus().toUpperCase());
@@ -162,7 +175,7 @@ public class PaymentProcessor {
                 //Creating refund entity below
                 Refund refund = razorpayProcessor.startNormalPartialRefund(paymentId, amountInPaise);
                 String refundId = refund.get("id");
-                Date refundStartedAt = new Date((long) refund.get("created_at"));
+                Date refundStartedAt = refund.get("created_at");
                 RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
                 int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
                 //Purchase entity setup
@@ -187,12 +200,12 @@ public class PaymentProcessor {
                 Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount), BusinessConfigurations.CURRENCY_INR);
                 SellerReceipt sellerReceipt = new SellerReceipt();
                 sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
-                Date createdAt = new Date((long) transfer.get("created_at"));
-                Date modifiedAt = new Date((long) transfer.get("processed_at"));
+                Date createdAt = transfer.get("created_at");
+                Date modifiedAt = transfer.get("processed_at");
                 String transferId = transfer.get("id");
                 String settlementId = transfer.get("recipient_settlement_id");
                 boolean isOnHold = transfer.get("on_hold");
-                Date onHoldUntil = new Date((long) transfer.get("on_hold_until") * 1000);
+                Date onHoldUntil = transfer.get("on_hold_until");
 
                 sellerReceipt.setCreatedAt(createdAt);
                 sellerReceipt.setModifiedAt(createdAt);

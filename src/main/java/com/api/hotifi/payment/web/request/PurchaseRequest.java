@@ -29,8 +29,6 @@ public class PurchaseRequest {
     @Length(max = 45, message = "{mac.address.invalid}")
     private String ipAddress;
 
-    private String errorDescription;
-
-    @Range(min = BusinessConfigurations.MINIMUM_SELLING_DATA_MB, max = BusinessConfigurations.MAXIMUM_SELLING_DATA_MB, message = "{data.range.invalid}")
+    @Range(min = BusinessConfigurations.MINIMUM_BUYING_DATA_MB, message = "{min.data.range.invalid}")
     private int data;
 }

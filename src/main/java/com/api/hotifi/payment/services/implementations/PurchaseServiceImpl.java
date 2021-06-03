@@ -13,11 +13,10 @@ import com.api.hotifi.payment.error.PurchaseErrorCodes;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
-import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
-import com.api.hotifi.payment.services.interfaces.IPurchaseService;
 import com.api.hotifi.payment.services.interfaces.IPaymentService;
+import com.api.hotifi.payment.services.interfaces.IPurchaseService;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
@@ -97,6 +96,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
                             .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
+
+            //capture payments if not done automatically
+            paymentProcessor.capturePayment(purchaseRequest.getPaymentId(), amountPaid.intValue());
             Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();
             purchase.setSession(session);

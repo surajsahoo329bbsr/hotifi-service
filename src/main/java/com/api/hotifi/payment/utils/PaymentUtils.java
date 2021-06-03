@@ -7,12 +7,24 @@ import com.api.hotifi.session.entity.Session;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class PaymentUtils {
+
+    public static Date convertEpochToDate(long epochTime) {
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(BusinessConfigurations.DATABASE_EPOCH_TO_DATE_PATTERN);
+            String stringTime = String.valueOf(epochTime);
+            return dateFormat.parse(stringTime);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static int getDataUsedSumOfSession(Session session) {
         List<Purchase> purchases = session.getPurchases();
@@ -38,12 +50,12 @@ public class PaymentUtils {
         return hoursDifference >= BusinessConfigurations.MAXIMUM_BUYER_REFUND_DUE_HOURS;
     }
 
-    public static BigDecimal getInrFromPaise(int paise){
-        return BigDecimal.valueOf(paise/ BusinessConfigurations.UNIT_INR_IN_PAISE)
+    public static BigDecimal getInrFromPaise(int paise) {
+        return BigDecimal.valueOf(paise / BusinessConfigurations.UNIT_INR_IN_PAISE)
                 .setScale(2, RoundingMode.CEILING);
     }
 
-    public static int getPaiseFromInr(BigDecimal ruppee){
+    public static int getPaiseFromInr(BigDecimal ruppee) {
         return ruppee.multiply(BigDecimal.valueOf(100)).intValue();
     }
 
@@ -79,4 +91,4 @@ public class PaymentUtils {
                         .setScale(0, RoundingMode.CEILING);
     }
 
- }
+}
