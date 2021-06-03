@@ -18,6 +18,8 @@ public class PurchaseReceiptResponse {
 
     private int purchaseStatus;
 
+    private String purchaseTransactionId;
+
     private BigDecimal amountPaid;
 
     private Date createdAt;

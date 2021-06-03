@@ -72,11 +72,19 @@ public class PaymentProcessor {
                 int amountPaidInPaise = PaymentUtils.getPaiseFromInr(amountPaid);
                 if (razorpayStatus == PaymentStatusCodes.REFUNDED) return null;
                 //If auto-captured failed do the manual capture
-                if (razorpayStatus == PaymentStatusCodes.AUTHORIZED)
-                    razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, BusinessConfigurations.CURRENCY_INR);
                 //Purchase entity model update
                 Purchase purchase = new Purchase();
-                purchase.setStatus(paymentMethod.value() + razorpayStatus.value());
+                if (razorpayStatus == PaymentStatusCodes.AUTHORIZED) {
+                    try {
+                        //calling Api To Capture Payment
+                        razorpayProcessor.capturePaymentById(paymentId, amountPaidInPaise, BusinessConfigurations.CURRENCY_INR);
+                        purchase.setStatus(paymentMethod.value() + PaymentStatusCodes.CAPTURED.value());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        purchase.setStatus(paymentMethod.value() + PaymentStatusCodes.AUTHORIZED.value());
+                    }
+                } else
+                    purchase.setStatus(paymentMethod.value() + razorpayStatus.value()); //means either status is created or failed
                 purchase.setPaymentId(paymentId);
                 purchase.setPaymentDoneAt(paymentDoneAt);
                 purchase.setPaymentTransactionId(paymentTransactionId);

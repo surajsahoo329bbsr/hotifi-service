@@ -97,8 +97,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
                             .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
                             .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
 
-            //capture payments if not done automatically
-            paymentProcessor.capturePayment(purchaseRequest.getPaymentId(), amountPaid.intValue());
             Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();
             purchase.setSession(session);
@@ -163,6 +161,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setCreatedAt(purchase.getPaymentDoneAt());
             receiptResponse.setPurchaseStatus(purchase.getStatus());
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
+            receiptResponse.setPurchaseTransactionId(purchase.getPaymentTransactionId());
             receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, BusinessConfigurations.AES_PASSWORD_SECRET_KEY));
             if (purchase.getRefundPaymentId() != null) {
