@@ -14,6 +14,8 @@ public class Buyer {
 
     public String photoUrl;
 
+    public int status;
+
     public String macAddress;
 
     public String ipAddress;
