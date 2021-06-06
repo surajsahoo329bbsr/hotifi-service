@@ -291,7 +291,7 @@ public class RazorpayProcessor {
      * },
      * "receipt": null,
      * "acquirer_data": {
-     * "arn": "10000000000000"
+     * "arn": "10000000000000" // or rrn
      * },
      * "created_at": 1589521675,
      * "batch_id": null,

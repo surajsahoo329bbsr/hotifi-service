@@ -90,6 +90,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
         User buyer = userRepository.findById(buyerId).orElse(null);
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
+        //TODO add later
+        /*if(!isCurrentSessionLegit(buyerId, sessionId, purchaseRequest.getData())){
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
+        }*/
+
         try {
             BigDecimal amountPaid = session != null ?
                     session.getPrice()
@@ -275,8 +280,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
                 sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned().add(sellerAmount), isUpdateTimeOnly);
 
-            RefundReceiptResponse refundReceiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId());
-            purchase.setStatus(refundReceiptResponse.getPurchase().getStatus());
+
+            paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId());
+            purchase.setStatus(purchase.getStatus());
             purchase.setDataUsed(dataUsed);
             purchase.setAmountRefund(amountRefund);
             purchase.setSessionFinishedAt(sessionFinishedAt);
@@ -346,11 +352,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), false);
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
-        wifiSummaryResponse.setSellerName(seller.getFirstName() + " " + seller.getLastName());
+        wifiSummaryResponse.setSellerUsername(seller.getUsername());
         wifiSummaryResponse.setSellerPhotoUrl(seller.getPhotoUrl());
         wifiSummaryResponse.setAmountPaid(purchase.getAmountPaid());
         wifiSummaryResponse.setAmountRefund(purchase.getAmountRefund());
         wifiSummaryResponse.setSessionStartedAt(purchase.getSessionCreatedAt());
+        wifiSummaryResponse.setNetworkProvider(purchase.getSession().getSpeedTest().getNetworkProvider());
         wifiSummaryResponse.setSessionFinishedAt(purchase.getSessionFinishedAt());
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());

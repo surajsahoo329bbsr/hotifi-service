@@ -81,8 +81,8 @@ public class LegitUtils {
     public static boolean isPurchaseUpdateLegit(Purchase purchase, double dataUsed) {
         if (purchase == null)
             throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
-        if (purchase.getSessionCreatedAt() == null)
-            throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_NOT_STARTED);
+        //if (purchase.getSessionCreatedAt() == null)
+          //  throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_NOT_STARTED);
         if (purchase.getSessionFinishedAt() != null)
             throw new HotifiException(PurchaseErrorCodes.BUYER_WIFI_SERVICE_ALREADY_FINISHED);
         if (Double.compare(dataUsed, purchase.getData()) > 0)

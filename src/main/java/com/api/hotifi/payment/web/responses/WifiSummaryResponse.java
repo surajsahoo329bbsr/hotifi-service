@@ -14,7 +14,9 @@ public class WifiSummaryResponse {
 
     private String sellerPhotoUrl;
 
-    private String sellerName;
+    private String sellerUsername;
+
+    private String networkProvider;
 
     private Date sessionStartedAt;
 

@@ -107,18 +107,28 @@ public class PaymentProcessor {
                 if (isRefundToBeStarted)
                     return startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), paymentId);
 
-                Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId());
-                String refundId = refund.get("id");
-                Date refundCreatedAt = refund.get("created_at");
-                RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
-                JSONObject acquirerDataJson = refund.get("acquirer_data");
-                String refundTransactionId = acquirerDataJson.getString("arn");
-                int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
-                //modify purchase entity
-                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
-                purchase.setRefundDoneAt(refundCreatedAt);
-                purchase.setRefundPaymentId(refundId);
-                purchase.setRefundTransactionId(refundTransactionId);
+                if (purchase.getRefundPaymentId() != null) {
+                    Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId());
+                    String refundId = refund.get("id");
+                    Date refundCreatedAt = refund.get("created_at");
+                    RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
+                    JSONObject acquirerDataJson = refund.get("acquirer_data");
+                    String refundTransactionId;
+                    try {
+                        Object rrn = acquirerDataJson.get("rrn");
+                        refundTransactionId = (rrn == null) ? null : acquirerDataJson.getString("rrn");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        refundTransactionId = null;
+                    }
+                    int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
+                    //modify purchase entity
+                    purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                    purchase.setRefundDoneAt(refundCreatedAt);
+                    purchase.setRefundPaymentId(refundId);
+                    purchase.setRefundTransactionId(refundTransactionId);
+
+                }
                 return new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("STRIPE PAYMENT");
@@ -181,15 +191,20 @@ public class PaymentProcessor {
                 Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
                 int amountInPaise = PaymentUtils.getPaiseFromInr(refundAmount);
                 //Creating refund entity below
-                Refund refund = razorpayProcessor.startNormalPartialRefund(paymentId, amountInPaise);
-                String refundId = refund.get("id");
-                Date refundStartedAt = refund.get("created_at");
-                RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
-                int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
-                //Purchase entity setup
-                purchase.setRefundPaymentId(refundId);
-                purchase.setRefundStartedAt(refundStartedAt);
-                purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                BigDecimal zeroAmount = new BigDecimal("0.00");
+
+                if (refundAmount.compareTo(zeroAmount) > 0) {
+                    Refund refund = razorpayProcessor.startNormalPartialRefund(paymentId, amountInPaise);
+                    String refundId = refund.get("id");
+                    Date refundStartedAt = refund.get("created_at");
+                    RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
+                    int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
+                    //Purchase entity setup
+                    purchase.setRefundPaymentId(refundId);
+                    purchase.setRefundStartedAt(refundStartedAt);
+                    purchase.setStatus(purchase.getStatus() - purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE + buyerPaymentStatus);
+                }
+
                 return new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             case STRIPE:
                 log.info("STRIPE PAYMENT");
