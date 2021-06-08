@@ -22,7 +22,7 @@ public class Feedback implements Serializable {
     @JoinColumn(name = "purchase_id", referencedColumnName = "id", unique = true, nullable = false)
     private Purchase purchase;
 
-    @Column(columnDefinition = "DECIMAL(1,1)", nullable = false)
+    @Column(nullable = false)
     private float rating;
 
     @Column(columnDefinition = "TEXT")

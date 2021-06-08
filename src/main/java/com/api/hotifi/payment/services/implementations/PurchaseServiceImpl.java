@@ -280,7 +280,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
                 sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned().add(sellerAmount), isUpdateTimeOnly);
 
-
             paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId());
             purchase.setStatus(purchase.getStatus());
             purchase.setDataUsed(dataUsed);
@@ -353,6 +352,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), false);
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
         wifiSummaryResponse.setSellerUsername(seller.getUsername());
+        wifiSummaryResponse.setSellerFullName(seller.getFirstName() + " " + seller.getLastName());
         wifiSummaryResponse.setSellerPhotoUrl(seller.getPhotoUrl());
         wifiSummaryResponse.setAmountPaid(purchase.getAmountPaid());
         wifiSummaryResponse.setAmountRefund(purchase.getAmountRefund());
