@@ -275,6 +275,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionSummaryResponse.setTotalData(session.getData());
             sessionSummaryResponse.setTotalDataSold(session.getDataUsed());
             sessionSummaryResponse.setTotalEarnings(totalEarnings);
+            sessionSummaryResponse.setNetworkProvider(session.getSpeedTest().getNetworkProvider());
             sessionSummaryResponse.setNetEarnings(netEarnings);
             return sessionSummaryResponse;
         } catch (Exception e) {
@@ -346,6 +347,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionSummaryResponse.setBuyers(getBuyers(session.getId(), false));
             sessionSummaryResponse.setTotalData(session.getData());
             sessionSummaryResponse.setTotalDataSold(session.getDataUsed());
+            sessionSummaryResponse.setNetworkProvider(session.getSpeedTest().getNetworkProvider());
             sessionSummaryResponse.setTotalEarnings(totalEarnings);
             sessionSummaryResponse.setNetEarnings(netEarnings);
             sessionSummaryResponses.add(sessionSummaryResponse);

@@ -246,6 +246,7 @@ public class RazorpayProcessor {
         try {
             return razorpayClient.Payments.refund(paymentId, refundRequest);
         } catch (RazorpayException e) {
+            e.printStackTrace();
             throw new HotifiException(RazorpayErrorCodes.NORMAL_PARTIAL_REFUND_FAILED);
         }
     }

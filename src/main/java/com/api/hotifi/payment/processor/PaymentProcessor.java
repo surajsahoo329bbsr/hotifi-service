@@ -192,8 +192,9 @@ public class PaymentProcessor {
                 int amountInPaise = PaymentUtils.getPaiseFromInr(refundAmount);
                 //Creating refund entity below
                 BigDecimal zeroAmount = new BigDecimal("0.00");
+                boolean isRefundDone =  purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value();
 
-                if (refundAmount.compareTo(zeroAmount) > 0) {
+                if (refundAmount.compareTo(zeroAmount) > 0 && !isRefundDone) {
                     Refund refund = razorpayProcessor.startNormalPartialRefund(paymentId, amountInPaise);
                     String refundId = refund.get("id");
                     Date refundStartedAt = refund.get("created_at");
