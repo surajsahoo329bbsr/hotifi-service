@@ -16,6 +16,8 @@ public class SessionSummaryResponse {
 
     public BigDecimal netEarnings;
 
+    public BigDecimal unitSellingPrice;
+
     public String networkProvider;
 
     public double totalDataSold;
