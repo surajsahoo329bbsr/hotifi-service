@@ -199,7 +199,7 @@ public class PaymentProcessor {
                     String refundId = refund.get("id");
                     Date refundStartedAt = refund.get("created_at");
                     RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
-                    int buyerPaymentStatus = BuyerPaymentCodes.values().length - refundStatus.value();
+                    int buyerPaymentStatus = BuyerPaymentCodes.REFUND_PENDING.value() + refundStatus.value();
                     //Purchase entity setup
                     purchase.setRefundPaymentId(refundId);
                     purchase.setRefundStartedAt(refundStartedAt);

@@ -91,9 +91,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
         //TODO add later
-        /*if(!isCurrentSessionLegit(buyerId, sessionId, purchaseRequest.getData())){
+        if (!isCurrentSessionLegit(buyerId, sessionId, purchaseRequest.getData())) {
             throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_PURCHASE_ERROR);
-        }*/
+        }
 
         try {
             BigDecimal amountPaid = session != null ?

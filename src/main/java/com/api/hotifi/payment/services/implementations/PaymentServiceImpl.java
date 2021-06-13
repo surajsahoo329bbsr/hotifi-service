@@ -316,7 +316,7 @@ public class PaymentServiceImpl implements IPaymentService {
             throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
         User buyer = userRepository.findById(buyerId).orElse(null);
