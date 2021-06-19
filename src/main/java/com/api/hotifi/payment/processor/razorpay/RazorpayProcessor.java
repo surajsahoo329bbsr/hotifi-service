@@ -337,6 +337,7 @@ public class RazorpayProcessor {
         try {
             return razorpayClient.Transfers.create(jsonObject);
         } catch (RazorpayException e) {
+            e.printStackTrace();
             throw new HotifiException(RazorpayErrorCodes.TRANSFER_FAILED);
         }
     }

@@ -38,6 +38,15 @@ public class PaymentUtils {
         return (int) Math.ceil(activeDataSum + finishedDataSum);
     }
 
+    public static String hideBankAccountNumber(String bankAccountNumber){
+        if(bankAccountNumber == null || bankAccountNumber.length() < 5)
+            return bankAccountNumber;
+        int length = bankAccountNumber.length();
+        int hiddenCharIndex = length - 5;
+        //concatenating X with last 4 digits of number
+        return "X".repeat(hiddenCharIndex + 1) + bankAccountNumber.substring(hiddenCharIndex + 1);
+    }
+
     public static boolean isSellerPaymentDue(Date currentTime, Date lastPaidAt) {
         long timeDifference = currentTime.getTime() - lastPaidAt.getTime();
         long daysDifference = timeDifference / (24 * 60 * 60 * 1000);

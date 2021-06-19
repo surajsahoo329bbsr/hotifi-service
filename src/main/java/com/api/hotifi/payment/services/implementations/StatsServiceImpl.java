@@ -21,7 +21,6 @@ import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speedtest.codes.NetworkProviderCodes;
 import com.api.hotifi.speedtest.entity.SpeedTest;
-import com.api.hotifi.speedtest.validator.NetworkProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +72,7 @@ public class StatsServiceImpl implements IStatsService {
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 double totalDataBought = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
-                String wifi = NetworkProviderCodes.fromInt(0).name();
+                String wifi = NetworkProviderCodes.fromInt(1).name();
                 double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkProvider().equals(wifi))
                         .mapToDouble(Purchase::getDataUsed)
                         .sum();
@@ -113,7 +112,7 @@ public class StatsServiceImpl implements IStatsService {
             Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesBySessionIds(sessionIds).stream();
 
             double totalDataSold = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
-            String wifi = NetworkProviderCodes.fromInt(0).name();
+            String wifi = NetworkProviderCodes.fromInt(1).name();
             double totalDataSoldByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkProvider().equals(wifi))
                     .mapToDouble(Purchase::getDataUsed)
                     .sum();

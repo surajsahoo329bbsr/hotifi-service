@@ -99,13 +99,13 @@ public class PaymentProcessor {
         return null;
     }
 
-    public RefundReceiptResponse getBuyerRefundStatus(PurchaseRepository purchaseRepository, String paymentId, boolean isRefundToBeStarted) {
+    public RefundReceiptResponse getBuyerRefundStatus(PurchaseRepository purchaseRepository, String paymentId) {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("RAZORPAY PAYMENT");
                 Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
-                if (isRefundToBeStarted)
-                    return startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), paymentId);
+               // if (isRefundToBeStarted)
+                 //   return startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), paymentId);
 
                 if (purchase.getRefundPaymentId() != null) {
                     Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId());

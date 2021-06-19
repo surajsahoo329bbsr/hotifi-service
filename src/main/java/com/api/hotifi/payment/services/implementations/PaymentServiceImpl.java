@@ -116,6 +116,8 @@ public class PaymentServiceImpl implements IPaymentService {
             // }
             SellerPayment sellerPayment = sellerReceipt.getSellerPayment();
             String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
+            String hiddenBankAccountNumber = PaymentUtils.hideBankAccountNumber(receiptResponse.getSellerReceipt().getBankAccountNumber());
+            receiptResponse.getSellerReceipt().setBankAccountNumber(hiddenBankAccountNumber);
             receiptResponse.setSellerReceipt(sellerReceipt);
             receiptResponse.setSellerLinkedAccountId(linkedAccountId);
             receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
@@ -227,6 +229,8 @@ public class PaymentServiceImpl implements IPaymentService {
 
                 }
                 String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
+                String hiddenBankAccountNumber = PaymentUtils.hideBankAccountNumber(receiptResponse.getSellerReceipt().getBankAccountNumber());
+                receiptResponse.getSellerReceipt().setBankAccountNumber(hiddenBankAccountNumber);
                 receiptResponse.setSellerReceipt(sellerReceipt);
                 receiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
@@ -334,7 +338,7 @@ public class PaymentServiceImpl implements IPaymentService {
                 if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_FAILED.value()) {
 
                 }*/
-                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true);
+                RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
                 //Setting up values from payment processor
                 int status = receiptResponse.getPurchase().getStatus();
                 Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
@@ -372,7 +376,8 @@ public class PaymentServiceImpl implements IPaymentService {
             Date currentTime = new Date(System.currentTimeMillis());
             Supplier<Stream<Purchase>> purchaseStreamSupplier = () -> purchaseRepository.findPurchasesByBuyerId(buyerId, pageable).stream();
             BigDecimal totalRefundAmount = purchaseStreamSupplier.get()
-                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value() && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
+                    .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.REFUND_PENDING.value()
+                            && !PaymentUtils.isBuyerRefundDue(currentTime, purchase.getPaymentDoneAt()))
                     .map(Purchase::getAmountRefund)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 

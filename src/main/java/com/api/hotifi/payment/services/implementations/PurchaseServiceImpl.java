@@ -349,7 +349,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
-        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ? paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), true) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId(), false);
+        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ?
+                paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId()) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
         wifiSummaryResponse.setSellerUsername(seller.getUsername());
         wifiSummaryResponse.setSellerFullName(seller.getFirstName() + " " + seller.getLastName());

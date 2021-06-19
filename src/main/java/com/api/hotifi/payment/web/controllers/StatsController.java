@@ -8,9 +8,7 @@ import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.payment.services.interfaces.IStatsService;
 import com.api.hotifi.payment.web.responses.BuyerStatsResponse;
-import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerStatsResponse;
-import com.api.hotifi.payment.web.responses.UpdateStatusResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,7 @@ public class StatsController {
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getSellerStats(@PathVariable("id") @Range(min = 1, message = "{seller.id.invalid}") Long id) {
+    public ResponseEntity<?> getSellerStats(@PathVariable("user-id") @Range(min = 1, message = "{seller.id.invalid}") Long id) {
         SellerStatsResponse sellerStatsResponse =
                 AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getSellerStats(id) : null;
@@ -65,7 +63,7 @@ public class StatsController {
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getBuyerStats(@PathVariable("id") @Range(min = 1, message = "{buyer.id.invalid}") Long id) {
+    public ResponseEntity<?> getBuyerStats(@PathVariable("user-id") @Range(min = 1, message = "{buyer.id.invalid}") Long id) {
         BuyerStatsResponse buyerStatsResponse =
                 AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(id, AuthorizationUtils.getUserToken()) ?
                         statsService.getBuyerStats(id) : null;
