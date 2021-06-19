@@ -165,10 +165,12 @@ public class FeedbackServiceImpl implements IFeedbackService {
     public List<Feedback> getFeedbacksFromSeller(User seller, int page, int size, boolean isDescending) {
         Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("created_at").descending())
                 : PageRequest.of(page, size, Sort.by("created_at"));
+        Pageable pageableAll = isDescending ? PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending())
+                : PageRequest.of(page, size, Sort.by("created_at"));
         List<Long> speedTestIds = seller.getSpeedTests()
                 .stream().map(SpeedTest::getId)
                 .collect(Collectors.toList());
-        List<Long> sessionIds = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageable)
+        List<Long> sessionIds = sessionRepository.findSessionsBySpeedTestIds(speedTestIds, pageableAll)
                 .stream().map(Session::getId)
                 .collect(Collectors.toList());
         List<Long> purchaseIds = purchaseRepository.findPurchasesBySessionIds(sessionIds)

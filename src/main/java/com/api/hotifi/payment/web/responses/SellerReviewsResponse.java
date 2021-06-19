@@ -9,12 +9,12 @@ import java.util.List;
 @AllArgsConstructor
 public class SellerReviewsResponse {
 
-    private long totalReviews;
+    private final long totalReviews;
 
-    private long totalRatings;
+    private final long totalRatings;
 
-    private String averageRating;
+    private final String averageRating;
 
-    private List<Long> eachRatings;
+    private final List<Long> eachRatings;
 
 }
