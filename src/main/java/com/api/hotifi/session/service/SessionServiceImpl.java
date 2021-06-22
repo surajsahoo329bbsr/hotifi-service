@@ -8,7 +8,11 @@ import com.api.hotifi.common.utils.AESUtils;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
+import com.api.hotifi.identity.models.RoleName;
 import com.api.hotifi.identity.repositories.UserRepository;
+import com.api.hotifi.identity.repositories.UserStatusRepository;
+import com.api.hotifi.identity.services.interfaces.IUserStatusService;
+import com.api.hotifi.identity.web.request.UserStatusRequest;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.error.PurchaseErrorCodes;
@@ -50,9 +54,10 @@ public class SessionServiceImpl implements ISessionService {
     private final PurchaseRepository purchaseRepository;
     private final ISpeedTestService speedTestService;
     private final IFeedbackService feedbackService;
+    private final IUserStatusService userStatusService;
     private final INotificationService notificationService;
 
-    public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, INotificationService notificationService) {
+    public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, IUserStatusService userStatusService, INotificationService notificationService) {
         this.userRepository = userRepository;
         this.speedTestRepository = speedTestRepository;
         this.sessionRepository = sessionRepository;
@@ -60,6 +65,7 @@ public class SessionServiceImpl implements ISessionService {
         this.purchaseRepository = purchaseRepository;
         this.speedTestService = speedTestService;
         this.feedbackService = feedbackService;
+        this.userStatusService = userStatusService;
         this.notificationService = notificationService;
     }
 
@@ -191,6 +197,19 @@ public class SessionServiceImpl implements ISessionService {
                 buyer.setDataBought(purchase.getData());
                 buyer.setDataUsed(purchase.getDataUsed());
                 buyers.add(buyer);
+
+                Date currentTime = new Date(System.currentTimeMillis());
+                Date lastModifiedAt = purchase.getSessionModifiedAt() != null ? purchase.getSessionModifiedAt() : purchase.getSessionCreatedAt();
+                //Add user status abnormal activities logic
+                if(PaymentUtils.isAbnormalBehaviour(currentTime, lastModifiedAt)){
+                    UserStatusRequest userStatusRequest = new UserStatusRequest();
+                    userStatusRequest.setUserId(purchase.getUser().getId());
+                    userStatusRequest.setWarningReason("Abnormal Activity");
+                    userStatusRequest.setPurchaseId(purchase.getId());
+                    userStatusRequest.setRole(RoleName.CUSTOMER.name());
+                    userStatusService.addUserStatus(userStatusRequest);
+                }
+
             });
             return buyers;
         } catch (Exception e) {

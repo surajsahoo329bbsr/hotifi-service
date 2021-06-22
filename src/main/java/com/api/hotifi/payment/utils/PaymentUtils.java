@@ -53,6 +53,12 @@ public class PaymentUtils {
         return daysDifference >= BusinessConfigurations.MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS;
     }
 
+    public static boolean isAbnormalBehaviour(Date currentTime, Date lastModifiedAt){
+        long timeDifference = currentTime.getTime() - lastModifiedAt.getTime();
+        long secondsDifference = timeDifference / 1000;
+        return secondsDifference >= BusinessConfigurations.MAXIMUM_TOLERABLE_ABNORMAL_ACTIVITY_SECONDS;
+    }
+
     public static boolean isBuyerRefundDue(Date currentTime, Date lastPaidAt) {
         long timeDifference = currentTime.getTime() - lastPaidAt.getTime();
         long hoursDifference = timeDifference / (60 * 60 * 1000);

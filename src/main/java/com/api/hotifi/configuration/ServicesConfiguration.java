@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 public class ServicesConfiguration {
 
     @Bean
-    public ICustomerAuthorizationService customerAuthorizationService(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder){
+    public ICustomerAuthorizationService customerAuthorizationService(AuthenticationRepository authenticationRepository, UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerReceiptRepository sellerReceiptRepository, DeviceRepository deviceRepository, JwtDecoder jwtDecoder) {
         return new CustomerAuthorizationImpl(authenticationRepository, userRepository, sessionRepository, purchaseRepository, sellerReceiptRepository, deviceRepository, jwtDecoder);
     }
 
@@ -50,17 +50,17 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IEmailService emailService(INotificationService notificationService){
+    public IEmailService emailService(INotificationService notificationService) {
         return new EmailServiceImpl(notificationService);
     }
 
     @Bean
-    public INotificationService notificationService(DeviceRepository deviceRepository, IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService){
-        return new NotificationServiceImpl(deviceRepository,deviceService, firebaseMessagingService);
+    public INotificationService notificationService(DeviceRepository deviceRepository, IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService) {
+        return new NotificationServiceImpl(deviceRepository, deviceService, firebaseMessagingService);
     }
 
     @Bean
-    public IVerificationService verificationService(){
+    public IVerificationService verificationService() {
         return new VerificationServiceImpl();
     }
 
@@ -70,42 +70,42 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IUserStatusService userStatusService(AuthenticationRepository authenticationRepository, UserStatusRepository userStatusRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, IDeviceService deviceService, IEmailService emailService){
+    public IUserStatusService userStatusService(AuthenticationRepository authenticationRepository, UserStatusRepository userStatusRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, IDeviceService deviceService, IEmailService emailService) {
         return new UserStatusServiceImpl(authenticationRepository, userStatusRepository, userRepository, bankAccountRepository, deviceService, emailService);
     }
 
     @Bean
-    public IFeedbackService feedbackService(UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, FeedbackRepository feedbackRepository){
+    public IFeedbackService feedbackService(UserRepository userRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, FeedbackRepository feedbackRepository) {
         return new FeedbackServiceImpl(userRepository, sessionRepository, purchaseRepository, feedbackRepository);
     }
 
     @Bean
-    public IPurchaseService purchaseService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService){
+    public IPurchaseService purchaseService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
         return new PurchaseServiceImpl(userRepository, speedTestRepository, sessionRepository, purchaseRepository, sellerPaymentRepository, sellerPaymentService);
     }
 
     @Bean
-    public IBankAccountService bankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService){
+    public IBankAccountService bankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService) {
         return new BankAccountServiceImpl(userRepository, bankAccountRepository, emailService);
     }
 
     @Bean
-    public IPaymentService paymentService(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, PurchaseRepository purchaseRepository){
+    public IPaymentService paymentService(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, PurchaseRepository purchaseRepository) {
         return new PaymentServiceImpl(sellerPaymentRepository, sellerReceiptRepository, userRepository, purchaseRepository);
     }
 
     @Bean
-    public IStatsService statsService(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository){
+    public IStatsService statsService(UserRepository userRepository, PurchaseRepository purchaseRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository) {
         return new StatsServiceImpl(userRepository, purchaseRepository, sessionRepository, sellerPaymentRepository);
     }
 
     @Bean
-    public ISessionService sessionService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, INotificationService notificationService){
-        return new SessionServiceImpl(userRepository, speedTestRepository, sessionRepository, sellerPaymentRepository, purchaseRepository, speedTestService, feedbackService, notificationService);
+    public ISessionService sessionService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, IUserStatusService userStatusService, INotificationService notificationService) {
+        return new SessionServiceImpl(userRepository, speedTestRepository, sessionRepository, sellerPaymentRepository, purchaseRepository, speedTestService, feedbackService, userStatusService, notificationService);
     }
 
     @Bean
-    public ISpeedTestService speedTestService(UserRepository userRepository, SpeedTestRepository speedTestRepository){
+    public ISpeedTestService speedTestService(UserRepository userRepository, SpeedTestRepository speedTestRepository) {
         return new SpeedTestServiceImpl(userRepository, speedTestRepository);
     }
 

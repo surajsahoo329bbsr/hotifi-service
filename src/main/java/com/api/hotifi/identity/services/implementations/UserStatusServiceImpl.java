@@ -86,7 +86,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
             userStatus.setWarningReason(userStatusRequest.getWarningReason());
             userStatus.setWarningCreatedAt(now);
 
-            if (userStatuses != null) {
+            //TODO - remove them after observation and not automate the freeze and ban process
+
+            /*if (userStatuses != null) {
                 if (userStatuses.size() == BusinessConfigurations.MINIMUM_WARNINGS_TO_FREEZE - 1) {
                     //freeze
                     if (userStatusRequest.getFreezeReason() == null)
@@ -103,7 +105,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
                     userStatus.setBanCreatedAt(now);
                     banUser(userId, true);
                 }
-            }
+            }*/
         }
 
         userStatusRepository.save(userStatus);
