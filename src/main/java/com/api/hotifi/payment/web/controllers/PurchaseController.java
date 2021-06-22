@@ -137,6 +137,26 @@ public class PurchaseController {
         return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/buyer/wifi-summary/{purchase-id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Find Buyer WifiSummary By Purchase Id",
+            notes = "Find Buyer WifiSummary By Purchase Id",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = WifiSummaryResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> findBuyerWifiSummary(
+            @PathVariable(value = "purchase-id")
+            @Range(min = 1, message = "{purchase.id.invalid}") Long purchaseId) {
+        WifiSummaryResponse wifiSummaryResponse =
+                customerAuthorizationService.isAuthorizedByPurchaseId(purchaseId, AuthorizationUtils.getUserToken()) ?
+                        purchaseService.findBuyerWifiSummary(purchaseId) : null;
+        return new ResponseEntity<>(wifiSummaryResponse, HttpStatus.OK);
+    }
+
     @GetMapping(path = "/buyer/usages/date-time/{buyer-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Sorted Date-Time Wifi Summary By Buyer Id And Pagination Values",

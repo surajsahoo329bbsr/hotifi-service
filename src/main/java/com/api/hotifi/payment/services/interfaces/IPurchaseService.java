@@ -29,6 +29,8 @@ public interface IPurchaseService {
     */
     int updateBuyerWifiService(Long purchaseId, double dataUsed);
 
+    WifiSummaryResponse findBuyerWifiSummary(Long purchaseId);
+
     WifiSummaryResponse finishBuyerWifiService(Long purchaseId, double dataUsed);
 
     List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending);
