@@ -10,4 +10,5 @@ public interface INotificationService {
 
     void sendCommonPhotoNotifications(List<Long> buyerIds, String title, String message, String sellerUsername, String commonPhotoUrl, CloudClientCodes notificationClientCode);
 
+    void sendNotificationsToAllUsers(String title, String message, String photoUrl, CloudClientCodes notificationClientCode);
 }

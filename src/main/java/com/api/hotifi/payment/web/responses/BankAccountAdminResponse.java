@@ -13,4 +13,6 @@ public class BankAccountAdminResponse {
 
     private final Long userId;
 
+    private final String email;
+
 }

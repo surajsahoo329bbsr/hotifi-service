@@ -254,7 +254,6 @@ public class SessionServiceImpl implements ISessionService {
         } else {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         }
-
     }
 
     @Transactional

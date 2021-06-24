@@ -136,7 +136,8 @@ public class BankAccountServiceImpl implements IBankAccountService {
         List<BankAccount> bankAccounts = bankAccountRepository.findUnverifiedBankAccounts();
         return bankAccounts.
                 stream()
-                .map(bankAccount -> new BankAccountAdminResponse(bankAccount, bankAccount.getUser().getId()))
+                .map(bankAccount -> new BankAccountAdminResponse(bankAccount, bankAccount.getUser().getId(),
+                        bankAccount.getUser().getAuthentication().getEmail()))
                 .collect(Collectors.toList());
     }
 }

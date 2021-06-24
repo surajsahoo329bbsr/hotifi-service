@@ -55,8 +55,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public INotificationService notificationService(DeviceRepository deviceRepository, IDeviceService deviceService, IFirebaseMessagingService firebaseMessagingService) {
-        return new NotificationServiceImpl(deviceRepository, deviceService, firebaseMessagingService);
+    public INotificationService notificationService(DeviceRepository deviceRepository, IDeviceService deviceService, UserRepository userRepository, IFirebaseMessagingService firebaseMessagingService) {
+        return new NotificationServiceImpl(deviceRepository, deviceService, userRepository,firebaseMessagingService);
     }
 
     @Bean
