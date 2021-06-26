@@ -21,7 +21,7 @@ public class NotificationServiceImpl implements INotificationService {
     private final UserRepository userRepository;
     private final IFirebaseMessagingService firebaseMessagingService;
 
-    public NotificationServiceImpl(DeviceRepository deviceRepository, IDeviceService deviceService, UserRepository userRepository,IFirebaseMessagingService firebaseMessagingService) {
+    public NotificationServiceImpl(DeviceRepository deviceRepository, IDeviceService deviceService, UserRepository userRepository, IFirebaseMessagingService firebaseMessagingService) {
         this.deviceRepository = deviceRepository;
         this.deviceService = deviceService;
         this.userRepository = userRepository;
@@ -74,7 +74,7 @@ public class NotificationServiceImpl implements INotificationService {
                 List<Device> devices = deviceRepository.findAllById(userIds);
                 devices.forEach(device -> {
                     try {
-                        firebaseMessagingService.sendPhotoNotification(message, title, photoUrl, device.getToken());
+                        firebaseMessagingService.sendPhotoNotification(title, message, photoUrl, device.getToken());
                     } catch (FirebaseMessagingException e) {
                         e.printStackTrace();
                     }

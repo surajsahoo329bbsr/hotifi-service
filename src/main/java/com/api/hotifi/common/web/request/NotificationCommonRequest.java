@@ -14,7 +14,6 @@ public class NotificationCommonRequest {
     @Length(max = 255, message = "{title.length.invalid}")
     private String title;
 
-    @NotBlank(message = "{photo.url.blank}")
     @Length(max = 255, message = "{photo.url.length.invalid}")
     private String photoUrl;
 

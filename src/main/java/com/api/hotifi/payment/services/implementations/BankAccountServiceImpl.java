@@ -88,6 +88,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
             }
         }
+        throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
     }
 
     @Transactional
@@ -121,6 +122,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
             }
         }
+        throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
     }
 
     @Transactional

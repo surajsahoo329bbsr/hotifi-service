@@ -124,7 +124,7 @@ public class BankAccountController {
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 200, message = SuccessMessages.OK, response = BankAccount.class, responseContainer = "List")
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = BankAccountAdminResponse.class, responseContainer = "List")
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
