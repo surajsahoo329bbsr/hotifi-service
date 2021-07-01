@@ -145,8 +145,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_FOUND);
         if (!authentication.isEmailVerified())
             throw new HotifiException(AuthenticationErrorCodes.EMAIL_NOT_VERIFIED);
-        if (authentication.isPhoneVerified())
-            throw new HotifiException(AuthenticationErrorCodes.PHONE_ALREADY_VERIFIED);
         if (!verificationService.isPhoneUserVerified(countryCode, phone, token, CloudClientCodes.GOOGLE_CLOUD_PLATFORM))
             throw new HotifiException(AuthenticationErrorCodes.PHONE_TOKEN_INVALID);
         try {
