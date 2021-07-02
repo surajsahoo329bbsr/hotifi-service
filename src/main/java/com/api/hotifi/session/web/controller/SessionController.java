@@ -6,7 +6,6 @@ import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.payment.web.responses.UpdateStatusResponse;
 import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.model.Buyer;
 import com.api.hotifi.session.service.ISessionService;
@@ -17,7 +16,6 @@ import com.api.hotifi.session.web.response.SessionSummaryResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -168,7 +166,7 @@ public class SessionController {
         return new ResponseEntity<>(sessionSummaryResponse, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/start-time/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/seller/date-time/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Sorted Start-Time Sessions By Seller Id",
             notes = "Get Sorted Start-Time Sessions By Seller Id",
@@ -189,10 +187,10 @@ public class SessionController {
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/data-used/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/seller/data-shared/{seller-id}/{page}/{size}/{is-descending}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
-            value = "Get Sorted Data-Used Sessions By Seller Id",
-            notes = "Get Sorted Data-Used Sessions By Seller Id",
+            value = "Get Sorted Data-Shared Sessions By Seller Id",
+            notes = "Get Sorted Data-Shared Sessions By Seller Id",
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
@@ -200,13 +198,13 @@ public class SessionController {
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<?> getSortedSessionsByDataUsed(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
-                                                         @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
-                                                         @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
-                                                         @PathVariable(value = "is-descending") boolean isDescending) {
+    public ResponseEntity<?> getSortedSessionsByDataShared(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId,
+                                                           @PathVariable(value = "page") @Range(min = 0, max = Integer.MAX_VALUE, message = "{page.number.invalid}") int page,
+                                                           @PathVariable(value = "size") @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
+                                                           @PathVariable(value = "is-descending") boolean isDescending) {
         List<SessionSummaryResponse> sessionSummaryResponses =
                 customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
-                        sessionService.getSortedSessionsByDataUsed(sellerId, page, size, isDescending) : null;
+                        sessionService.getSortedSessionsByDataShared(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
 }

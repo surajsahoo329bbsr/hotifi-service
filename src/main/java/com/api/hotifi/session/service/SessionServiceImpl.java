@@ -10,7 +10,6 @@ import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.models.RoleName;
 import com.api.hotifi.identity.repositories.UserRepository;
-import com.api.hotifi.identity.repositories.UserStatusRepository;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import com.api.hotifi.payment.entities.Purchase;
@@ -141,7 +140,7 @@ public class SessionServiceImpl implements ISessionService {
                 sessions.forEach((speedTest, session) -> {
                     double availableData = session.getData() - session.getDataUsed();
                     //BigDecimal availableDataPrice = PaymentUtils
-                            //.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
+                    //.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
                     double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
                     double uploadSpeed = session.getSpeedTest().getUploadSpeed();
                     ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
@@ -190,7 +189,7 @@ public class SessionServiceImpl implements ISessionService {
                 buyer.setMacAddress(purchase.getMacAddress());
                 buyer.setIpAddress(purchase.getIpAddress());
                 buyer.setStatus(purchase.getStatus());
-                buyer.setSessionCreatedAt(purchase.getSessionCreatedAt());
+                buyer.setPaidAt(purchase.getPaymentDoneAt());
                 buyer.setSessionModifiedAt(purchase.getSessionModifiedAt());
                 buyer.setSessionFinishedAt(purchase.getSessionFinishedAt());
                 buyer.setAmountPaid(purchase.getAmountPaid().subtract(purchase.getAmountRefund()));
@@ -201,7 +200,7 @@ public class SessionServiceImpl implements ISessionService {
                 Date currentTime = new Date(System.currentTimeMillis());
                 Date lastModifiedAt = purchase.getSessionModifiedAt() != null ? purchase.getSessionModifiedAt() : purchase.getSessionCreatedAt();
                 //Add user status abnormal activities logic
-                if(PaymentUtils.isAbnormalBehaviour(currentTime, lastModifiedAt)){
+                if (PaymentUtils.isAbnormalBehaviour(currentTime, lastModifiedAt) && isActive) {
                     UserStatusRequest userStatusRequest = new UserStatusRequest();
                     userStatusRequest.setUserId(purchase.getUser().getId());
                     userStatusRequest.setWarningReason("Abnormal Activity");
@@ -302,7 +301,7 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<SessionSummaryResponse> getSortedSessionsByStartTime(Long sellerId, int page, int size, boolean isDescending) {
         try {
@@ -325,9 +324,9 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
-    public List<SessionSummaryResponse> getSortedSessionsByDataUsed(Long sellerId, int page, int size, boolean isDescending) {
+    public List<SessionSummaryResponse> getSortedSessionsByDataShared(Long sellerId, int page, int size, boolean isDescending) {
         try {
             List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByDateTime(sellerId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests

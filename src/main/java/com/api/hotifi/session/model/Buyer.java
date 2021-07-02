@@ -24,6 +24,8 @@ public class Buyer {
 
     public double dataBought;
 
+    public Date paidAt;
+
     public Date sessionCreatedAt;
 
     public Date sessionModifiedAt;

@@ -38,8 +38,8 @@ public class PaymentUtils {
         return (int) Math.ceil(activeDataSum + finishedDataSum);
     }
 
-    public static String hideBankAccountNumber(String bankAccountNumber){
-        if(bankAccountNumber == null || bankAccountNumber.length() < 5)
+    public static String hideBankAccountNumber(String bankAccountNumber) {
+        if (bankAccountNumber == null || bankAccountNumber.length() < 5)
             return bankAccountNumber;
         int length = bankAccountNumber.length();
         int hiddenCharIndex = length - 5;
@@ -53,7 +53,8 @@ public class PaymentUtils {
         return daysDifference >= BusinessConfigurations.MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS;
     }
 
-    public static boolean isAbnormalBehaviour(Date currentTime, Date lastModifiedAt){
+    public static boolean isAbnormalBehaviour(Date currentTime, Date lastModifiedAt) {
+        if (lastModifiedAt == null) return false;
         long timeDifference = currentTime.getTime() - lastModifiedAt.getTime();
         long secondsDifference = timeDifference / 1000;
         return secondsDifference >= BusinessConfigurations.MAXIMUM_TOLERABLE_ABNORMAL_ACTIVITY_SECONDS;

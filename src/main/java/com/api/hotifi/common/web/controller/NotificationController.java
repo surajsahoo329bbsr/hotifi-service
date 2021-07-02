@@ -32,7 +32,7 @@ public class NotificationController {
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
 
-    @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/admin/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Send Notification To Single User",
             notes = "Send Notification To Single User",
@@ -47,7 +47,7 @@ public class NotificationController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/common/", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/admin/common/", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Send Common Notification To All Users",
             notes = "Send Common Notification To All Users",

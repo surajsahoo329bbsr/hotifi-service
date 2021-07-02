@@ -302,8 +302,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending) {
         try {
             Pageable pageable = isDescending ?
-                    PageRequest.of(page, size, Sort.by("session_started_at").descending())
-                    : PageRequest.of(page, size, Sort.by("session_started_at"));
+                    PageRequest.of(page, size, Sort.by("session_created_at").descending())
+                    : PageRequest.of(page, size, Sort.by("session_created_at"));
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
