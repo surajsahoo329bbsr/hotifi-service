@@ -183,7 +183,7 @@ public class SessionController {
                                                           @PathVariable(value = "is-descending") boolean isDescending) {
         List<SessionSummaryResponse> sessionSummaryResponses =
                 customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
-                        sessionService.getSortedSessionsByStartTime(sellerId, page, size, isDescending) : null;
+                        sessionService.getSortedSessionsByDateTime(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sessionSummaryResponses, HttpStatus.OK);
     }
 

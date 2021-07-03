@@ -281,6 +281,10 @@ public class SessionServiceImpl implements ISessionService {
                     .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+            /*double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
+                    .stream()
+                    .mapToDouble(Purchase::getDataUsed)
+                    .sum() * 100) / 100;*/
             BigDecimal netEarnings = totalEarnings
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                     .setScale(2, RoundingMode.FLOOR);
@@ -303,7 +307,7 @@ public class SessionServiceImpl implements ISessionService {
 
     @Transactional
     @Override
-    public List<SessionSummaryResponse> getSortedSessionsByStartTime(Long sellerId, int page, int size, boolean isDescending) {
+    public List<SessionSummaryResponse> getSortedSessionsByDateTime(Long sellerId, int page, int size, boolean isDescending) {
         try {
             List<SpeedTest> speedTests = speedTestService.getSortedSpeedTestByDateTime(sellerId, 0, Integer.MAX_VALUE, isDescending);
             List<Long> speedTestIds = speedTests
@@ -356,8 +360,14 @@ public class SessionServiceImpl implements ISessionService {
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+            /*double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
+                    .stream()
+                    .mapToDouble(Purchase::getDataUsed)
+                    .sum() * 100) / 100;*/
+
             BigDecimal netEarnings = totalEarnings
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100));
+
             SessionSummaryResponse sessionSummaryResponse = new SessionSummaryResponse();
             sessionSummaryResponse.setSessionCreatedAt(session.getCreatedAt());
             sessionSummaryResponse.setSessionModifiedAt(session.getModifiedAt());

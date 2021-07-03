@@ -223,7 +223,7 @@ public class PurchaseController {
                                                         @PathVariable(value = "session-id")
                                                         @Range(min = 1, message = "{session.id.invalid}") Long sessionId,
                                                         @PathVariable(value = "data-to-be-used")
-                                                        @Range(min = BusinessConfigurations.MINIMUM_SELLING_DATA_MB, max = BusinessConfigurations.MAXIMUM_SELLING_DATA_MB, message = "{page.number.invalid}") int dataToBeUsed) {
+                                                        @Range(min = BusinessConfigurations.MINIMUM_BUYING_DATA_MB, max = BusinessConfigurations.MAXIMUM_SELLING_DATA_MB, message = "{min.data.invalid}") int dataToBeUsed) {
         boolean isBuyerCurrentSessionLegit = (AuthorizationUtils.isAdministratorRole() ||
                 customerAuthorizationService.isAuthorizedByUserId(buyerId, AuthorizationUtils.getUserToken()))
                 && purchaseService.isCurrentSessionLegit(buyerId, sessionId, dataToBeUsed);

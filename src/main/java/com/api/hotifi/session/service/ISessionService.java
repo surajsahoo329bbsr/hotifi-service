@@ -26,7 +26,7 @@ public interface ISessionService {
 
     SessionSummaryResponse getSessionSummary(Long sessionId);
 
-    List<SessionSummaryResponse> getSortedSessionsByStartTime(Long userId, int page, int size, boolean isDescending);
+    List<SessionSummaryResponse> getSortedSessionsByDateTime(Long userId, int page, int size, boolean isDescending);
 
     List<SessionSummaryResponse> getSortedSessionsByDataShared(Long userId, int page, int size, boolean isDescending);
 }

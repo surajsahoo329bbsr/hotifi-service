@@ -72,7 +72,9 @@ public class PaymentUtils {
     }
 
     public static int getPaiseFromInr(BigDecimal ruppee) {
-        return ruppee.multiply(BigDecimal.valueOf(100)).intValue();
+        return ruppee.
+                multiply(BigDecimal.valueOf(100))
+                .intValue();
     }
 
     public static BigDecimal divideThenMultiplyCeilingTwoScale(BigDecimal numerator, BigDecimal denominator, BigDecimal multiplier) {
