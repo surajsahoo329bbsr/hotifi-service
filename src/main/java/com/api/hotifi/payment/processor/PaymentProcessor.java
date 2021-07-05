@@ -226,7 +226,8 @@ public class PaymentProcessor {
         switch (paymentGatewayCodes) {
             case RAZORPAY:
                 log.info("TODO RAZORPAY PAYMENT");
-                Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount), BusinessConfigurations.CURRENCY_INR);
+                Transfer transfer = razorpayProcessor.startTransfer(linkedAccountId, PaymentUtils.getPaiseFromInr(sellerPendingAmount),
+                        BusinessConfigurations.CURRENCY_INR);
                 SellerReceipt sellerReceipt = new SellerReceipt();
                 sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
                 Date createdAt = transfer.get("created_at");

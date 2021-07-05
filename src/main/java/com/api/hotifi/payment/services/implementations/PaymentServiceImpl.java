@@ -350,7 +350,8 @@ public class PaymentServiceImpl implements IPaymentService {
                 purchase.setRefundPaymentId(refundPaymentId);
                 purchase.setRefundDoneAt(refundDoneAt);
                 purchase.setRefundTransactionId(refundTransactionId);
-                RefundReceiptResponse refundReceiptResponse = new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
+                RefundReceiptResponse refundReceiptResponse =
+                        new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 refundReceiptResponses.add(refundReceiptResponse);
             });
             return refundReceiptResponses;
