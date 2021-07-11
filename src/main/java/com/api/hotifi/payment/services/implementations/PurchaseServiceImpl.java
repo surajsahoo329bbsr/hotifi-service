@@ -302,8 +302,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
     public List<WifiSummaryResponse> getSortedWifiUsagesDateTime(Long buyerId, int page, int size, boolean isDescending) {
         try {
             Pageable pageable = isDescending ?
-                    PageRequest.of(page, size, Sort.by("session_created_at").descending())
-                    : PageRequest.of(page, size, Sort.by("session_created_at"));
+                    PageRequest.of(page, size, Sort.by("payment_done_at").descending())
+                    : PageRequest.of(page, size, Sort.by("payment_done_at"));
             return getWifiSummaryResponses(buyerId, pageable);
         } catch (Exception e) {
             log.error("Error occurred ", e);
@@ -351,9 +351,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
             throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-
         RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ?
                 paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId()) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
+
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
         wifiSummaryResponse.setSellerUsername(seller.getUsername());
         wifiSummaryResponse.setSellerFullName(seller.getFirstName() + " " + seller.getLastName());
