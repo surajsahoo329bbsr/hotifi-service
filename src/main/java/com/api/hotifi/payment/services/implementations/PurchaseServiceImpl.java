@@ -254,7 +254,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
     @Override
     @Transactional
-    public WifiSummaryResponse findBuyerWifiSummary(Long purchaseId){
+    public WifiSummaryResponse findBuyerWifiSummary(Long purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
         if (purchase != null) return getBuyerWifiSummary(purchase, false);
         throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);

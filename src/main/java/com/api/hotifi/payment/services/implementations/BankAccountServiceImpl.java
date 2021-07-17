@@ -115,6 +115,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                     return;
                 }
                 emailService.sendLinkedAccountSuccessEmail(user, emailModel);
+                return;
 
             } catch (DataIntegrityViolationException e) {
                 throw new HotifiException(SellerBankAccountErrorCodes.BANK_ACCOUNT_DETAILS_ALREADY_EXISTS);

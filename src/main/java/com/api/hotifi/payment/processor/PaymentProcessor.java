@@ -65,10 +65,15 @@ public class PaymentProcessor {
 
                 Date paymentDoneAt = payment.get("created_at");
                 JSONObject acquirerDataJson = payment.get("acquirer_data");
-                String paymentTransactionId = acquirerDataJson.getString("rrn");
-
                 PaymentMethodCodes paymentMethod = PaymentMethodCodes.valueOf(payment.get("method").toString().toUpperCase());
                 PaymentStatusCodes razorpayStatus = PaymentStatusCodes.valueOf(payment.get("status").toString().toUpperCase());
+                boolean isPaymentMethodWallet = paymentMethod == PaymentMethodCodes.WALLET;
+
+                String paymentTransactionId = isPaymentMethodWallet && !acquirerDataJson.isNull("transaction_id") ?
+                        String.valueOf(acquirerDataJson.getLong("transaction_id")) :
+                        isPaymentMethodWallet && acquirerDataJson.isNull("transaction_id") ?
+                                "On hold" : acquirerDataJson.getString("rrn");
+
                 int amountPaidInPaise = PaymentUtils.getPaiseFromInr(amountPaid);
                 if (razorpayStatus == PaymentStatusCodes.REFUNDED) return null;
                 //If auto-captured failed do the manual capture
