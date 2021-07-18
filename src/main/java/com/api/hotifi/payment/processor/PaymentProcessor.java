@@ -67,12 +67,8 @@ public class PaymentProcessor {
                 JSONObject acquirerDataJson = payment.get("acquirer_data");
                 PaymentMethodCodes paymentMethod = PaymentMethodCodes.valueOf(payment.get("method").toString().toUpperCase());
                 PaymentStatusCodes razorpayStatus = PaymentStatusCodes.valueOf(payment.get("status").toString().toUpperCase());
-                boolean isPaymentMethodWallet = paymentMethod == PaymentMethodCodes.WALLET;
 
-                String paymentTransactionId = isPaymentMethodWallet && !acquirerDataJson.isNull("transaction_id") ?
-                        String.valueOf(acquirerDataJson.getLong("transaction_id")) :
-                        isPaymentMethodWallet && acquirerDataJson.isNull("transaction_id") ?
-                                "On hold" : acquirerDataJson.getString("rrn");
+                String paymentTransactionId = PaymentUtils.getPaymentTransactionId(paymentMethod, acquirerDataJson);
 
                 int amountPaidInPaise = PaymentUtils.getPaiseFromInr(amountPaid);
                 if (razorpayStatus == PaymentStatusCodes.REFUNDED) return null;
@@ -109,23 +105,13 @@ public class PaymentProcessor {
             case RAZORPAY:
                 log.info("RAZORPAY PAYMENT");
                 Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
-                // if (isRefundToBeStarted)
-                //   return startBuyerRefund(purchaseRepository, purchase.getAmountRefund(), paymentId);
-
                 if (purchase.getRefundPaymentId() != null) {
                     Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId());
                     String refundId = refund.get("id");
                     Date refundCreatedAt = refund.get("created_at");
                     RefundStatusCodes refundStatus = RefundStatusCodes.valueOf(refund.get("status").toString().toUpperCase());
                     JSONObject acquirerDataJson = refund.get("acquirer_data");
-                    String refundTransactionId;
-                    try {
-                        Object rrn = acquirerDataJson.get("rrn");
-                        refundTransactionId = (rrn == null) ? null : acquirerDataJson.getString("rrn");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        refundTransactionId = null;
-                    }
+                    String refundTransactionId = PaymentUtils.getRefundTransactionId(acquirerDataJson);
                     int buyerPaymentStatus = BuyerPaymentCodes.REFUND_PENDING.value() + refundStatus.value();
                     //modify purchase entity
                     purchase.setStatus((purchase.getStatus() / BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE)

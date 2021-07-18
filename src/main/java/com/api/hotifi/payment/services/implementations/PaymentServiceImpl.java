@@ -334,10 +334,7 @@ public class PaymentServiceImpl implements IPaymentService {
             List<RefundReceiptResponse> refundReceiptResponses = new ArrayList<>();
             PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
             purchaseReceipts.forEach(purchase -> {
-                /*The below case will arise only on instant refunds or payments older than 6 months
-                if (purchase.getStatus() % Constants.PAYMENT_METHOD_START_VALUE_CODE == BuyerPaymentCodes.REFUND_FAILED.value()) {
 
-                }*/
                 RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
                 //Setting up values from payment processor
                 int status = receiptResponse.getPurchase().getStatus();

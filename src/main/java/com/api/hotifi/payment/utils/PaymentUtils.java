@@ -3,7 +3,9 @@ package com.api.hotifi.payment.utils;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
+import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.session.entity.Session;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -51,6 +53,35 @@ public class PaymentUtils {
         long timeDifference = currentTime.getTime() - lastPaidAt.getTime();
         long daysDifference = timeDifference / (24 * 60 * 60 * 1000);
         return daysDifference >= BusinessConfigurations.MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS;
+    }
+
+    public static String getPaymentTransactionId(PaymentMethodCodes paymentMethodCode, JSONObject acquirerDataJson) {
+
+        String paymentTransactionId = "Not available";
+        switch (paymentMethodCode) {
+            case UPI:
+                if (!acquirerDataJson.isNull("rrn"))
+                    return acquirerDataJson.getString("rrn");
+            case NETBANKING:
+                if (!acquirerDataJson.isNull("bank_transaction_id"))
+                    return acquirerDataJson.getString("bank_transaction_id");
+            case WALLET:
+                if (!acquirerDataJson.isNull("wallet"))
+                    return acquirerDataJson.getString("wallet").toUpperCase();
+            case CARD:
+            case EMI:
+                break;
+        }
+        return paymentTransactionId;
+    }
+
+    public static String getRefundTransactionId(JSONObject acquirerDataJson) {
+        String paymentTransactionId = "Not available";
+        if (!acquirerDataJson.isNull("rrn"))
+            return acquirerDataJson.getString("rrn");
+        if (!acquirerDataJson.isNull("arn"))
+            return acquirerDataJson.getString("arn");
+        return paymentTransactionId;
     }
 
     public static boolean isAbnormalBehaviour(Date currentTime, Date lastModifiedAt) {

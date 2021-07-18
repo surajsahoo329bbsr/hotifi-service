@@ -169,6 +169,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());
                 receiptResponse.setWifiPassword(null);
             }
+            if(purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.PAYMENT_CAPTURED.value()){
+                receiptResponse.setWifiPassword(null);
+            }
             return receiptResponse;
         } catch (Exception e) {
             log.error("Error occurred ", e);
