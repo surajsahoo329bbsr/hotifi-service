@@ -93,9 +93,10 @@ public class StatsServiceImpl implements IStatsService {
         if (seller == null || seller.getAuthentication().isDeleted())
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
-        if (sellerPayment == null)
-            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
         try {
+            if (sellerPayment == null)
+                return new SellerStatsResponse(0L, null, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0, 0);
+
             BigDecimal totalEarnings = sellerPayment
                     .getAmountEarned()
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))

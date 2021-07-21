@@ -70,9 +70,6 @@ public class Purchase implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date refundStartedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date refundDoneAt;
-
     @Column(nullable = false)
     private BigDecimal amountPaid;
 

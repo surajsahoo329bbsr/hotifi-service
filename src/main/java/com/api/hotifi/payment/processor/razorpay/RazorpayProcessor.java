@@ -311,6 +311,39 @@ public class RazorpayProcessor {
 
     /**
      * {
+     *     "entity": "collection",
+     *     "count": 1,
+     *     "items": [
+     *         {
+     *             "id": "rfnd_HbVu59xroDSd3L",
+     *             "entity": "refund",
+     *             "amount": 200,
+     *             "currency": "INR",
+     *             "payment_id": "pay_HbQGJjwR1RqwdO",
+     *             "notes": [],
+     *             "receipt": null,
+     *             "acquirer_data": {},
+     *             "created_at": 1626855810,
+     *             "batch_id": null,
+     *             "status": "processed",
+     *             "speed_processed": "normal",
+     *             "speed_requested": "normal"
+     *         }
+     *     ]
+     * }
+     * */
+
+
+    public List<Refund> getRefundsByPaymentId(String paymentId){
+        try{
+            return razorpayClient.Payments.fetchAllRefunds(paymentId);
+        } catch (RazorpayException e){
+            throw new HotifiException(RazorpayErrorCodes.PAYMENT_NOT_FOUND);
+        }
+    }
+
+    /**
+     * {
      * "id": "trf_E9utgtfGTcpcmm",
      * "entity": "transfer",
      * "source": "acc_CJoeHMNpi0nC7k",

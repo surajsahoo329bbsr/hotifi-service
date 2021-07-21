@@ -45,7 +45,8 @@ public class PaymentServiceImpl implements IPaymentService {
     private final UserRepository userRepository;
     private final PurchaseRepository purchaseRepository;
 
-    public PaymentServiceImpl(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository, UserRepository userRepository, PurchaseRepository purchaseRepository) {
+    public PaymentServiceImpl(SellerPaymentRepository sellerPaymentRepository, SellerReceiptRepository sellerReceiptRepository,
+                              UserRepository userRepository, PurchaseRepository purchaseRepository) {
         this.sellerPaymentRepository = sellerPaymentRepository;
         this.sellerReceiptRepository = sellerReceiptRepository;
         this.userRepository = userRepository;
@@ -338,14 +339,14 @@ public class PaymentServiceImpl implements IPaymentService {
                 RefundReceiptResponse receiptResponse = paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
                 //Setting up values from payment processor
                 int status = receiptResponse.getPurchase().getStatus();
-                Date refundDoneAt = receiptResponse.getPurchase().getRefundDoneAt();
+                Date refundStartedAt = receiptResponse.getPurchase().getRefundStartedAt();
                 String refundPaymentId = receiptResponse.getPurchase().getRefundPaymentId();
                 String refundTransactionId = receiptResponse.getPurchase().getRefundTransactionId();
-                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundDoneAt, refundTransactionId, purchase.getId());
+                purchaseRepository.updatePurchaseRefundStatus(status, refundPaymentId, refundStartedAt, refundTransactionId, purchase.getId());
 
                 purchase.setStatus(status);
                 purchase.setRefundPaymentId(refundPaymentId);
-                purchase.setRefundDoneAt(refundDoneAt);
+                purchase.setRefundStartedAt(refundStartedAt);
                 purchase.setRefundTransactionId(refundTransactionId);
                 RefundReceiptResponse refundReceiptResponse =
                         new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
@@ -398,8 +399,11 @@ public class PaymentServiceImpl implements IPaymentService {
                 return pendingMoneyResponse;
             }
 
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
+
             for (Purchase purchase : purchases) {
                 pendingBuyerRefund = pendingBuyerRefund.add(purchase.getAmountRefund());
+                paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
                 if (purchase.getPaymentDoneAt().before(oldestPurchaseDate)) {
                     oldestPurchaseDate = purchase.getPaymentDoneAt();
                 }

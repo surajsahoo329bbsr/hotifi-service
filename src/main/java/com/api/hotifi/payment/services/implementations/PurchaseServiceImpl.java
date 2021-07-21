@@ -123,7 +123,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if ((isSessionCompleted || isDataBoughtMoreThanDataSold) && isPurchaseAlreadySuccessful) {
                 RefundReceiptResponse receiptResponse = paymentProcessor.startBuyerRefund(purchaseRepository, buyerPurchase.getAmountPaid(), purchaseRequest.getPaymentId());
                 purchase.setStatus(receiptResponse.getPurchase().getStatus());
-                purchase.setRefundDoneAt(receiptResponse.getPurchase().getRefundDoneAt());
+                purchase.setRefundStartedAt(receiptResponse.getPurchase().getRefundStartedAt());
                 purchase.setRefundPaymentId(receiptResponse.getPurchase().getRefundPaymentId());
                 purchase.setRefundTransactionId(receiptResponse.getPurchase().getRefundTransactionId());
                 log.info("Razor Refund Payment");
@@ -165,7 +165,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, BusinessConfigurations.AES_PASSWORD_SECRET_KEY));
             if (purchase.getRefundPaymentId() != null) {
-                receiptResponse.setRefundDoneAt(purchase.getRefundDoneAt());
+                receiptResponse.setRefundStartedAt(purchase.getRefundStartedAt());
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());
                 receiptResponse.setWifiPassword(null);
             }

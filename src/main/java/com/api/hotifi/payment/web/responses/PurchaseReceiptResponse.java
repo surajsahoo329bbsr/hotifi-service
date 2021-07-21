@@ -32,6 +32,6 @@ public class PurchaseReceiptResponse {
 
     private String refundPaymentId;
 
-    private Date refundDoneAt;
+    private Date refundStartedAt;
 
 }

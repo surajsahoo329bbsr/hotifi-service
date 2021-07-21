@@ -19,6 +19,7 @@ import com.api.hotifi.identity.services.interfaces.IAuthenticationService;
 import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
+import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.repositories.*;
 import com.api.hotifi.payment.services.implementations.*;
 import com.api.hotifi.payment.services.interfaces.*;
