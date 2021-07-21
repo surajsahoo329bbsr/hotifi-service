@@ -169,7 +169,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());
                 receiptResponse.setWifiPassword(null);
             }
-            if(purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.PAYMENT_CAPTURED.value()){
+            if (purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.PAYMENT_CAPTURED.value()) {
                 receiptResponse.setWifiPassword(null);
             }
             return receiptResponse;
@@ -259,7 +259,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     @Transactional
     public WifiSummaryResponse findBuyerWifiSummary(Long purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId).orElse(null);
-        if (purchase != null) return getBuyerWifiSummary(purchase, false);
+        if (purchase != null) return getBuyerWifiSummary(purchase);
         throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
     }
 
@@ -293,7 +293,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchase.setSessionFinishedAt(sessionFinishedAt);
             purchaseRepository.save(purchase);
             saveSessionWithWifiService(purchase);
-            return getBuyerWifiSummary(purchase, false);
+            return getBuyerWifiSummary(purchase);
         }
 
         throw new HotifiException(PurchaseErrorCodes.PURCHASE_UPDATE_NOT_LEGIT);
@@ -345,7 +345,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
                 .divideThenMultiplyFloorTwoScale(amountPaid, BigDecimal.valueOf(dataBought), BigDecimal.valueOf(dataUsed - dataUsedBefore));
     }
 
-    private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase, boolean isWithdrawAmount) {
+    private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase) {
         Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
         SpeedTest speedTest = session != null ? speedTestRepository.findById(session.getSpeedTest().getId()).orElse(null) : null;
         User seller = speedTest != null ? userRepository.findById(speedTest.getUser().getId()).orElse(null) : null;
@@ -353,9 +353,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (seller == null)
             throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
 
+        boolean isRefundRequired = purchase.getAmountRefund().compareTo(BigDecimal.ZERO) > 0;
+
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-        RefundReceiptResponse refundReceiptResponse = isWithdrawAmount ?
-                paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId()) : paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
+        RefundReceiptResponse refundReceiptResponse = isRefundRequired ?
+                paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId()) :
+                new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
 
         WifiSummaryResponse wifiSummaryResponse = new WifiSummaryResponse();
         wifiSummaryResponse.setSellerUsername(seller.getUsername());
@@ -371,8 +374,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setRefundReceiptResponse(refundReceiptResponse);
 
         //Below condition will save the entity only if complete payment with refund has not completed yet
-        if (refundReceiptResponse.getPurchase().getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.values().length)
-            purchaseRepository.save(refundReceiptResponse.getPurchase());
+        if (purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE < BuyerPaymentCodes.values().length)
+            purchaseRepository.save(purchase);
 
         return wifiSummaryResponse;
     }
@@ -390,7 +393,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         List<Purchase> purchases = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable);
         List<WifiSummaryResponse> wifiSummaryResponses = new ArrayList<>();
         for (Purchase purchase : purchases) {
-            WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase, true);
+            WifiSummaryResponse wifiSummaryResponse = getBuyerWifiSummary(purchase);
             wifiSummaryResponses.add(wifiSummaryResponse);
         }
         return wifiSummaryResponses;
