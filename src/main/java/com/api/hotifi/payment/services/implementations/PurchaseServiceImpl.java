@@ -353,10 +353,10 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (seller == null)
             throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
 
-        boolean isRefundRequired = purchase.getAmountRefund().compareTo(BigDecimal.ZERO) > 0;
+        boolean isRefundStarted = purchase.getAmountRefund().compareTo(BigDecimal.ZERO) > 0 && purchase.getRefundPaymentId() != null;
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
-        RefundReceiptResponse refundReceiptResponse = isRefundRequired ?
+        RefundReceiptResponse refundReceiptResponse = isRefundStarted ?
                 paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId()) :
                 new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
 

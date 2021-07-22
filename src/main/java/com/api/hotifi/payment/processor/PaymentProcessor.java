@@ -124,9 +124,7 @@ public class PaymentProcessor {
             case RAZORPAY:
                 log.info("RAZORPAY PAYMENT");
                 Purchase purchase = purchaseRepository.findByPaymentId(paymentId);
-                Refund refund = (purchase.getRefundPaymentId() != null) ?
-                        razorpayProcessor.getRefundById(purchase.getRefundPaymentId()) :
-                        razorpayProcessor.getRefundsByPaymentId(paymentId).get(0); //To be changed later to support multiple refunds for a single payment
+                Refund refund = razorpayProcessor.getRefundById(purchase.getRefundPaymentId()); //To be changed later to support multiple refunds for a single payment
                 getOrUpdateBuyerRefund(refund, purchase, purchaseRepository);
                 return new RefundReceiptResponse(purchase, BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             case STRIPE:

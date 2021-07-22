@@ -403,7 +403,8 @@ public class PaymentServiceImpl implements IPaymentService {
 
             for (Purchase purchase : purchases) {
                 pendingBuyerRefund = pendingBuyerRefund.add(purchase.getAmountRefund());
-                paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
+                if (purchase.getRefundPaymentId() != null)
+                    paymentProcessor.getBuyerRefundStatus(purchaseRepository, purchase.getPaymentId());
                 if (purchase.getPaymentDoneAt().before(oldestPurchaseDate)) {
                     oldestPurchaseDate = purchase.getPaymentDoneAt();
                 }
