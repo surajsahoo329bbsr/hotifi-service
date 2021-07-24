@@ -281,10 +281,10 @@ public class SessionServiceImpl implements ISessionService {
                     .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            /*double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
+            double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
                     .mapToDouble(Purchase::getDataUsed)
-                    .sum() * 100) / 100;*/
+                    .sum() * 100) / 100;
             BigDecimal netEarnings = totalEarnings
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                     .setScale(2, RoundingMode.FLOOR);
@@ -294,7 +294,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionSummaryResponse.setSessionFinishedAt(finishedAt);
             sessionSummaryResponse.setBuyers(buyers);
             sessionSummaryResponse.setTotalData(session.getData());
-            sessionSummaryResponse.setTotalDataSold(session.getDataUsed());
+            sessionSummaryResponse.setTotalDataSold(totalDataSold);
             sessionSummaryResponse.setTotalEarnings(totalEarnings);
             sessionSummaryResponse.setNetworkProvider(session.getSpeedTest().getNetworkProvider());
             sessionSummaryResponse.setUnitSellingPrice(session.getPrice());
@@ -360,10 +360,11 @@ public class SessionServiceImpl implements ISessionService {
                     .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            /*double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
+            double totalDataSold = (double)
+                    Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                     .stream()
                     .mapToDouble(Purchase::getDataUsed)
-                    .sum() * 100) / 100;*/
+                    .sum() * 100) / 100;
 
             BigDecimal netEarnings = totalEarnings
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100));
@@ -374,7 +375,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionSummaryResponse.setSessionFinishedAt(session.getFinishedAt());
             sessionSummaryResponse.setBuyers(getBuyers(session.getId(), false));
             sessionSummaryResponse.setTotalData(session.getData());
-            sessionSummaryResponse.setTotalDataSold(session.getDataUsed());
+            sessionSummaryResponse.setTotalDataSold(totalDataSold);
             sessionSummaryResponse.setNetworkProvider(session.getSpeedTest().getNetworkProvider());
             sessionSummaryResponse.setTotalEarnings(totalEarnings);
             sessionSummaryResponse.setUnitSellingPrice(session.getPrice());
