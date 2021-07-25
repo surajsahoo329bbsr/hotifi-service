@@ -224,7 +224,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
-            boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
+            boolean isUpdateTimeOnly = Double.compare(dataUsed, dataUsedBefore) == 0;
 
             if (sellerPayment == null)
                 sellerPaymentService.addSellerPayment(seller, calculatedSellerAmount);

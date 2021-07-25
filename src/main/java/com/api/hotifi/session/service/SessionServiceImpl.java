@@ -279,7 +279,8 @@ public class SessionServiceImpl implements ISessionService {
             BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
                     .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
-                    .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
+                    .map(purchase -> PaymentUtils.divideThenMultiplyFloorTwoScale(purchase.getAmountPaid(),
+                            BigDecimal.valueOf(purchase.getData()), BigDecimal.valueOf(purchase.getDataUsed())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             double totalDataSold = (double) Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(sessionId))
                     .stream()
@@ -340,8 +341,8 @@ public class SessionServiceImpl implements ISessionService {
 
             Pageable sortedPageableByDataUsed
                     = isDescending ?
-                    PageRequest.of(page, size, Sort.by("data_used").descending())
-                    : PageRequest.of(page, size, Sort.by("data_used"));
+                    PageRequest.of(page, size, Sort.by("data").descending())
+                    : PageRequest.of(page, size, Sort.by("data"));
 
             return getSessionSummaryResponses(speedTestIds, sortedPageableByDataUsed);
         } catch (Exception e) {
@@ -357,14 +358,15 @@ public class SessionServiceImpl implements ISessionService {
             BigDecimal totalEarnings = purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
                     .stream()
                     .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.START_WIFI_SERVICE.value())
-                    .map(purchase -> purchase.getAmountPaid().subtract(purchase.getAmountRefund()))
+                    .map(purchase -> PaymentUtils.divideThenMultiplyFloorTwoScale(purchase.getAmountPaid(),
+                            BigDecimal.valueOf(purchase.getData()), BigDecimal.valueOf(purchase.getDataUsed())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             double totalDataSold = (double)
                     Math.round(purchaseRepository.findPurchasesBySessionIds(Collections.singletonList(session.getId()))
-                    .stream()
-                    .mapToDouble(Purchase::getDataUsed)
-                    .sum() * 100) / 100;
+                            .stream()
+                            .mapToDouble(Purchase::getDataUsed)
+                            .sum() * 100) / 100;
 
             BigDecimal netEarnings = totalEarnings
                     .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100));
