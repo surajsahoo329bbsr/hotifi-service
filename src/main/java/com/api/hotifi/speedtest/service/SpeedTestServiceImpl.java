@@ -34,10 +34,10 @@ public class SpeedTestServiceImpl implements ISpeedTestService {
     @Override
     public void addSpeedTest(SpeedTestRequest speedTestRequest) {
 
-        boolean isBelowWifiDownloadSpeed = Double.compare(speedTestRequest.getDownloadSpeed(), BusinessConfigurations.MINIMUM_WIFI_DOWNLOAD_SPEED) < 0
+        boolean isBelowWifiDownloadSpeed = Double.compare(speedTestRequest.getDownloadSpeed(), BusinessConfigurations.MINIMUM_WIFI_DOWNLOAD_SPEED_MEGABYTES) < 0
                 && speedTestRequest.getNetworkProvider().equals(NetworkProviderCodes.WIFI.name());
 
-        boolean isBelowWifiUploadSpeed = Double.compare(speedTestRequest.getUploadSpeed(), BusinessConfigurations.MINIMUM_WIFI_UPLOAD_SPEED) < 0
+        boolean isBelowWifiUploadSpeed = Double.compare(speedTestRequest.getUploadSpeed(), BusinessConfigurations.MINIMUM_WIFI_UPLOAD_SPEED_MEGABYTES) < 0
                 && speedTestRequest.getNetworkProvider().equals(NetworkProviderCodes.WIFI.name());
 
         if(isBelowWifiDownloadSpeed || isBelowWifiUploadSpeed){

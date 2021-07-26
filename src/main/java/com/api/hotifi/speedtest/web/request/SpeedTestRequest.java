@@ -19,12 +19,12 @@ public class SpeedTestRequest {
     private String networkProvider;
 
     //both upload and download speeds in MBs
-    @DecimalMin(value = BusinessConfigurations.MINIMUM_MOBILE_UPLOAD_SPEED, message = "{upload.speed.minimum.invalid}")
+    @DecimalMin(value = BusinessConfigurations.MINIMUM_UPLOAD_SPEED_MEGABYTES, message = "{upload.speed.minimum.invalid}")
     @Digits(integer = 15, fraction = 2, message = "{upload.speed.format.invalid}")
     private double uploadSpeed;
 
-    @DecimalMin(value = BusinessConfigurations.MINIMUM_MOBILE_DOWNLOAD_SPEED, message = "{upload.speed.minimum.invalid}")
-    @Digits(integer = 15, fraction = 2, message = "{upload.speed.format.invalid}")
+    @DecimalMin(value = BusinessConfigurations.MINIMUM_DOWNLOAD_SPEED_MEGABYTES, message = "{download.speed.minimum.invalid}")
+    @Digits(integer = 15, fraction = 2, message = "{download.speed.format.invalid}")
     private double downloadSpeed;
 
     @Range(min = 1, message = "{user.id.invalid}")
