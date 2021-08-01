@@ -82,6 +82,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 bankAccount.setBankBeneficiaryName(bankAccountRequest.getBankBeneficiaryName());
                 bankAccount.setLinkedAccountId(null);
                 bankAccountRepository.save(bankAccount);
+                return;
             } catch (DataIntegrityViolationException e) {
                 throw new HotifiException(SellerBankAccountErrorCodes.BANK_ACCOUNT_DETAILS_ALREADY_EXISTS);
             } catch (Exception e) {
