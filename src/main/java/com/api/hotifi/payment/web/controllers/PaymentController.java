@@ -6,10 +6,12 @@ import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.payment.model.PendingTransfer;
 import com.api.hotifi.payment.services.interfaces.IPaymentService;
 import com.api.hotifi.payment.web.responses.PendingMoneyResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
+import com.api.hotifi.session.model.TransferUpdate;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,56 @@ public class PaymentController {
 
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
+
+    @PutMapping(path = "/seller/claim/withdraw/{seller-id}")
+    @ApiOperation(
+            value = "Withdraw Claim Seller Earnings By Seller Id ",
+            notes = "Withdraw Claim Seller Earnings By Seller Id",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 204, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> notifySellerWithdrawalForAdmin(@PathVariable(value = "seller-id") @Range(min = 1, message = "{seller.id.invalid}") Long sellerId) {
+        if (customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()))
+            paymentService.notifySellerWithdrawalForAdmin(sellerId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping(path = "/admin/seller/pending/payments")
+    @ApiOperation(
+            value = "Get All Pending Seller Payments For Admin",
+            notes = "Get All Pending Seller Payments For Admin",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> getAllPendingSellerPaymentsForAdmin() {
+        List<PendingTransfer> pendingTransfers = AuthorizationUtils.isAdministratorRole() ? paymentService.getAllPendingSellerPaymentsForAdmin() : null;
+        return new ResponseEntity<>(pendingTransfers, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/admin/seller/pending/payments/update")
+    @ApiOperation(
+            value = "Withdraw Seller Earnings By Seller Id",
+            notes = "Withdraw Seller Earnings By Seller Id",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 204, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> updatePendingSellerPaymentsByAdmin(List<TransferUpdate> transfers) {
+        if (AuthorizationUtils.isAdministratorRole())
+            paymentService.updatePendingSellerPaymentsByAdmin(transfers);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
     @PutMapping(path = "/seller/withdraw/{seller-id}")
     @ApiOperation(

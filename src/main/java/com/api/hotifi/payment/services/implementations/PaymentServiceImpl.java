@@ -4,12 +4,14 @@ import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.entities.SellerReceipt;
 import com.api.hotifi.payment.error.PurchaseErrorCodes;
 import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
+import com.api.hotifi.payment.model.PendingTransfer;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
@@ -22,6 +24,7 @@ import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.responses.PendingMoneyResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
+import com.api.hotifi.session.model.TransferUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -98,6 +101,45 @@ public class PaymentServiceImpl implements IPaymentService {
         }
     }
 
+    @Transactional
+    public SellerReceiptResponse addSellerReceiptByAdmin(User seller, TransferUpdate transferUpdate, BigDecimal sellerAmountPaid) {
+        try {
+            String bankAccountNumber = seller.getBankAccount().getBankAccountNumber();
+            String bankIfscCode = seller.getBankAccount().getBankIfscCode();
+            String linkedAccountId = seller.getBankAccount().getLinkedAccountId();
+
+            SellerReceipt sellerReceipt = new SellerReceipt();
+            sellerReceipt.setStatus(SellerPaymentCodes.PAYMENT_CREATED.value());
+            Date createdAt = transferUpdate.getPaidAt();
+            Date modifiedAt = new Date(System.currentTimeMillis());
+            String transferId = transferUpdate.getTransferId();
+            String settlementId = transferUpdate.getSettlementId();
+
+            sellerReceipt.setCreatedAt(createdAt);
+            sellerReceipt.setModifiedAt(createdAt);
+            sellerReceipt.setModifiedAt(modifiedAt);
+            sellerReceipt.setTransferId(transferId);
+            sellerReceipt.setAmountPaid(sellerAmountPaid);
+            sellerReceipt.setBankIfscCode(bankIfscCode);
+            sellerReceipt.setBankAccountNumber(bankAccountNumber);
+            sellerReceipt.setSettlementId(settlementId);
+
+            //Setup Seller Receipt
+            SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
+            sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
+            sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
+            sellerReceiptResponse.setOnHold(transferUpdate.isOnHold());
+            sellerReceiptResponse.setOnHoldUntil(transferUpdate.getOnHoldUntil());
+
+            return sellerReceiptResponse;
+
+        } catch (Exception e) {
+            log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
+        }
+    }
+
+
     /**
      * Seller Api Calls
      */
@@ -163,6 +205,118 @@ public class PaymentServiceImpl implements IPaymentService {
         }
     }
 
+
+    @Transactional
+    @Override
+    public void notifySellerWithdrawalForAdmin(Long sellerId) {
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (!LegitUtils.isSellerLegit(seller, true))
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
+        SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
+        if (sellerPayment == null)
+            throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
+
+        BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
+                .setScale(0, RoundingMode.FLOOR);
+
+        BigDecimal sellerAmountPaid =
+                sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
+                        BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
+
+        Date now = new Date(System.currentTimeMillis());
+
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
+            Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
+            if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
+                throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
+            if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0)
+                throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
+        }
+
+        try {
+            //Following lines will continue after successful-1, processing-2, failure-3 payment
+            sellerPayment.setWithdrawalClaimNotified(true);
+            sellerPayment.setModifiedAt(now);
+            sellerPaymentRepository.save(sellerPayment);
+        } catch (Exception e) {
+            log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
+        }
+    }
+
+    //admin api calls
+    @Transactional
+    @Override
+    public List<PendingTransfer> getAllPendingSellerPaymentsForAdmin() {
+        List<SellerPayment> sellerPayments = sellerPaymentRepository.findAll();
+        List<PendingTransfer> pendingTransfers = new ArrayList<>();
+        try {
+            sellerPayments.forEach(sellerPayment -> {
+                if (sellerPayment.isWithdrawalClaimNotified()) {
+                    BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                            .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
+                            .setScale(0, RoundingMode.FLOOR);
+                    //Pending Transfer Entity
+                    Long sellerId = sellerPayment.getSeller().getId();
+                    String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
+                    Long amountInPaise = sellerWithdrawalClaim.longValue() * 100;
+                    String currency = "INR"; //To be changed later
+                    PendingTransfer pendingTransfer = new PendingTransfer(sellerId, linkedAccountId, amountInPaise, currency);
+                    pendingTransfers.add(pendingTransfer);
+                }
+            });
+        } catch (Exception e) {
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
+        }
+
+        return pendingTransfers;
+    }
+
+    //admin api call
+    @Transactional
+    @Override
+    public void updatePendingSellerPaymentsByAdmin(List<TransferUpdate> transferUpdates) {
+        transferUpdates.forEach(transferUpdate -> {
+            Long sellerId = transferUpdate.getSellerId();
+            User seller = userRepository.findById(sellerId).orElse(null);
+            if (seller == null || seller.getAuthentication().isDeleted())
+                throw new HotifiException(UserErrorCodes.USER_DELETED);
+            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
+            if (sellerPayment == null)
+                throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
+
+            if (sellerPayment.isWithdrawalClaimNotified()) {
+                BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                        .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
+                        .setScale(0, RoundingMode.FLOOR);
+
+                BigDecimal sellerAmountPaid =
+                        sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
+                                BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
+
+                Date now = new Date(System.currentTimeMillis());
+
+                try {
+                    SellerReceiptResponse sellerReceiptResponse = addSellerReceiptByAdmin(seller, transferUpdate, sellerAmountPaid);
+                    //Following lines will continue after successful-1, processing-2, failure-3 payment
+                    Date lastPaidAt = transferUpdate.getPaidAt();
+                    sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
+                    sellerPayment.setLastPaidAt(lastPaidAt);
+                    sellerPayment.setModifiedAt(now);
+                    sellerPayment.setWithdrawalClaimNotified(false);
+                    sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
+                    sellerPaymentRepository.save(sellerPayment);
+                    return;
+                } catch (Exception e) {
+                    log.error("Error occurred ", e);
+                    throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
+                }
+            }
+            throw new HotifiException(SellerPaymentErrorCodes.NO_PENDING_TRANSFERS_CLAIMED);
+        });
+    }
+
     @Transactional
     @Override
     public SellerReceiptResponse withdrawSellerPayment(Long sellerId) {
@@ -172,7 +326,7 @@ public class PaymentServiceImpl implements IPaymentService {
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
-        //double sellerWithdrawalClaim = Math.floor(sellerPayment.getAmountEarned() * (double) (100 - Constants.COMMISSION_PERCENTAGE) / 100);
+
         BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
                 .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
                 .setScale(0, RoundingMode.FLOOR);
@@ -285,6 +439,7 @@ public class PaymentServiceImpl implements IPaymentService {
     /**
      * Buyer Api Calls
      */
+
 
     @Transactional
     @Override

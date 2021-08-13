@@ -29,6 +29,9 @@ public class SellerPayment implements Serializable {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal amountPaid; // Total amount to be paid to the seller
 
+    @Column(columnDefinition = "TINYINT(1)", nullable = false)
+    private boolean isWithdrawalClaimNotified;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date createdAt = new Date(System.currentTimeMillis()); // Time at which first transfer was made

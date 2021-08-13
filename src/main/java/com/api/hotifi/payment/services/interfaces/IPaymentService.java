@@ -2,9 +2,11 @@ package com.api.hotifi.payment.services.interfaces;
 
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.payment.entities.SellerPayment;
+import com.api.hotifi.payment.model.PendingTransfer;
 import com.api.hotifi.payment.web.responses.PendingMoneyResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
+import com.api.hotifi.session.model.TransferUpdate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,6 +31,12 @@ public interface IPaymentService {
     void withdrawBuyerRefunds(Long buyerId);
 
     List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending);
+
+    void notifySellerWithdrawalForAdmin(Long sellerId);
+
+    List<PendingTransfer> getAllPendingSellerPaymentsForAdmin();
+
+    void updatePendingSellerPaymentsByAdmin(List<TransferUpdate> transferUpdates);
 
     SellerReceiptResponse withdrawSellerPayment(Long sellerId);
 

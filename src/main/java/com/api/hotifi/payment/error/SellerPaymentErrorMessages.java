@@ -11,4 +11,5 @@ public class SellerPaymentErrorMessages {
     public static final String MINIMUM_WITHDRAWAL_AMOUNT_ERROR = "Minimum withdrawal is " + BusinessConfigurations.MINIMUM_AMOUNT_INR;
     //public static final String MINIMUM_AMOUNT_INR = "Minimum withdrawal amount must be at least INR " + Constants.MINIMUM_AMOUNT_INR;
     public static final String SELLER_RECEIPT_NOT_FOUND = "Seller receipt not found";
+    public static final String NO_PENDING_TRANSFERS_CLAIMED = "Seller did not claim pending transfers";
 }
