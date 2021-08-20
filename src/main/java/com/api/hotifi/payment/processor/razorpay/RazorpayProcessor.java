@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -311,33 +313,33 @@ public class RazorpayProcessor {
 
     /**
      * {
-     *     "entity": "collection",
-     *     "count": 1,
-     *     "items": [
-     *         {
-     *             "id": "rfnd_HbVu59xroDSd3L",
-     *             "entity": "refund",
-     *             "amount": 200,
-     *             "currency": "INR",
-     *             "payment_id": "pay_HbQGJjwR1RqwdO",
-     *             "notes": [],
-     *             "receipt": null,
-     *             "acquirer_data": {},
-     *             "created_at": 1626855810,
-     *             "batch_id": null,
-     *             "status": "processed",
-     *             "speed_processed": "normal",
-     *             "speed_requested": "normal"
-     *         }
-     *     ]
+     * "entity": "collection",
+     * "count": 1,
+     * "items": [
+     * {
+     * "id": "rfnd_HbVu59xroDSd3L",
+     * "entity": "refund",
+     * "amount": 200,
+     * "currency": "INR",
+     * "payment_id": "pay_HbQGJjwR1RqwdO",
+     * "notes": [],
+     * "receipt": null,
+     * "acquirer_data": {},
+     * "created_at": 1626855810,
+     * "batch_id": null,
+     * "status": "processed",
+     * "speed_processed": "normal",
+     * "speed_requested": "normal"
      * }
-     * */
+     * ]
+     * }
+     */
 
 
-    public List<Refund> getRefundsByPaymentId(String paymentId){
-        try{
+    public List<Refund> getRefundsByPaymentId(String paymentId) {
+        try {
             return razorpayClient.Payments.fetchAllRefunds(paymentId);
-        } catch (RazorpayException e){
+        } catch (RazorpayException e) {
             throw new HotifiException(RazorpayErrorCodes.PAYMENT_NOT_FOUND);
         }
     }
@@ -420,7 +422,11 @@ public class RazorpayProcessor {
         try {
             String url = "https://api.razorpay.com/v1/settlements/" + settlementId;
             URL obj = new URL(url);
+            String encoded = Base64.getEncoder()
+                    .encodeToString((AppConfigurations.RAZORPAY_CLIENT_ID + ":" + AppConfigurations.RAZORPAY_CLIENT_SECRET)
+                            .getBytes(StandardCharsets.UTF_8));
             HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            connection.setRequestProperty("Authorization", "Basic " + encoded);
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));

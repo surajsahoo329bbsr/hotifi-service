@@ -35,6 +35,7 @@ public class BankAccountController {
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
 
+
     @PostMapping(path = "/seller", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Add Bank Account Details Of A Customer",
@@ -50,6 +51,24 @@ public class BankAccountController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @PostMapping(path = "/seller/upi/{user-id}/{upi-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Add UPI ID Of A Customer",
+            notes = "Add UPI ID Of A Customer",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> addUpiId(@PathVariable(value = "user-id")
+                                      @Range(min = 1, message = "{user.id.invalid}") Long userId,
+                                      @PathVariable(value = "upi-id")
+                                      @Length(max = 255, message = "{upi.id.length.invalid}") String upiId) {
+        if (customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()))
+            bankAccountService.addUpiId(userId, upiId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @PutMapping(path = "/seller/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Update Bank Account Details By Customer",
@@ -62,6 +81,24 @@ public class BankAccountController {
     public ResponseEntity<?> updateBankAccountByCustomer(@RequestBody @Validated BankAccountRequest bankAccountRequest) {
         if (customerAuthorizationService.isAuthorizedByUserId(bankAccountRequest.getUserId(), AuthorizationUtils.getUserToken()))
             bankAccountService.updateBankAccountByCustomer(bankAccountRequest);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/seller/update/upi/{user-id}/{upi-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Update UPI ID By Customer",
+            notes = "Update UPI ID By Customer",
+            code = 204,
+            response = String.class)
+    @ApiResponses(value = @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class))
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> updateUpiIdByCustomer(@PathVariable(value = "user-id")
+                                                   @Range(min = 1, message = "{user.id.invalid}") Long userId,
+                                                   @PathVariable(value = "upi-id")
+                                                   @Length(max = 255, message = "{upi.id.length.invalid}") String upiId) {
+        if (customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken()))
+            bankAccountService.updateUpiIdByCustomer(userId, upiId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -113,7 +150,7 @@ public class BankAccountController {
     public ResponseEntity<?> getBankAccountByUserId(@PathVariable(value = "user-id") @Range(min = 1, message = "{user.id.invalid}") Long userId) {
         BankAccount bankAccount =
                 (AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(userId, AuthorizationUtils.getUserToken())) ?
-                bankAccountService.getBankAccountByUserId(userId) : null;
+                        bankAccountService.getBankAccountByUserId(userId) : null;
         return new ResponseEntity<>(bankAccount, HttpStatus.OK);
     }
 

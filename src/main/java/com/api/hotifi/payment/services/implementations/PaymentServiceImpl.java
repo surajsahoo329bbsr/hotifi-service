@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.services.implementations;
 
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.utils.LegitUtils;
@@ -129,6 +130,7 @@ public class PaymentServiceImpl implements IPaymentService {
             sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
             sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
             sellerReceiptResponse.setOnHold(transferUpdate.isOnHold());
+            sellerReceiptResponse.setSellerReceipt(sellerReceipt);
             sellerReceiptResponse.setOnHoldUntil(transferUpdate.getOnHoldUntil());
 
             return sellerReceiptResponse;
@@ -210,7 +212,9 @@ public class PaymentServiceImpl implements IPaymentService {
     @Override
     public void notifySellerWithdrawalForAdmin(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller, true))
+        boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                LegitUtils.isSellerLegit(seller, true) : LegitUtils.isSellerUpiLegit(seller, true);
+        if (!isSellerLegit)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
@@ -305,6 +309,7 @@ public class PaymentServiceImpl implements IPaymentService {
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     sellerPayment.setModifiedAt(now);
                     sellerPayment.setWithdrawalClaimNotified(false);
+                    sellerReceiptResponse.getSellerReceipt().setSellerPayment(sellerPayment);
                     sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
                     sellerPaymentRepository.save(sellerPayment);
                     return;
@@ -321,7 +326,9 @@ public class PaymentServiceImpl implements IPaymentService {
     @Override
     public SellerReceiptResponse withdrawSellerPayment(Long sellerId) {
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (!LegitUtils.isSellerLegit(seller, true))
+        boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                LegitUtils.isSellerLegit(seller, true) : LegitUtils.isSellerUpiLegit(seller, true);
+        if (!isSellerLegit)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_NOT_LEGIT);
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null)
@@ -352,6 +359,7 @@ public class PaymentServiceImpl implements IPaymentService {
             sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
             sellerPayment.setLastPaidAt(lastPaidAt);
             sellerPayment.setModifiedAt(now);
+            sellerReceiptResponse.getSellerReceipt().setSellerPayment(sellerPayment);
             sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
             sellerPaymentRepository.save(sellerPayment);
             return sellerReceiptResponse;

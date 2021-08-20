@@ -245,6 +245,7 @@ public class PaymentProcessor {
                 SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
                 sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponse.setSellerLinkedAccountId(linkedAccountId);
+                sellerReceiptResponse.setSellerReceipt(sellerReceipt);
                 sellerReceiptResponse.setOnHold(isOnHold);
                 sellerReceiptResponse.setOnHoldUntil(onHoldUntil);
 

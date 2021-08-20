@@ -1,5 +1,6 @@
 package com.api.hotifi.session.service;
 
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.CloudClientCodes;
@@ -73,7 +74,9 @@ public class SessionServiceImpl implements ISessionService {
     public Session addSession(SessionRequest sessionRequest) {
 
         User user = userRepository.findById(sessionRequest.getUserId()).orElse(null);
-        if (!LegitUtils.isSellerLegit(user, false))
+        boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                LegitUtils.isSellerLegit(user, false) : LegitUtils.isSellerUpiLegit(user, false);
+        if (!isSellerLegit)
             throw new HotifiException(SessionErrorCodes.SELLER_NOT_LEGIT);
 
         SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());

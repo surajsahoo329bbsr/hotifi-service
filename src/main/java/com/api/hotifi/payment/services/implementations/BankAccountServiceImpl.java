@@ -1,6 +1,7 @@
 package com.api.hotifi.payment.services.implementations;
 
 import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.utils.LegitUtils;
@@ -67,9 +68,51 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     @Transactional
     @Override
+    public void addUpiId(Long userId, String upiId) {
+        User seller = userRepository.findById(userId).orElse(null);
+        if (seller == null)
+            throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
+        if (seller.getAuthentication().isDeleted())
+            throw new HotifiException(UserErrorCodes.USER_DELETED);
+        if (!seller.isLoggedIn())
+            throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
+        if(!upiId.matches(BusinessConfigurations.VALID_UPI_ID))
+            throw new HotifiException(UserErrorCodes.USER_UPI_ID_INVALID);
+        try {
+            seller.setUpiId(upiId);
+            userRepository.save(seller);
+        } catch (DataIntegrityViolationException e) {
+            throw new HotifiException(SellerBankAccountErrorCodes.BANK_ACCOUNT_DETAILS_ALREADY_EXISTS);
+        } catch (Exception e) {
+            throw new HotifiException(SellerBankAccountErrorCodes.UNEXPECTED_SELLER_BANK_ACCOUNT_ERROR);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void updateUpiIdByCustomer(Long userId, String upiId) {
+        User seller = userRepository.findById(userId).orElse(null);
+        boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                LegitUtils.isSellerLegit(seller, false) : LegitUtils.isSellerUpiLegit(seller, false);
+        if (isSellerLegit) {
+            try {
+                seller.setUpiId(upiId);
+                userRepository.save(seller);
+                return;
+            } catch (Exception e) {
+                throw new HotifiException(UserErrorCodes.USER_UPI_ID_UPDATE_FAILED);
+            }
+        }
+        throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
+    }
+
+    @Transactional
+    @Override
     public void updateBankAccountByCustomer(BankAccountRequest bankAccountRequest) {
         User seller = userRepository.findById(bankAccountRequest.getUserId()).orElse(null);
-        if (LegitUtils.isSellerLegit(seller, false)) {
+        boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                LegitUtils.isSellerLegit(seller, false) : LegitUtils.isSellerUpiLegit(seller, false);
+        if (isSellerLegit) {
             try {
                 Date modifiedAt = new Date(System.currentTimeMillis());
                 BankAccount bankAccount = seller.getBankAccount();

@@ -33,6 +33,8 @@ public class User implements Serializable {
     @JoinColumn(name = "seller_bank_account_id", referencedColumnName = "id")
     private BankAccount bankAccount;
 
+    private String upiId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

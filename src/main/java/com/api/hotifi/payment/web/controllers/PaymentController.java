@@ -80,7 +80,7 @@ public class PaymentController {
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<?> updatePendingSellerPaymentsByAdmin(List<TransferUpdate> transfers) {
+    public ResponseEntity<?> updatePendingSellerPaymentsByAdmin(@RequestBody List<TransferUpdate> transfers) {
         if (AuthorizationUtils.isAdministratorRole())
             paymentService.updatePendingSellerPaymentsByAdmin(transfers);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -141,7 +141,7 @@ public class PaymentController {
                                                                @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                                @PathVariable(value = "is-descending") boolean isDescending) {
         List<SellerReceiptResponse> sellerReceiptResponses =
-                AuthorizationUtils.isAdministratorRole() && customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
+                AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken()) ?
                         paymentService.getSortedSellerReceiptsByDateTime(sellerId, page, size, isDescending) : null;
         return new ResponseEntity<>(sellerReceiptResponses, HttpStatus.OK);
     }

@@ -1,5 +1,7 @@
 package com.api.hotifi.common.utils;
 
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.entities.User;
@@ -54,6 +56,21 @@ public class LegitUtils {
     }
 
     //Check if seller is deleted / activated / has upi id
+    public static boolean isSellerUpiLegit(User seller, boolean isUpiIdMandatory) {
+        if (seller == null)
+            return false;
+        if (seller.getAuthentication().isDeleted())
+            throw new HotifiException(UserErrorCodes.USER_DELETED);
+        if (!seller.isLoggedIn())
+            throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
+        if (seller.getUpiId() == null && isUpiIdMandatory)
+            throw new HotifiException(UserErrorCodes.USER_UPI_ID_NULL);
+        if(isUpiIdMandatory && !seller.getUpiId().matches(BusinessConfigurations.VALID_UPI_ID))
+            throw new HotifiException(UserErrorCodes.USER_UPI_ID_INVALID);
+        return true;
+    }
+
+    //Check if seller is deleted / activated / has linked account id
     public static boolean isSellerLegit(User seller, boolean isLinkedAccountIdMandatory) {
         if (seller == null)
             return false;

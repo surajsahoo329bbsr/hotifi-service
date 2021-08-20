@@ -23,6 +23,8 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_ALREADY_NOT_VERIFIED = "User already not verified";
     public static final String USER_NOT_LOGGED_IN = "User not logged in";
     public static final String USER_LINKED_ACCOUNT_ID_NULL = "User Linked Account not added";
+    public static final String USER_UPI_ID_NULL = "User UPI ID not added";
+    public static final String USER_UPI_ID_INVALID = "User UPI ID invalid";
     public static final String USER_NOT_AUTHENTICATED = "User not authenticated";
     public static final String USER_ALREADY_ACTIVATED = "User already activated";
     public static final String USER_NOT_ACTIVATED = "User not activated";
@@ -39,6 +41,7 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_EMAIL_ALREADY_NOT_VERIFIED = "User email already not verified";
     public static final String USER_ALREADY_NOT_DELETED = "User already not deleted";
     public static final String USER_NOT_LEGIT = "User not legit";
+    public static final String USER_UPI_ID_UPDATE_FAILED = "User UPI ID update failed";
     public static final String UNEXPECTED_USER_ERROR = "Unexpected user error";
     public static final String UNEXPECTED_EMAIL_OTP_ERROR = "Unexpected email otp error";
     public static final String UNEXPECTED_STATS_ERROR = "Unexpected stats error";

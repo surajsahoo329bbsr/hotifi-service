@@ -26,18 +26,21 @@ public class SellerReceipt implements Serializable {
     @Column(nullable = false)
     private BigDecimal amountPaid;
 
-    @Column(nullable = false)
-    private String transferId;
+    private String upiTransactionId; //The Id we get from third party vendors like GPay, PhonePe, Paytm
 
-    private String settlementId;
+    private String utr;
 
-    private String transferTransactionId;
+    private String upiId; //seller's UPI id
 
-    @Column(nullable = false)
-    private String bankAccountNumber;
+    private String transferId; //For Payment Gateways
 
-    @Column(nullable = false)
-    private String bankIfscCode;
+    private String settlementId; //For Payment Gateways
+
+    private String transferTransactionId; //For Payment Gateways
+
+    private String bankAccountNumber; //For Payment Gateways
+
+    private String bankIfscCode; //For Payment Gateways
 
     @Column(columnDefinition = "INT", nullable = false)
     private int status;
