@@ -12,4 +12,5 @@ public class SellerPaymentErrorMessages {
     //public static final String MINIMUM_AMOUNT_INR = "Minimum withdrawal amount must be at least INR " + Constants.MINIMUM_AMOUNT_INR;
     public static final String SELLER_RECEIPT_NOT_FOUND = "Seller receipt not found";
     public static final String NO_PENDING_TRANSFERS_CLAIMED = "Seller did not claim pending transfers";
+    public static final String SELLER_PAYMENT_UPI_FAILED = "Seller Payment UPI Failed";
 }

@@ -13,6 +13,7 @@ import com.api.hotifi.payment.entities.SellerReceipt;
 import com.api.hotifi.payment.error.PurchaseErrorCodes;
 import com.api.hotifi.payment.error.SellerPaymentErrorCodes;
 import com.api.hotifi.payment.model.PendingTransfer;
+import com.api.hotifi.payment.model.UpiPendingTransfer;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
@@ -26,6 +27,7 @@ import com.api.hotifi.payment.web.responses.PendingMoneyResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import com.api.hotifi.session.model.TransferUpdate;
+import com.api.hotifi.session.model.UpiTransferUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -132,6 +134,40 @@ public class PaymentServiceImpl implements IPaymentService {
             sellerReceiptResponse.setOnHold(transferUpdate.isOnHold());
             sellerReceiptResponse.setSellerReceipt(sellerReceipt);
             sellerReceiptResponse.setOnHoldUntil(transferUpdate.getOnHoldUntil());
+
+            return sellerReceiptResponse;
+
+        } catch (Exception e) {
+            log.error("Error occurred ", e);
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
+        }
+    }
+
+    @Transactional
+    public SellerReceiptResponse addUpiSellerReceiptByAdmin(User seller, UpiTransferUpdate upiTransferUpdate, BigDecimal sellerAmountPaid) {
+        try {
+            String utr = upiTransferUpdate.getUtr();
+            String upiTransactionId = upiTransferUpdate.getUpiTransactionId();
+            String upiId = seller.getUpiId();
+            int status = upiTransferUpdate.getStatus();
+
+            SellerReceipt sellerReceipt = new SellerReceipt();
+            sellerReceipt.setStatus(status);
+            Date createdAt = upiTransferUpdate.getPaidAt();
+            Date modifiedAt = new Date(System.currentTimeMillis());
+
+            sellerReceipt.setCreatedAt(createdAt);
+            sellerReceipt.setModifiedAt(createdAt);
+            sellerReceipt.setModifiedAt(modifiedAt);
+            sellerReceipt.setAmountPaid(sellerAmountPaid);
+            sellerReceipt.setUtr(utr);
+            sellerReceipt.setUpiTransactionId(upiTransactionId);
+
+            //Setup Seller Receipt
+            SellerReceiptResponse sellerReceiptResponse = new SellerReceiptResponse();
+            sellerReceiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
+            sellerReceiptResponse.setUpiId(upiId);
+            sellerReceiptResponse.setSellerReceipt(sellerReceipt);
 
             return sellerReceiptResponse;
 
@@ -277,10 +313,40 @@ public class PaymentServiceImpl implements IPaymentService {
         return pendingTransfers;
     }
 
+    //admin upi call
+    @Transactional
+    @Override
+    public List<UpiPendingTransfer> getAllPendingUpiSellerPaymentsForAdmin() {
+        List<SellerPayment> sellerPayments = sellerPaymentRepository.findAll();
+        List<UpiPendingTransfer> upiPendingTransfers = new ArrayList<>();
+        try {
+            sellerPayments.forEach(sellerPayment -> {
+                if (sellerPayment.isWithdrawalClaimNotified()) {
+                    BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                            .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
+                            .setScale(0, RoundingMode.FLOOR);
+                    //Pending Transfer Entity
+                    Long sellerId = sellerPayment.getSeller().getId();
+                    String upiId = sellerPayment.getSeller().getUpiId();
+                    String currency = "INR"; //To be changed later
+                    UpiPendingTransfer pendingTransfer = new UpiPendingTransfer(sellerId, upiId, sellerWithdrawalClaim, currency);
+                    upiPendingTransfers.add(pendingTransfer);
+                }
+            });
+        } catch (Exception e) {
+            throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
+        }
+
+        return upiPendingTransfers;
+    }
+
     //admin api call
     @Transactional
     @Override
     public void updatePendingSellerPaymentsByAdmin(List<TransferUpdate> transferUpdates) {
+        //TODO add error code for PAYMENT_FAILED case --
+        // check @updatePendingUpiSellerPaymentsByAdmin(List<TransferUpdate> transferUpdates)
+        // for reference
         transferUpdates.forEach(transferUpdate -> {
             Long sellerId = transferUpdate.getSellerId();
             User seller = userRepository.findById(sellerId).orElse(null);
@@ -305,6 +371,61 @@ public class PaymentServiceImpl implements IPaymentService {
                     SellerReceiptResponse sellerReceiptResponse = addSellerReceiptByAdmin(seller, transferUpdate, sellerAmountPaid);
                     //Following lines will continue after successful-1, processing-2, failure-3 payment
                     Date lastPaidAt = transferUpdate.getPaidAt();
+                    sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
+                    sellerPayment.setLastPaidAt(lastPaidAt);
+                    sellerPayment.setModifiedAt(now);
+                    sellerPayment.setWithdrawalClaimNotified(false);
+                    sellerReceiptResponse.getSellerReceipt().setSellerPayment(sellerPayment);
+                    sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
+                    sellerPaymentRepository.save(sellerPayment);
+                    return;
+                } catch (Exception e) {
+                    log.error("Error occurred ", e);
+                    throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_PAYMENT_ERROR);
+                }
+            }
+            throw new HotifiException(SellerPaymentErrorCodes.NO_PENDING_TRANSFERS_CLAIMED);
+        });
+    }
+
+    @Transactional
+    @Override
+    public void updatePendingUpiSellerPaymentsByAdmin(List<UpiTransferUpdate> upiTransferUpdates) {
+        upiTransferUpdates.forEach(upiTransferUpdate -> {
+            Long sellerId = upiTransferUpdate.getSellerId();
+            User seller = userRepository.findById(sellerId).orElse(null);
+            if (seller == null || seller.getAuthentication().isDeleted())
+                throw new HotifiException(UserErrorCodes.USER_DELETED);
+            SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
+            if (sellerPayment == null)
+                throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_NOT_FOUND);
+            boolean isPaymentFailed = upiTransferUpdate.getStatus() == SellerPaymentCodes.PAYMENT_FAILED.value();
+            boolean isErrorDescriptionPresent = upiTransferUpdate.getErrorDescription() != null;
+            if (isPaymentFailed && !isErrorDescriptionPresent)
+                throw new HotifiException(SellerPaymentErrorCodes.SELLER_PAYMENT_UPI_FAILED);
+
+            if (sellerPayment.isWithdrawalClaimNotified()) {
+                Date now = new Date(System.currentTimeMillis());
+                if (isPaymentFailed) {
+                    sellerPayment.setModifiedAt(now);
+                    sellerPayment.setTransferErrorDescription(upiTransferUpdate.getErrorDescription());
+                    sellerPayment.setWithdrawalClaimNotified(false);
+                    sellerPaymentRepository.save(sellerPayment);
+                    return;
+                }
+
+                BigDecimal sellerWithdrawalClaim = sellerPayment.getAmountEarned()
+                        .multiply(BigDecimal.valueOf((double) (100 - BusinessConfigurations.COMMISSION_PERCENTAGE) / 100))
+                        .setScale(0, RoundingMode.FLOOR);
+
+                BigDecimal sellerAmountPaid =
+                        sellerWithdrawalClaim.compareTo(BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT)) > 0 ?
+                                BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
+
+                try {
+                    SellerReceiptResponse sellerReceiptResponse = addUpiSellerReceiptByAdmin(seller, upiTransferUpdate, sellerAmountPaid);
+                    //Following lines will continue after successful-1, processing-2, failure-3 payment
+                    Date lastPaidAt = upiTransferUpdate.getPaidAt();
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     sellerPayment.setModifiedAt(now);
@@ -410,13 +531,24 @@ public class PaymentServiceImpl implements IPaymentService {
         BigDecimal sellerAmount = new BigDecimal("0.00");
         BigDecimal buyerRefund = new BigDecimal("0.00");
         User seller = userRepository.findById(sellerId).orElse(null);
-        if (seller == null || seller.getBankAccount() == null)
-            return new PendingMoneyResponse(false, sellerAmount, null,
+        if (seller == null) {
+            return new PendingMoneyResponse(false, sellerAmount, false,
+                    null, null,
                     false, buyerRefund, null);
+        }
+        boolean isTransferIdPresent = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
+                seller.getBankAccount() != null : seller.getUpiId() != null;
+
+        if (!isTransferIdPresent) {
+            return new PendingMoneyResponse(false, sellerAmount, false,
+                    null, null,
+                    false, buyerRefund, null);
+        }
 
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(sellerId);
         if (sellerPayment == null) {
-            return new PendingMoneyResponse(false, sellerAmount, null,
+            return new PendingMoneyResponse(false, sellerAmount, false,
+                    null, null,
                     false, buyerRefund, null);
         }
 
@@ -430,17 +562,20 @@ public class PaymentServiceImpl implements IPaymentService {
                         BigDecimal.valueOf(BusinessConfigurations.MAXIMUM_WITHDRAWAL_AMOUNT) : sellerWithdrawalClaim.subtract(sellerPayment.getAmountPaid());
 
         Date now = new Date(System.currentTimeMillis());
+        boolean isWithdrawalClaimNotified = sellerPayment.isWithdrawalClaimNotified();
+        String transferErrorDescription = sellerPayment.getTransferErrorDescription();
 
         if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             boolean isSellerPaymentDue = !PaymentUtils.isSellerPaymentDue(now, lastPaidAt);
             boolean isMinimumWithdrawalAmount = sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0;
             if (isSellerPaymentDue || isMinimumWithdrawalAmount)
-                return new PendingMoneyResponse(false, sellerAmountPaid, lastPaidAt,
-                        false, buyerRefund, null);
+                return new PendingMoneyResponse(false, sellerAmountPaid, isWithdrawalClaimNotified,
+                        transferErrorDescription, lastPaidAt, false, buyerRefund, null);
         }
 
-        return new PendingMoneyResponse(true, sellerAmountPaid, null,
+        return new PendingMoneyResponse(true, sellerAmountPaid, isWithdrawalClaimNotified,
+                transferErrorDescription, null,
                 false, new BigDecimal("0.00"), null);
     }
 

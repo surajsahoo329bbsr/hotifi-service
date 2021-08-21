@@ -1,7 +1,6 @@
 package com.api.hotifi.payment.web.responses;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +15,10 @@ public class PendingMoneyResponse {
     private boolean sellerAmountDue;
 
     private BigDecimal sellerAmount;
+
+    private boolean isTransferPending;
+
+    private String transferErrorDescription;
 
     private Date sellerAmountLastPaidAt;
 

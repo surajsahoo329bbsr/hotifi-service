@@ -51,7 +51,7 @@ public class BankAccountController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/seller/upi/{user-id}/{upi-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/seller/upi/{user-id}/{upi-id}")
     @ApiOperation(
             value = "Add UPI ID Of A Customer",
             notes = "Add UPI ID Of A Customer",
@@ -84,7 +84,7 @@ public class BankAccountController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping(path = "/seller/update/upi/{user-id}/{upi-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/seller/update/upi/{user-id}/{upi-id}")
     @ApiOperation(
             value = "Update UPI ID By Customer",
             notes = "Update UPI ID By Customer",

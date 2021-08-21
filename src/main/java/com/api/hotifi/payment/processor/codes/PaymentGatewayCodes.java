@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 public enum PaymentGatewayCodes {
 
     RAZORPAY,
+    CUSTOM_UPI,
     STRIPE,
     PAYPAL;
 

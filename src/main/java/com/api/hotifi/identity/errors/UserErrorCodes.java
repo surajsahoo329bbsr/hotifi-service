@@ -37,5 +37,6 @@ public class UserErrorCodes extends ErrorCodes {
     public static final ErrorCode EMAIL_OTP_NOT_FOUND = new ErrorCode("28", Collections.singletonList(getMessage("EMAIL_OTP_NOT_FOUND", UserErrorMessages.EMAIL_OTP_ALREADY_GENERATED)), 400);
     public static final ErrorCode BAD_RESET_PASSWORD_REQUEST = new ErrorCode("29", Collections.singletonList(getMessage("BAD_RESET_PASSWORD_REQUEST", UserErrorMessages.BAD_RESET_PASSWORD_REQUEST)), 400);
     public static final ErrorCode USER_UPI_ID_UPDATE_FAILED = new ErrorCode("30", Collections.singletonList(getMessage("USER_UPI_ID_UPDATE_FAILED", UserErrorMessages.USER_UPI_ID_UPDATE_FAILED)), 500);
+    public static final ErrorCode USER_UPI_ID_LOCKED = new ErrorCode("31", Collections.singletonList(getMessage("USER_UPI_ID_LOCKED", UserErrorMessages.USER_UPI_ID_UPDATE_FAILED)), 500);
 
 }

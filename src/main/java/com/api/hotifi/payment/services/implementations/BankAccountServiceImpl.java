@@ -12,6 +12,7 @@ import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.error.SellerBankAccountErrorCodes;
 import com.api.hotifi.payment.repositories.BankAccountRepository;
+import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
 import com.api.hotifi.payment.web.responses.BankAccountAdminResponse;
@@ -28,11 +29,13 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final SellerPaymentRepository sellerPaymentRepository;
     private final IEmailService emailService;
 
-    public BankAccountServiceImpl(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService) {
+    public BankAccountServiceImpl(UserRepository userRepository, BankAccountRepository bankAccountRepository, SellerPaymentRepository sellerPaymentRepository, IEmailService emailService) {
         this.userRepository = userRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.sellerPaymentRepository = sellerPaymentRepository;
         this.emailService = emailService;
     }
 
@@ -76,7 +79,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
             throw new HotifiException(UserErrorCodes.USER_DELETED);
         if (!seller.isLoggedIn())
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
-        if(!upiId.matches(BusinessConfigurations.VALID_UPI_ID))
+        if (!upiId.matches(BusinessConfigurations.VALID_UPI_PATTERN))
             throw new HotifiException(UserErrorCodes.USER_UPI_ID_INVALID);
         try {
             seller.setUpiId(upiId);
@@ -94,6 +97,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
         User seller = userRepository.findById(userId).orElse(null);
         boolean isSellerLegit = AppConfigurations.DIRECT_TRANSFER_API_ENABLED ?
                 LegitUtils.isSellerLegit(seller, false) : LegitUtils.isSellerUpiLegit(seller, false);
+        boolean isWithdrawalClaimNotified = sellerPaymentRepository.findSellerPaymentBySellerId(userId).isWithdrawalClaimNotified();
+        if (isWithdrawalClaimNotified) {
+            throw new HotifiException(UserErrorCodes.USER_UPI_ID_LOCKED);
+        }
         if (isSellerLegit) {
             try {
                 seller.setUpiId(upiId);

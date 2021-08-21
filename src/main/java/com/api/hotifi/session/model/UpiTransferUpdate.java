@@ -7,18 +7,18 @@ import java.util.Date;
 
 @Getter
 @AllArgsConstructor
-public class TransferUpdate {
+public class UpiTransferUpdate {
 
     private Long sellerId;
 
     private Date paidAt;
 
-    private String transferId;
+    private String utr;
 
-    private String settlementId;
+    private String upiTransactionId;
 
-    private boolean onHold;
+    private int status;
 
-    private Date onHoldUntil;
+    private String errorDescription;
 
 }

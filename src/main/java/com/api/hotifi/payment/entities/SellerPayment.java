@@ -42,6 +42,8 @@ public class SellerPayment implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastPaidAt; // Time at which money started to accumulate
 
+    private String transferErrorDescription;
+
     @OneToMany(mappedBy = "sellerPayment", fetch = FetchType.EAGER)
     private List<SellerReceipt> sellerReceipts;
 }

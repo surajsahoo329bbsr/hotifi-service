@@ -3,15 +3,17 @@ package com.api.hotifi.payment.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Getter
 @AllArgsConstructor
-public class PendingTransfer {
+public class UpiPendingTransfer {
 
     public Long sellerId;
 
-    public String linkedAccountId;
+    public String upiId;
 
-    public Long amountInPaise;
+    public BigDecimal amount;
 
     public String currency;
 

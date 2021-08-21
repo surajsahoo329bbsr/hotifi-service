@@ -7,11 +7,13 @@ import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
 import com.api.hotifi.payment.model.PendingTransfer;
+import com.api.hotifi.payment.model.UpiPendingTransfer;
 import com.api.hotifi.payment.services.interfaces.IPaymentService;
 import com.api.hotifi.payment.web.responses.PendingMoneyResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
 import com.api.hotifi.session.model.TransferUpdate;
+import com.api.hotifi.session.model.UpiTransferUpdate;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +71,26 @@ public class PaymentController {
         return new ResponseEntity<>(pendingTransfers, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/admin/seller/pending/payments/upi")
+    @ApiOperation(
+            value = "Get All Pending UPI Seller Payments For Admin",
+            notes = "Get All Pending UPI Seller Payments For Admin",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> getAllPendingUpiSellerPaymentsForAdmin() {
+        List<UpiPendingTransfer> upiPendingTransfers = AuthorizationUtils.isAdministratorRole() ? paymentService.getAllPendingUpiSellerPaymentsForAdmin() : null;
+        return new ResponseEntity<>(upiPendingTransfers, HttpStatus.OK);
+    }
+
     @PutMapping(path = "/admin/seller/pending/payments/update")
     @ApiOperation(
-            value = "Withdraw Seller Earnings By Seller Id",
-            notes = "Withdraw Seller Earnings By Seller Id",
+            value = "Update Seller Earnings By Seller Id By Admin",
+            notes = "Update Seller Earnings By Seller Id By Admin",
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
@@ -83,6 +101,23 @@ public class PaymentController {
     public ResponseEntity<?> updatePendingSellerPaymentsByAdmin(@RequestBody List<TransferUpdate> transfers) {
         if (AuthorizationUtils.isAdministratorRole())
             paymentService.updatePendingSellerPaymentsByAdmin(transfers);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/admin/seller/pending/payments/upi/update")
+    @ApiOperation(
+            value = "Update Seller Earnings By Seller Id By Admin After UPI Payment",
+            notes = "Update Seller Earnings By Seller Id By Admin After UPI Payment",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 204, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> updatePendingUpiSellerPaymentsByAdmin(@RequestBody List<UpiTransferUpdate> upiTransferUpdates) {
+        if (AuthorizationUtils.isAdministratorRole())
+            paymentService.updatePendingUpiSellerPaymentsByAdmin(upiTransferUpdates);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

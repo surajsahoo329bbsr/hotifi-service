@@ -14,6 +14,8 @@ public class SellerReceiptResponse {
 
     private String sellerLinkedAccountId;
 
+    private String upiId;
+
     private String hotifiBankAccount;
 
     private boolean isOnHold;

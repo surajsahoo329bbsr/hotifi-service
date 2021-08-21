@@ -1,6 +1,5 @@
 package com.api.hotifi.common.utils;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
@@ -65,7 +64,7 @@ public class LegitUtils {
             throw new HotifiException(UserErrorCodes.USER_NOT_LOGGED_IN);
         if (seller.getUpiId() == null && isUpiIdMandatory)
             throw new HotifiException(UserErrorCodes.USER_UPI_ID_NULL);
-        if(isUpiIdMandatory && !seller.getUpiId().matches(BusinessConfigurations.VALID_UPI_ID))
+        if(isUpiIdMandatory && !seller.getUpiId().matches(BusinessConfigurations.VALID_UPI_PATTERN))
             throw new HotifiException(UserErrorCodes.USER_UPI_ID_INVALID);
         return true;
     }

@@ -42,6 +42,7 @@ public class UserErrorMessages extends ErrorMessages {
     public static final String USER_ALREADY_NOT_DELETED = "User already not deleted";
     public static final String USER_NOT_LEGIT = "User not legit";
     public static final String USER_UPI_ID_UPDATE_FAILED = "User UPI ID update failed";
+    public static final String USER_UPI_ID_LOCKED = "User UPI ID Locked";
     public static final String UNEXPECTED_USER_ERROR = "Unexpected user error";
     public static final String UNEXPECTED_EMAIL_OTP_ERROR = "Unexpected email otp error";
     public static final String UNEXPECTED_STATS_ERROR = "Unexpected stats error";

@@ -15,4 +15,5 @@ public class SellerPaymentErrorCodes extends ErrorCodes {
     public static final ErrorCode SELLER_PAYMENT_NOT_FOUND = new ErrorCode("05", Collections.singletonList(getMessage("SELLER_PAYMENT_NOT_FOUND", SellerPaymentErrorMessages.SELLER_PAYMENT_NOT_FOUND)), 500);
     public static final ErrorCode SELLER_RECEIPT_NOT_FOUND = new ErrorCode("06", Collections.singletonList(getMessage("SELLER_RECEIPT_NOT_FOUND", SellerPaymentErrorMessages.SELLER_RECEIPT_NOT_FOUND)), 500);
     public static final ErrorCode NO_PENDING_TRANSFERS_CLAIMED = new ErrorCode("07", Collections.singletonList(getMessage("NO_PENDING_TRANSFERS_CLAIMED", SellerPaymentErrorMessages.NO_PENDING_TRANSFERS_CLAIMED)), 500);
+    public static final ErrorCode SELLER_PAYMENT_UPI_FAILED = new ErrorCode("08", Collections.singletonList(getMessage("SELLER_PAYMENT_UPI_FAILED", SellerPaymentErrorMessages.SELLER_PAYMENT_UPI_FAILED)), 500);
 }

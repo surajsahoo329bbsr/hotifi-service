@@ -86,8 +86,9 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IBankAccountService bankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository, IEmailService emailService) {
-        return new BankAccountServiceImpl(userRepository, bankAccountRepository, emailService);
+    public IBankAccountService bankAccountService(UserRepository userRepository, BankAccountRepository bankAccountRepository,
+                                                  SellerPaymentRepository sellerPaymentRepository, IEmailService emailService) {
+        return new BankAccountServiceImpl(userRepository, bankAccountRepository, sellerPaymentRepository, emailService);
     }
 
     @Bean
