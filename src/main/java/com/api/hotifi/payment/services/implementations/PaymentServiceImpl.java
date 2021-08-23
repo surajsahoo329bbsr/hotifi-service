@@ -160,6 +160,7 @@ public class PaymentServiceImpl implements IPaymentService {
             sellerReceipt.setModifiedAt(createdAt);
             sellerReceipt.setModifiedAt(modifiedAt);
             sellerReceipt.setAmountPaid(sellerAmountPaid);
+            sellerReceipt.setUpiId(upiId);
             sellerReceipt.setUtr(utr);
             sellerReceipt.setUpiTransactionId(upiTransactionId);
 
@@ -429,6 +430,7 @@ public class PaymentServiceImpl implements IPaymentService {
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     sellerPayment.setModifiedAt(now);
+                    sellerPayment.setTransferErrorDescription(null);
                     sellerPayment.setWithdrawalClaimNotified(false);
                     sellerReceiptResponse.getSellerReceipt().setSellerPayment(sellerPayment);
                     sellerReceiptRepository.save(sellerReceiptResponse.getSellerReceipt());
@@ -512,11 +514,12 @@ public class PaymentServiceImpl implements IPaymentService {
                     sellerPaymentRepository.save(sellerPayment);
 
                 }
-                String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
-                String hiddenBankAccountNumber = PaymentUtils.hideBankAccountNumber(receiptResponse.getSellerReceipt().getBankAccountNumber());
-                receiptResponse.getSellerReceipt().setBankAccountNumber(hiddenBankAccountNumber);
+                //TODO Below commented lines may be changed if Direct Transfer API Works
+                //String linkedAccountId = sellerPayment.getSeller().getBankAccount().getLinkedAccountId();
+                //String hiddenBankAccountNumber = PaymentUtils.hideBankAccountNumber(receiptResponse.getSellerReceipt().getBankAccountNumber());
+                //receiptResponse.getSellerReceipt().setBankAccountNumber(hiddenBankAccountNumber);
+                //receiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 receiptResponse.setSellerReceipt(sellerReceipt);
-                receiptResponse.setSellerLinkedAccountId(linkedAccountId);
                 receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponses.add(receiptResponse);
             }
