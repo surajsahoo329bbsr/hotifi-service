@@ -25,5 +25,5 @@ public interface PurchaseRepository extends PagingAndSortingRepository<Purchase,
 
     @Modifying
     @Query(value = "UPDATE purchase SET status = ?1, refund_payment_id = ?2, refund_started_at = ?3, refund_transaction_id = ?4 WHERE id = ?5", nativeQuery = true)
-    void updatePurchaseRefundStatus(int status, String refundPaymentId, Date refundDoneAt, String refundTransactionId, Long purchaseId);
+    void updatePurchaseRefundStatus(int status, String refundPaymentId, Date refundStartedAt, String refundTransactionId, Long purchaseId);
 }

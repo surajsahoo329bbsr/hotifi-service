@@ -627,8 +627,8 @@ public class PaymentServiceImpl implements IPaymentService {
     public List<RefundReceiptResponse> getBuyerRefundReceipts(Long buyerId, int page, int size, boolean isDescending) {
         User buyer = userRepository.findById(buyerId).orElse(null);
         if (LegitUtils.isBuyerLegit(buyer)) {
-            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_done_at").descending()) :
-                    PageRequest.of(page, size, Sort.by("refund_done_at"));
+            Pageable pageable = isDescending ? PageRequest.of(page, size, Sort.by("refund_started_at").descending()) :
+                    PageRequest.of(page, size, Sort.by("refund_started_at"));
             List<Purchase> purchaseReceipts = purchaseRepository.findPurchasesByBuyerId(buyerId, pageable)
                     .stream()
                     .filter(purchase -> purchase.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.REFUND_PENDING.value())
