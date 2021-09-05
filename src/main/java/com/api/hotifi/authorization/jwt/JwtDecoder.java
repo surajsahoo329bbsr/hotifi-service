@@ -38,7 +38,7 @@ public class JwtDecoder {
     public Date extractExpiryDate(String token) {
         JSONObject jsonObject = extractJwtBody(token);
         long epoch = jsonObject.getLong("exp");
-        System.out.println("jsontime : " + epoch);
+        //System.out.println("jsontime : " + epoch);
         return new Date(epoch * 1000); //epoch is number of seconds since Jan 1, 1970
     }
 

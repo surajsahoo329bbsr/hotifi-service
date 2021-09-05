@@ -75,7 +75,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Role role = roleRepository.findByRoleName(RoleName.CUSTOMER.name());
             String password = UUID.randomUUID().toString();
             String encryptedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-            log.info("pass : " + password);
+            //log.info("pass : " + password);
             authentication.setEmail(email);
             authentication.setEmailVerified(isEmailVerified);
             authentication.setPassword(encryptedPassword);

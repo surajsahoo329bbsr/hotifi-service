@@ -87,7 +87,8 @@ public class GoogleProcessor {
                 user.setLastName((String) payload.get("family_name"));
                 return user;
             } else {
-                System.out.println("Invalid ID token.");
+                log.error("Invalid ID token");
+                //System.out.println("Invalid ID token.");
             }
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();

@@ -281,9 +281,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
 
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
-            if (sellerPayment == null)
-                throw new HotifiException(PurchaseErrorCodes.UPDATE_WIFI_SERVICE_BEFORE_FINISHING);
-            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0)
+            if (Double.compare(dataUsed, purchase.getDataUsed()) >= 0 && sellerPayment != null)
                 sellerPaymentService.updateSellerPayment(seller, sellerPayment.getAmountEarned().add(sellerAmount), isUpdateTimeOnly);
 
             paymentProcessor.startBuyerRefund(purchaseRepository, amountRefund, purchase.getPaymentId());

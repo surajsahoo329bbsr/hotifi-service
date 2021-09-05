@@ -1,7 +1,6 @@
 package com.api.hotifi.identity.services.implementations;
 
 import com.api.hotifi.common.constants.configurations.AppConfigurations;
-import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.entities.Authentication;
@@ -70,15 +69,14 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
         //If user is not banned or deleted or freezed
         Long userId = userStatusRequest.getUserId();
-        List<UserStatus> userStatuses = getUserStatusByUserId(userId);
         UserStatus userStatus = new UserStatus();
         userStatus.setUser(user);
         userStatus.setRole(userStatusRequest.getRole());
 
         Date now = new Date(System.currentTimeMillis());
 
-        if (userStatus.getDeletedReason() != null) {
-            userStatus.setDeletedReason(userStatusRequest.getDeleteReason());
+        if (userStatusRequest.getDeleteReason() != null) {
+            userStatus.setDeleteReason(userStatusRequest.getDeleteReason());
             userStatus.setDeletedAt(now);
             deleteUser(userId);
         } else {
@@ -209,8 +207,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
             throw new HotifiException(UserErrorCodes.USER_ALREADY_DELETED);
         }
         //set authentication values to null
+        String toEmail = authentication.getEmail();
         authentication.setDeleted(true);
-        authentication.setEmail(null);
+        authentication.setEmail("(deleted)" + System.currentTimeMillis()); //email cannot be null
         authentication.setPhone(null);
         authenticationRepository.save(authentication);
 
@@ -218,7 +217,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
         deviceService.deleteUserDevices(userId);
 
         //delete linked bank account
-        bankAccountRepository.delete(user.getBankAccount());
+        if (user.getBankAccount() != null)
+            bankAccountRepository.delete(user.getBankAccount());
 
         //set user values to null
         user.setFacebookId(null);
@@ -227,7 +227,7 @@ public class UserStatusServiceImpl implements IUserStatusService {
         userRepository.save(user);
 
         EmailModel emailModel = new EmailModel();
-        emailModel.setToEmail(authentication.getEmail());
+        emailModel.setToEmail(toEmail);
         emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
         emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
         emailService.sendAccountDeletedEmail(user, emailModel);

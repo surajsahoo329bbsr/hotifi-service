@@ -18,11 +18,11 @@ public class FacebookProcessor {
         try {
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(appUrl, String.class);
             ObjectMapper mapper = new ObjectMapper();
-            log.info("response : " + responseEntity.getBody());
+            //log.info("response : " + responseEntity.getBody());
             JsonNode root = mapper.readTree(responseEntity.getBody());
             String facebookId = root.path("data").path("user_id").toString().replaceAll("\"","");
-            log.info("fbId " + facebookId);
-            log.info("id " + identifier);
+            //log.info("fbId " + facebookId);
+            //log.info("id " + identifier);
             return facebookId.equals(identifier);
         } catch (Exception e){
             log.error("Error Occurred", e);

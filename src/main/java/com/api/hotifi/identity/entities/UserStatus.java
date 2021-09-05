@@ -55,6 +55,6 @@ public class UserStatus implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
 
-    private String deletedReason;
+    private String deleteReason;
 
 }

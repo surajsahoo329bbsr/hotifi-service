@@ -100,8 +100,8 @@ public class UserServiceImpl implements IUserService {
             log.info("User Email Verified");
             String newPassword = UUID.randomUUID().toString();
             String encryptedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-            log.info("new : " + newPassword);
-            log.info("enc : " + encryptedPassword);
+            //log.info("new : " + newPassword);
+            //log.info("enc : " + encryptedPassword);
             authentication.setPassword(encryptedPassword);
             authenticationRepository.save(authentication);
             return new CredentialsResponse(email, newPassword);
