@@ -51,6 +51,11 @@ public class User implements Serializable {
     @Column(unique = true)
     private String googleId;
 
+    private String facebookDeletionCode;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date facebookDeleteRequestedAt;
+
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "authentication_id", referencedColumnName = "id", unique = true, nullable = false)
     private Authentication authentication;

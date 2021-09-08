@@ -3,6 +3,7 @@ package com.api.hotifi.identity.services.implementations;
 import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.processors.codes.SocialCodes;
+import com.api.hotifi.common.processors.social.FacebookProcessor;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.IVerificationService;
 import com.api.hotifi.common.utils.LegitUtils;
@@ -17,7 +18,10 @@ import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.utils.OtpUtils;
 import com.api.hotifi.identity.web.request.UserRequest;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
+import com.api.hotifi.identity.web.response.FacebookDeletionResponse;
+import com.api.hotifi.identity.web.response.FacebookDeletionStatusResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
@@ -206,6 +210,45 @@ public class UserServiceImpl implements IUserService {
         if (!LegitUtils.isUserLegit(user))
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         return user;
+    }
+
+
+    @Override
+    @Transactional
+    public FacebookDeletionResponse deleteFacebookUserData(String signedRequest) {
+        FacebookProcessor facebookProcessor = new FacebookProcessor();
+        try {
+            JSONObject jsonObject = facebookProcessor.parseFacebookSignedRequest(signedRequest, AppConfigurations.FACEBOOK_APP_SECRET);
+            String facebookUserId = jsonObject.getString("user_id");
+            String confirmationCode = "FB" + OtpUtils.generateEmailOtp();
+            String url = AppConfigurations.FACEBOOK_DELETION_STATUS_URL + facebookUserId + "/" + confirmationCode;
+
+            //Saving Deletion Request
+            User user = userRepository.findByFacebookId(facebookUserId);
+            Date currentTime = new Date(System.currentTimeMillis());
+            user.setFacebookDeletionCode(confirmationCode);
+            user.setFacebookDeleteRequestedAt(currentTime);
+            userRepository.save(user);
+
+            return new FacebookDeletionResponse(url, confirmationCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FacebookDeletionStatusResponse getFacebookDeletionStatus(String facebookId, String confirmationCode) {
+        User user = userRepository.findByFacebookId(facebookId);
+        if (user == null) throw new HotifiException(UserErrorCodes.USER_NOT_FOUND);
+
+        boolean isUserAuthorized = user.getFacebookDeletionCode().equals(confirmationCode);
+        if (!isUserAuthorized) throw new HotifiException(UserErrorCodes.USER_FORBIDDEN);
+
+        Date deletionRequestedAt = user.getFacebookDeleteRequestedAt();
+        String reason = "We use your first name, last name and email address for legal reasons as these are involved in financial transactions. To read more please read our privacy policy in below url";
+        return new FacebookDeletionStatusResponse(facebookId, deletionRequestedAt, false, reason, AppConfigurations.PRIVACY_POLICY_URL);
     }
 
     //user defined functions

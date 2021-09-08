@@ -2,8 +2,10 @@ package com.api.hotifi.identity.services.interfaces;
 
 import com.api.hotifi.common.processors.codes.SocialCodes;
 import com.api.hotifi.identity.entities.User;
+import com.api.hotifi.identity.web.response.FacebookDeletionResponse;
 import com.api.hotifi.identity.web.request.UserRequest;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
+import com.api.hotifi.identity.web.response.FacebookDeletionStatusResponse;
 
 public interface IUserService {
 
@@ -26,5 +28,9 @@ public interface IUserService {
     void updateUserLogin(String email, boolean isLogin);
 
     User getUserByEmail(String email);
+
+    FacebookDeletionResponse deleteFacebookUserData(String signedRequest);
+
+    FacebookDeletionStatusResponse getFacebookDeletionStatus(String facebookId, String confirmationCode);
 
 }

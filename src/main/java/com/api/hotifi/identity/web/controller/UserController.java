@@ -17,6 +17,8 @@ import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.web.request.UserRequest;
 import com.api.hotifi.identity.web.response.AvailabilityResponse;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
+import com.api.hotifi.identity.web.response.FacebookDeletionResponse;
+import com.api.hotifi.identity.web.response.FacebookDeletionStatusResponse;
 import io.swagger.annotations.*;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,35 @@ public class UserController {
     public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest userRequest) {
         userService.addUser(userRequest);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping(path = "/facebook/delete", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Delete Facebook User Data By Facebook Team",
+            notes = "Delete Facebook User Data By Facebook Team",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = FacebookDeletionResponse.class)
+    })
+    public ResponseEntity<?> deleteFacebookUserData(@RequestParam("signed_request") String signedRequest) {
+        FacebookDeletionResponse deletionResponse = userService.deleteFacebookUserData(signedRequest);
+        return new ResponseEntity<>(deletionResponse, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/facebook/deletion-status/{facebook-id}/{confirmation-code}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Facebook Deletion User Data Status By User",
+            notes = "Get Facebook Deletion User Data Status By User",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = FacebookDeletionResponse.class)
+    })
+    public ResponseEntity<?> facebookDeletionStatusRequest(@PathVariable(value = "facebook-id") String facebookId,
+                                                           @PathVariable(value = "confirmation-code") String confirmationCode) {
+        FacebookDeletionStatusResponse deletionStatusResponse = userService.getFacebookDeletionStatus(facebookId, confirmationCode);
+        return new ResponseEntity<>(deletionStatusResponse, HttpStatus.OK);
     }
 
     @GetMapping(path = "/password/reset/custom/{email}/{email-otp}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -25,7 +25,7 @@ public class OAuth2ResourceServer extends ResourceServerConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/authenticate/**", "/user/",
-                        "/user/is-available/**", "/user/login/otp/**", "/email/**",
+                        "/user/is-available/**", "/user/login/otp/**", "/email/**", "/user/facebook/**",
                         "/user/password/reset/**",
                         "/user/login/verify/**").permitAll();
     }
