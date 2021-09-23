@@ -17,8 +17,11 @@ import org.simplejavamail.api.mailer.config.TransportStrategy;
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.mailer.MailerBuilder;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class EmailServiceImpl implements IEmailService {
@@ -33,10 +36,13 @@ public class EmailServiceImpl implements IEmailService {
     public void sendWelcomeEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Welcome To Hotifi";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_WELCOME_HTML_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_WELCOME_HTML_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
+
             notificationService.sendNotification(user.getId(), "A New Beginning !", "Your hotifi account has been created.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,8 +53,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountDeletedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been deleted";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_DELETED_HTML_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_DELETED_HTML_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
             notificationService.sendNotification(user.getId(), "Sorry To See You Go !", "Your hotifi account has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
@@ -61,8 +69,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendAccountFreezedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your account has been freezed";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_FREEZED_HTML_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_ACCOUNT_FREEZED_HTML_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             document.getElementById("freeze-msg").appendText(BusinessConfigurations.MINIMUM_FREEZE_PERIOD_HOURS + "hours");
             sendEmail(document, emailModel, subject);
@@ -76,8 +86,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendBuyerBannedEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your buying account has been banned";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_BUYER_BANNED_HTML_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_BUYER_BANNED_HTML_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
             notificationService.sendNotification(user.getId(), "Banned !", "Your hotifi account for buying data has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
@@ -90,8 +102,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendEmailOtpEmail(EmailModel emailModel) {
         try {
             String subject = "Email Otp Verification";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_OTP_HTML_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_OTP_HTML_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi,");
             document.getElementById("email-otp").appendText(emailModel.getEmailOtp());
             document.getElementById("expires-in").appendText(BusinessConfigurations.MAXIMUM_EMAIL_OTP_MINUTES + " minutes");
@@ -105,8 +119,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountFailed(User user, String errorDescription, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment failed";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_FAILED_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_FAILED_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             document.getElementById("error-msg").appendText(errorDescription);
             sendEmail(document, emailModel, subject);
@@ -120,8 +136,10 @@ public class EmailServiceImpl implements IEmailService {
     public void sendLinkedAccountSuccessEmail(User user, EmailModel emailModel) {
         try {
             String subject = "Your linked account verification for payment is successful";
-            File file = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_SUCCESS_PATH).getFile();
-            Document document = Jsoup.parse(file, "UTF-8");
+            ClassPathResource classPathResource = new ClassPathResource(AppConfigurations.EMAIL_LINKED_ACCOUNT_SUCCESS_PATH);
+            byte[] byteData = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String htmlContent = new String(byteData, StandardCharsets.UTF_8);
+            Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
             notificationService.sendNotification(user.getId(), "Here We Go !", "Your linked account verification for payment is successful.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);

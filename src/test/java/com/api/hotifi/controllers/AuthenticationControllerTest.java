@@ -31,7 +31,8 @@ public class AuthenticationControllerTest {
         AuthenticationJsonReader jsonReader = new AuthenticationJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         String email = jsonReader.getEmailModelMockFromJsonFile().getEmail();
         boolean isVerified = jsonReader.getEmailModelMockFromJsonFile().isVerified();
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
         RequestBuilder requestBuilder = post("/authenticate/sign-up/" + email + "/" + isVerified)
                 .header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.APPLICATION_JSON);
@@ -51,7 +52,8 @@ public class AuthenticationControllerTest {
     public void shouldVerifyPhone(RepetitionInfo repetitionInfo) throws Exception {
         AuthenticationJsonReader jsonReader = new AuthenticationJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         String jsonRequest = jsonReader.getEmailJsonFromJsonFile();
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
 
         mockMvc
                 .perform(put("/authenticate/sign-up/verify/phone")
@@ -68,8 +70,8 @@ public class AuthenticationControllerTest {
     public void shouldGetAuthentication(RepetitionInfo repetitionInfo) throws Exception {
         AuthenticationJsonReader jsonReader = new AuthenticationJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         String email = jsonReader.getEmailModelMockFromJsonFile().getEmail();
-
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
         RequestBuilder requestBuilder = get("/authenticate/" + email)
                 .header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.APPLICATION_JSON);

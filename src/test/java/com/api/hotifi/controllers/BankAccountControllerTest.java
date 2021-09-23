@@ -58,7 +58,8 @@ public class BankAccountControllerTest {
     @Order(2)
     public void shouldUpdateSuccessfulLinkedAccounts(RepetitionInfo repetitionInfo) throws Exception {
 
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
 
         BankAccountJsonReader jsonReader = new BankAccountJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         Long userId = jsonReader.getBankAccountUserIdFromJsonFile();

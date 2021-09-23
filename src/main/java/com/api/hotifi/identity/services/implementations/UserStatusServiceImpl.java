@@ -208,8 +208,9 @@ public class UserStatusServiceImpl implements IUserStatusService {
         }
         //set authentication values to null
         String toEmail = authentication.getEmail();
+        Date deletedAt = new Date(System.currentTimeMillis());
         authentication.setDeleted(true);
-        authentication.setEmail("(deleted)" + System.currentTimeMillis()); //email cannot be null
+        authentication.setEmail("(deleted)" + deletedAt); //email cannot be null
         authentication.setPhone(null);
         authenticationRepository.save(authentication);
 

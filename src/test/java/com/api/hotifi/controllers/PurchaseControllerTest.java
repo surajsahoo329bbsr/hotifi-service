@@ -33,7 +33,8 @@ public class PurchaseControllerTest {
 
         String email = credentialsJsonReader.getCustomerCredentials().getEmail();
         String password = credentialsJsonReader.getCustomerCredentials().getPassword();*/
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
 
         PurchaseJsonReader jsonReader = new PurchaseJsonReader(repetitionInfo.getCurrentRepetition() - 1);
 

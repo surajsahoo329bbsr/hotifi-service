@@ -29,7 +29,8 @@ public class UserControllerTest {
     public void shouldAddUser(RepetitionInfo repetitionInfo) throws Exception {
         UserJsonReader jsonReader = new UserJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         String userRequestJsonString = jsonReader.getUserRequestFromJsonFile();
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
         RequestBuilder requestBuilder = post("/user/")
                 .header("Authorization", "Bearer " + accessToken)
                 .content(userRequestJsonString)
@@ -51,8 +52,8 @@ public class UserControllerTest {
     public void shouldGetVerifiedAuthentication(RepetitionInfo repetitionInfo) throws Exception {
         UserJsonReader jsonReader = new UserJsonReader(repetitionInfo.getCurrentRepetition() - 1);
         String username = jsonReader.getUsernameFromJsonFile();
-
-        String accessToken = AccessTokenUtils.getAccessToken("suraj@gmail.com", "admin", mockMvc);
+        //below credentials have been updated on - 17/09/21 for beta testing
+        String accessToken = AccessTokenUtils.getAccessToken("suraj.admin@hotifi", "admin", mockMvc);
         RequestBuilder requestBuilder = get("/user/" + username)
                 .header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.APPLICATION_JSON);
