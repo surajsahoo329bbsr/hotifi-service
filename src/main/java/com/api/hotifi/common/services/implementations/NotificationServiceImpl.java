@@ -66,12 +66,12 @@ public class NotificationServiceImpl implements INotificationService {
     public void sendNotificationsToAllUsers(String title, String message, String photoUrl, CloudClientCodes notificationClientCode) {
         switch (notificationClientCode) {
             case GOOGLE_CLOUD_PLATFORM:
-                List<Long> userIds = userRepository.findAll().stream()
+                /*List<Long> userIds = userRepository.findAll().stream()
                         .filter(user -> user.getAuthentication().isActivated() && !user.getAuthentication().isDeleted()
                                 && !user.getAuthentication().isBanned() && !user.getAuthentication().isFreezed())
                         .map(User::getId)
-                        .collect(Collectors.toList());
-                List<Device> devices = deviceRepository.findAllById(userIds);
+                        .collect(Collectors.toList());*/
+                List<Device> devices = deviceRepository.findAll();
                 devices.forEach(device -> {
                     try {
                         firebaseMessagingService.sendPhotoNotification(title, message, photoUrl, device.getToken());
