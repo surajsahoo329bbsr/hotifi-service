@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface INotificationService {
 
-    void sendNotification(Long userId, String title, String message, CloudClientCodes notificationClientCode);
+    void sendNotificationToSingleUser(Long userId, String title, String message, CloudClientCodes notificationClientCode);
 
-    void sendCommonPhotoNotifications(List<Long> buyerIds, String title, String message, String sellerUsername, String commonPhotoUrl, CloudClientCodes notificationClientCode);
+    void sendPhotoNotificationsToMultipleUsers(List<Long> buyerIds, String title, String message, String commonPhotoUrl, CloudClientCodes notificationClientCode);
 
-    void sendNotificationsToAllUsers(String title, String message, String photoUrl, CloudClientCodes notificationClientCode);
+    void sendPhotoNotificationsToAllUsers(String title, String message, String photoUrl, CloudClientCodes notificationClientCode);
 }

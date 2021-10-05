@@ -62,7 +62,7 @@ public class PaymentController {
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class, responseContainer = "List")
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
@@ -78,7 +78,7 @@ public class PaymentController {
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 200, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = UpiPendingTransfer.class, responseContainer = "List")
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
@@ -94,7 +94,7 @@ public class PaymentController {
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 204, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+            @ApiResponse(code = 204, message = SuccessMessages.OK)
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
@@ -111,7 +111,7 @@ public class PaymentController {
             response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
-            @ApiResponse(code = 204, message = SuccessMessages.OK, response = SellerReceiptResponse.class)
+            @ApiResponse(code = 204, message = SuccessMessages.OK)
     })
     @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")

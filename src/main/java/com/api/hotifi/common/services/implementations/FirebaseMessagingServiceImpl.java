@@ -1,10 +1,9 @@
 package com.api.hotifi.common.services.implementations;
 
 import com.api.hotifi.common.services.interfaces.IFirebaseMessagingService;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
+
+import java.util.List;
 
 public class FirebaseMessagingServiceImpl implements IFirebaseMessagingService {
 
@@ -15,7 +14,7 @@ public class FirebaseMessagingServiceImpl implements IFirebaseMessagingService {
     }
 
     @Override
-    public void sendNotification(String subject, String content, String token) throws FirebaseMessagingException {
+    public void sendNotificationToSingleUser(String subject, String content, String token) throws FirebaseMessagingException {
 
         Notification notification = Notification
                 .builder()
@@ -27,14 +26,13 @@ public class FirebaseMessagingServiceImpl implements IFirebaseMessagingService {
                 .builder()
                 .setToken(token)
                 .setNotification(notification)
-                //.putAllData(note.getData())
                 .build();
 
         firebaseMessaging.send(message);
     }
 
     @Override
-    public void sendPhotoNotification(String subject, String content, String photoUrl, String token) throws FirebaseMessagingException {
+    public void sendPhotoNotificationToSingleUser(String subject, String content, String photoUrl, String token) throws FirebaseMessagingException {
         Notification notification = Notification
                 .builder()
                 .setTitle(subject)
@@ -46,11 +44,36 @@ public class FirebaseMessagingServiceImpl implements IFirebaseMessagingService {
                 .builder()
                 .setToken(token)
                 .setNotification(notification)
-                //.putAllData(note.getData())
                 .build();
+
 
         firebaseMessaging.send(message);
     }
 
+    @Override
+    public void sendPhotoNotificationToMultipleUsers(String subject, String content, String photoUrl, List<String> fcmTokens) throws FirebaseMessagingException {
+        MulticastMessage multicastMessage = MulticastMessage.builder()
+                .setNotification(Notification.builder()
+                        .setTitle(subject)
+                        .setBody(content)
+                        .setImage(photoUrl)
+                        .build())
+                .addAllTokens(fcmTokens)
+                .build();
 
+        firebaseMessaging.sendMulticast(multicastMessage);
+    }
+
+    @Override
+    public void sendNotificationToMultipleUsers(String subject, String content, List<String> fcmTokens) throws FirebaseMessagingException {
+        MulticastMessage multicastMessage = MulticastMessage.builder()
+                .setNotification(Notification.builder()
+                        .setTitle(subject)
+                        .setBody(content)
+                        .build())
+                .addAllTokens(fcmTokens)
+                .build();
+
+        firebaseMessaging.sendMulticast(multicastMessage);
+    }
 }

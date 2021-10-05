@@ -232,7 +232,7 @@ public class SessionServiceImpl implements ISessionService {
                 .stream()
                 .map(User::getId)
                 .collect(Collectors.toList());
-        notificationService.sendCommonPhotoNotifications(buyers, " will stop wifi service", "Please finish your work in 5 minutes", sellerUsername, sellerPhotoUrl, CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+        notificationService.sendPhotoNotificationsToMultipleUsers(buyers, sellerUsername + " will stop wifi service", "Please finish your work in " + BusinessConfigurations.SELLER_SESSION_CLOSE_WAIT_TIME_MINUTES + " minutes", sellerPhotoUrl, CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
     }
 
     @Transactional
@@ -252,7 +252,7 @@ public class SessionServiceImpl implements ISessionService {
             session.setFinishedAt(new Date(System.currentTimeMillis()));
             sessionRepository.save(session);
             User seller = session.getSpeedTest().getUser();
-            notificationService.sendNotification(seller.getId(), "Hotspot Stopped", "Wifi Hotspot Stopped", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(seller.getId(), "Hotspot Stopped", "Wifi Hotspot Stopped", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } else {
             throw new HotifiException(UserErrorCodes.USER_NOT_LEGIT);
         }

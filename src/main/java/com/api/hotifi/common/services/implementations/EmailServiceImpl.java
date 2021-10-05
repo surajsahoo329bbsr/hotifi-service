@@ -19,8 +19,6 @@ import org.simplejavamail.mailer.MailerBuilder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
@@ -43,7 +41,7 @@ public class EmailServiceImpl implements IEmailService {
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
 
-            notificationService.sendNotification(user.getId(), "A New Beginning !", "Your hotifi account has been created.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "A New Beginning !", "Your hotifi account has been created.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,7 +57,7 @@ public class EmailServiceImpl implements IEmailService {
             Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
-            notificationService.sendNotification(user.getId(), "Sorry To See You Go !", "Your hotifi account has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "Sorry To See You Go !", "Your hotifi account has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -76,7 +74,7 @@ public class EmailServiceImpl implements IEmailService {
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             document.getElementById("freeze-msg").appendText(BusinessConfigurations.MINIMUM_FREEZE_PERIOD_HOURS + "hours");
             sendEmail(document, emailModel, subject);
-            notificationService.sendNotification(user.getId(), "FREEEEEEZE THERE !", "Your hotifi account for buying data has been freeze.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "FREEEEEEZE THERE !", "Your hotifi account for buying data has been freeze.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,7 +90,7 @@ public class EmailServiceImpl implements IEmailService {
             Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
-            notificationService.sendNotification(user.getId(), "Banned !", "Your hotifi account for buying data has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "Banned !", "Your hotifi account for buying data has been deleted.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,7 +124,7 @@ public class EmailServiceImpl implements IEmailService {
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             document.getElementById("error-msg").appendText(errorDescription);
             sendEmail(document, emailModel, subject);
-            notificationService.sendNotification(user.getId(), "Oh No! Oh No! Oh No No No No !", "Your linked account verification for payment has failed.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "Oh No! Oh No! Oh No No No No !", "Your linked account verification for payment has failed.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,7 +140,7 @@ public class EmailServiceImpl implements IEmailService {
             Document document = Jsoup.parse(htmlContent, "UTF-8");
             document.getElementById("first-name").appendText("Hi " + user.getFirstName() + ",");
             sendEmail(document, emailModel, subject);
-            notificationService.sendNotification(user.getId(), "Here We Go !", "Your linked account verification for payment is successful.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
+            notificationService.sendNotificationToSingleUser(user.getId(), "Here We Go !", "Your linked account verification for payment is successful.", CloudClientCodes.GOOGLE_CLOUD_PLATFORM);
         } catch (Exception e) {
             e.printStackTrace();
         }
