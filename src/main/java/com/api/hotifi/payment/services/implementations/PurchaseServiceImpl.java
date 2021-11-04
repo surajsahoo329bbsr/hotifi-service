@@ -239,7 +239,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             purchaseRepository.save(purchase);
 
             //Comparing if data is going to be exhausted
-            if (Double.compare((double) dataBought - dataUsed, BusinessConfigurations.MINIMUM_DATA_THRESHOLD_MB) < 0) {
+            if (Double.compare((double) dataBought - dataUsed, BusinessConfigurations.MINIMUM_DATA_THRESHOLD_MB) < 0 || (session != null ? session.getFinishedAt() : null) != null) {
                 log.info("Finish wifi service");
                 return 2;
             }
