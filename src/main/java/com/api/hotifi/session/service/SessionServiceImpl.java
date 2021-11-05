@@ -244,8 +244,10 @@ public class SessionServiceImpl implements ISessionService {
             throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         if (session.getFinishedAt() != null)
             throw new HotifiException(SessionErrorCodes.SESSION_ALREADY_FINISHED);
-        if (!isForceStop && buyers != null && buyers.size() > 0)
-            throw new HotifiException(SessionErrorCodes.NOTIFY_BUYERS_TO_FINISH_SESSION);
+        //TODO TBC if preference to be given to seller or buyer, if buyer has not closed wifi session even after warning
+        // has been sent. For now preference has been given to seller,after sending a notification
+        /*if (!isForceStop && buyers != null && buyers.size() > 0)
+            throw new HotifiException(SessionErrorCodes.NOTIFY_BUYERS_TO_FINISH_SESSION);*/
 
         User buyer = userRepository.findById(session.getSpeedTest().getUser().getId()).orElse(null);
         if (LegitUtils.isBuyerLegit(buyer)) {

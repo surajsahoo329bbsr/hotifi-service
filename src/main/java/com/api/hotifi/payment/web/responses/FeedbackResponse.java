@@ -10,7 +10,7 @@ public class FeedbackResponse {
 
     private Feedback feedback;
 
-    private String sellerPhotoUrl;
+    private String buyerPhotoUrl;
 
-    private String sellerName;
+    private String buyerName;
 }

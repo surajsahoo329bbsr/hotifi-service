@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
@@ -26,6 +27,13 @@ public class PaymentUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Date convertUtcToIst(Date utcDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(utcDate);
+        calendar.add(Calendar.MINUTE, -330); // -330 minutes for -5:30 hours
+        return calendar.getTime();
     }
 
     public static int getDataUsedSumOfSession(Session session) {
@@ -51,8 +59,8 @@ public class PaymentUtils {
 
     public static boolean isSellerPaymentDue(Date currentTime, Date lastPaidAt) {
         long timeDifference = currentTime.getTime() - lastPaidAt.getTime();
-        long daysDifference = timeDifference / (24 * 60 * 60 * 1000);
-        return daysDifference >= BusinessConfigurations.MINIMUM_SELLER_WITHDRAWAL_DUE_DAYS;
+        long hoursDifference = timeDifference / (60 * 60 * 1000);
+        return hoursDifference >= BusinessConfigurations.MINIMUM_SELLER_WITHDRAWAL_HOURS;
     }
 
     public static String getPaymentTransactionId(PaymentMethodCodes paymentMethodCode, JSONObject acquirerDataJson) {

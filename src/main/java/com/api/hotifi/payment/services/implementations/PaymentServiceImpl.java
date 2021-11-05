@@ -153,11 +153,10 @@ public class PaymentServiceImpl implements IPaymentService {
 
             SellerReceipt sellerReceipt = new SellerReceipt();
             sellerReceipt.setStatus(status);
-            Date createdAt = upiTransferUpdate.getPaidAt();
+            Date createdAt = PaymentUtils.convertUtcToIst(upiTransferUpdate.getPaidAt());
             Date modifiedAt = new Date(System.currentTimeMillis());
 
             sellerReceipt.setCreatedAt(createdAt);
-            sellerReceipt.setModifiedAt(createdAt);
             sellerReceipt.setModifiedAt(modifiedAt);
             sellerReceipt.setAmountPaid(sellerAmountPaid);
             sellerReceipt.setUpiId(upiId);
@@ -220,7 +219,7 @@ public class PaymentServiceImpl implements IPaymentService {
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("created_at").descending()) :
                     PageRequest.of(page, size, Sort.by("created_at"));
-            return getSellerReceipts(sellerPayment.getId(), pageable, sellerPayment);
+            return getSellerReceipts(sellerPayment.getSeller().getId(), pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
             throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
@@ -237,7 +236,7 @@ public class PaymentServiceImpl implements IPaymentService {
             Pageable pageable = isDescending ?
                     PageRequest.of(page, size, Sort.by("amount_paid").descending()) :
                     PageRequest.of(page, size, Sort.by("amount_paid"));
-            return getSellerReceipts(sellerPayment.getId(), pageable, sellerPayment);
+            return getSellerReceipts(sellerPayment.getSeller().getId(), pageable, sellerPayment);
         } catch (Exception e) {
             log.error("Error occurred ", e);
             throw new HotifiException(SellerPaymentErrorCodes.UNEXPECTED_SELLER_RECEIPT_ERROR);
@@ -426,7 +425,7 @@ public class PaymentServiceImpl implements IPaymentService {
                 try {
                     SellerReceiptResponse sellerReceiptResponse = addUpiSellerReceiptByAdmin(seller, upiTransferUpdate, sellerAmountPaid);
                     //Following lines will continue after successful-1, processing-2, failure-3 payment
-                    Date lastPaidAt = upiTransferUpdate.getPaidAt();
+                    Date lastPaidAt = PaymentUtils.convertUtcToIst(upiTransferUpdate.getPaidAt());
                     sellerPayment.setAmountPaid(sellerPayment.getAmountPaid().add(sellerAmountPaid));
                     sellerPayment.setLastPaidAt(lastPaidAt);
                     sellerPayment.setModifiedAt(now);
@@ -495,7 +494,6 @@ public class PaymentServiceImpl implements IPaymentService {
     //User defined functions
     private List<SellerReceiptResponse> getSellerReceipts(Long sellerPaymentId, Pageable pageable, SellerPayment sellerPayment) {
         List<SellerReceipt> sellerReceipts = sellerReceiptRepository.findSellerReceipts(sellerPaymentId, pageable);
-        SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
         if (sellerReceipts == null)
             throw new HotifiException(SellerPaymentErrorCodes.SELLER_RECEIPT_NOT_FOUND);
         try {
@@ -519,6 +517,8 @@ public class PaymentServiceImpl implements IPaymentService {
                 //String hiddenBankAccountNumber = PaymentUtils.hideBankAccountNumber(receiptResponse.getSellerReceipt().getBankAccountNumber());
                 //receiptResponse.getSellerReceipt().setBankAccountNumber(hiddenBankAccountNumber);
                 //receiptResponse.setSellerLinkedAccountId(linkedAccountId);
+
+                SellerReceiptResponse receiptResponse = new SellerReceiptResponse();
                 receiptResponse.setSellerReceipt(sellerReceipt);
                 receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
                 sellerReceiptResponses.add(receiptResponse);

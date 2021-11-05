@@ -94,13 +94,13 @@ public class FeedbackServiceImpl implements IFeedbackService {
                 return null;
             List<FeedbackResponse> feedbackResponses = new ArrayList<>();
             feedbacks.forEach(feedback -> {
-                User user = feedback.getPurchase().getSession().getSpeedTest().getUser();
-                String sellerName = user.getFirstName() + " " + user.getLastName();
-                String sellerPhotoUrl = user.getPhotoUrl();
+                User user = feedback.getPurchase().getUser();
+                String buyerName = user.getFirstName() + " " + user.getLastName();
+                String buyerPhotoUrl = user.getPhotoUrl();
                 FeedbackResponse feedbackResponse = new FeedbackResponse();
                 feedbackResponse.setFeedback(feedback);
-                feedbackResponse.setSellerName(sellerName);
-                feedbackResponse.setSellerPhotoUrl(sellerPhotoUrl);
+                feedbackResponse.setBuyerName(buyerName);
+                feedbackResponse.setBuyerPhotoUrl(buyerPhotoUrl);
                 feedbackResponses.add(feedbackResponse);
             });
             return feedbackResponses;
