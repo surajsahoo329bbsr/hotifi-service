@@ -93,7 +93,8 @@ public class FeedbackServiceImpl implements IFeedbackService {
             if (feedbacks == null)
                 return null;
             List<FeedbackResponse> feedbackResponses = new ArrayList<>();
-            feedbacks.forEach(feedback -> {
+            Predicate<Feedback> feedbackPredicate = getFeedbacks -> ! getFeedbacks.getComment().isEmpty();
+            feedbacks.stream().filter(feedbackPredicate).forEach(feedback -> {
                 User user = feedback.getPurchase().getUser();
                 String buyerName = user.getFirstName() + " " + user.getLastName();
                 String buyerPhotoUrl = user.getPhotoUrl();

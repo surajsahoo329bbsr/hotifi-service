@@ -20,7 +20,7 @@ VALUES
     ('hotifi administrator','ADMINISTRATOR',CURRENT_TIMESTAMP);
 
 INSERT INTO authentication (`email`, `password`, `created_at`, `modified_at`, `is_activated`, `is_banned`, `is_freezed`, `is_deleted`, `is_email_verified`, `is_phone_verified`) VALUES
-('suraj.admin@hotifi', '$2a$04$SAAoH.qSMYZ5b1sBc98zme.cuBvDWURW9P54fDOuFRBjIA7jbBTlK', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 0, 0, 0, 1, 1),
+('suraj.admin@hotifi', '$2a$04$ldBBCdBHmjcNpDsL5fa0Te5gzp6to61CvVNtNuVOXqebZ54Pc3afa', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 0, 0, 0, 1, 1),
 ('satya.admin@hotifi', '$2a$10$k6K3G4o.FVVKi2jizHWr/.3yZ8ZQquu0xULH4hxCpaWRaAlMB/Brq', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 0, 0, 0, 1, 1);
 
 INSERT INTO authentication_roles (role_id, authentication_id)

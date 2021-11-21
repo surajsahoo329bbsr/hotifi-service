@@ -121,7 +121,7 @@ public class SwaggerConfiguration {
 
     private ApiInfo info(String title) {
         return new ApiInfo(title, "This page helps the user to try out the hotifi service endpoints in an more convenient manner", AppConfigurations.APP_VERSION, "https://www.hotifi.com/",
-                new Contact(AppConfigurations.APP_NAME, null, "support@hotifi.com"),
+                new Contact(AppConfigurations.APP_NAME, null, "hotifi.help@gmail.com"),
                 null,null, new ArrayList<>());
     }
 }

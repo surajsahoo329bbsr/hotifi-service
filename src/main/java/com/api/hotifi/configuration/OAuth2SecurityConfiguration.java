@@ -29,7 +29,7 @@ public class OAuth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers("/v2/api-docs", "/configuration/ui",
                         "/swagger-resources/**", "/configuration/**",
-                        "/css/**",
+                        "/css/**","/cloud-health/**" ,
                         "/swagger-ui/index.html", "/swagger-ui.html", "/webjars/**",
                         "/authenticate/**", "/user/", "/user/is-available/**", "/user/facebook/**",
                         "/email/**", "/user/login/otp/**", "/user/login/verify/**", "/user/password/reset/**");
