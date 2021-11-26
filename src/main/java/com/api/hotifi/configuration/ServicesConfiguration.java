@@ -80,8 +80,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IPurchaseService purchaseService(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
-        return new PurchaseServiceImpl(userRepository, speedTestRepository, sessionRepository, purchaseRepository, sellerPaymentRepository, sellerPaymentService);
+    public IPurchaseService purchaseService(UserRepository userRepository, PurchaseOrderRepository purchaseOrderRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
+        return new PurchaseServiceImpl(userRepository, purchaseOrderRepository, speedTestRepository, sessionRepository, purchaseRepository, sellerPaymentRepository, sellerPaymentService);
     }
 
     @Bean

@@ -24,4 +24,8 @@ public class PurchaseErrorCodes extends ErrorCodes {
     public static final ErrorCode PAYMENT_NOT_SUCCESSFUL = new ErrorCode("14", Collections.singletonList(getMessage("PAYMENT_NOT_SUCCESSFUL", PurchaseErrorMessages.PAYMENT_NOT_SUCCESSFUL)), 500);
     public static final ErrorCode BUYER_PENDING_REFUNDS_NOT_FOUND = new ErrorCode("15", Collections.singletonList(getMessage("BUYER_PENDING_REFUNDS_NOT_FOUND", PurchaseErrorMessages.BUYER_PENDING_REFUNDS_NOT_FOUND)), 500);
     public static final ErrorCode UPDATE_WIFI_SERVICE_BEFORE_FINISHING = new ErrorCode("16", Collections.singletonList(getMessage("UPDATE_WIFI_SERVICE_BEFORE_FINISHING", PurchaseErrorMessages.UPDATE_WIFI_SERVICE_BEFORE_FINISHING)), 500);
+    public static final ErrorCode ORDER_AMOUNT_MODIFIED = new ErrorCode("17", Collections.singletonList(getMessage("ORDER_AMOUNT_MODIFIED", PurchaseErrorMessages.ORDER_AMOUNT_MODIFIED)), 500);
+    public static final ErrorCode UNEXPECTED_ORDER_ERROR = new ErrorCode("18", Collections.singletonList(getMessage("UNEXPECTED_ORDER_ERROR", PurchaseErrorMessages.UNEXPECTED_ORDER_ERROR)), 500);
+    public static final ErrorCode CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH = new ErrorCode("19", Collections.singletonList(getMessage("CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH", PurchaseErrorMessages.CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH)), 500);
+
 }

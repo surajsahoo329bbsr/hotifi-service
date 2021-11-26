@@ -30,7 +30,103 @@ public class RazorpayProcessor {
 
     //Below methods have json response body above them in comments
 
-    //To be used later if required for now auto-capture will be used
+    /**
+     * {
+     * "id": "order_EKwxwAgItmmXdp",
+     * "entity": "order",
+     * "amount": 50000,
+     * "amount_paid": 0,
+     * "amount_due": 50000,
+     * "currency": "INR",
+     * "receipt": "receipt#1",
+     * "offer_id": null,
+     * "status": "created",
+     * "attempts": 0,
+     * "notes": [],
+     * "created_at": 1582628071
+     * }
+     */
+
+    public Order createOrder(int amountInPaise, String currency) {
+        try {
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", amountInPaise); // amount in the smallest currency unit
+            orderRequest.put("currency", currency);
+            return razorpayClient.Orders.create(orderRequest);
+        } catch (RazorpayException e) {
+            throw new HotifiException(RazorpayErrorCodes.CREATE_ORDER_FAILED);
+        }
+    }
+
+    /**
+     * {
+     * "id":"order_DaaS6LOUAASb7Y",
+     * "entity":"order",
+     * "amount":2200,
+     * "amount_paid":0,
+     * "amount_due":2200,
+     * "currency":"INR",
+     * "receipt":"Receipt #211",
+     * "status":"attempted",
+     * "attempts":1,
+     * "notes":[],
+     * "created_at":1572505143
+     * }
+     */
+
+    public Order fetchOrderById(String orderId) {
+        try {
+            return razorpayClient.Orders.fetch(orderId);
+        } catch (RazorpayException e) {
+            throw new HotifiException(RazorpayErrorCodes.ORDER_NOT_FOUND);
+        }
+    }
+
+    /**
+     *
+     * {
+     *   "entity":"collection",
+     *   "count":1,
+     *   "items":[
+     *     {
+     *       "id":"pay_DaaSOvhgcOfzgR",
+     *       "entity":"payment",
+     *       "amount":2200,
+     *       "currency":"INR",
+     *       "status":"captured",
+     *       "order_id":"order_DaaS6LOUAASb7Y",
+     *       "invoice_id":null,
+     *       "international":false,
+     *       "method":"card",
+     *       "amount_refunded":0,
+     *       "refund_status":null,
+     *       "captured":true,
+     *       "description":"Beans in every imaginable flavour",
+     *       "card_id":"card_DZon6fd8J3IcA2",
+     *       "bank":null,
+     *       "wallet":null,
+     *       "vpa":null,
+     *       "email":"gaurav.kumar@example.com",
+     *       "contact":"+919999999988",
+     *       "notes":[],
+     *       "fee":44,
+     *       "tax":0,
+     *       "error_code":null,
+     *       "error_description":null,
+     *       "created_at":1572505160
+     *     }
+     *   ]
+     * }
+     *
+     * */
+
+    public List<Payment> fetchPaymentsByOrderId(String orderId) {
+        try {
+            return razorpayClient.Orders.fetchPayments(orderId);
+        } catch (RazorpayException e) {
+            throw new HotifiException(RazorpayErrorCodes.CREATE_ORDER_FAILED);
+        }
+    }
 
     /**
      * {

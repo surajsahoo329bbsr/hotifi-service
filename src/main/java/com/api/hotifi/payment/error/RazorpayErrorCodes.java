@@ -14,11 +14,14 @@ public class RazorpayErrorCodes extends ErrorCodes {
     public static final ErrorCode SPECIFIC_REFUND_NOT_FOUND = new ErrorCode("04", Collections.singletonList(getMessage("SPECIFIC_REFUND_NOT_FOUND", RazorpayErrorMessages.SPECIFIC_REFUND_NOT_FOUND)), 400);
     public static final ErrorCode REFUND_NOT_FOUND = new ErrorCode("05", Collections.singletonList(getMessage("REFUND_NOT_FOUND", RazorpayErrorMessages.REFUND_NOT_FOUND)), 400);
     public static final ErrorCode TRANSFER_NOT_FOUND = new ErrorCode("06", Collections.singletonList(getMessage("TRANSFER_NOT_FOUND", RazorpayErrorMessages.TRANSFER_NOT_FOUND)), 400);
+    public static final ErrorCode ORDER_NOT_FOUND = new ErrorCode("07", Collections.singletonList(getMessage("ORDER_NOT_FOUND", RazorpayErrorMessages.ORDER_NOT_FOUND)), 400);
+    public static final ErrorCode ORDER_PAYMENTS_NOT_FOUND = new ErrorCode("08", Collections.singletonList(getMessage("ORDER_PAYMENTS_NOT_FOUND", RazorpayErrorMessages.ORDER_PAYMENTS_NOT_FOUND)), 400);
 
     //Failure status
     public static final ErrorCode CAPTURE_PAYMENT_FAILED = new ErrorCode("01", Collections.singletonList(getMessage("CAPTURE_PAYMENT_FAILED", RazorpayErrorMessages.CAPTURE_PAYMENT_FAILED)), 500);
     public static final ErrorCode NORMAL_FULL_REFUND_FAILED = new ErrorCode("02", Collections.singletonList(getMessage("NORMAL_FULL_REFUND_FAILED", RazorpayErrorMessages.NORMAL_FULL_REFUND_FAILED)), 500);
     public static final ErrorCode NORMAL_PARTIAL_REFUND_FAILED = new ErrorCode("03", Collections.singletonList(getMessage("NORMAL_PARTIAL_REFUND_FAILED", RazorpayErrorMessages.NORMAL_PARTIAL_REFUND_FAILED)), 500);
     public static final ErrorCode TRANSFER_FAILED = new ErrorCode("04", Collections.singletonList(getMessage("TRANSFER_FAILED", RazorpayErrorMessages.TRANSFER_FAILED)), 400);
+    public static final ErrorCode CREATE_ORDER_FAILED = new ErrorCode("05", Collections.singletonList(getMessage("CREATE_ORDER_FAILED", RazorpayErrorMessages.CREATE_ORDER_FAILED)), 500);
 
 }

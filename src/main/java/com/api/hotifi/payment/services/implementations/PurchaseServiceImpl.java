@@ -8,16 +8,21 @@ import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.errors.UserErrorCodes;
 import com.api.hotifi.identity.repositories.UserRepository;
 import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.payment.entities.SellerPayment;
 import com.api.hotifi.payment.error.PurchaseErrorCodes;
 import com.api.hotifi.payment.processor.PaymentProcessor;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
+import com.api.hotifi.payment.processor.codes.OrderStatusCodes;
 import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
+import com.api.hotifi.payment.processor.razorpay.RazorpayVerificationUtils;
+import com.api.hotifi.payment.repositories.PurchaseOrderRepository;
 import com.api.hotifi.payment.repositories.PurchaseRepository;
 import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IPaymentService;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
 import com.api.hotifi.payment.utils.PaymentUtils;
+import com.api.hotifi.payment.web.request.OrderRequest;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
@@ -42,14 +47,16 @@ import java.util.List;
 public class PurchaseServiceImpl implements IPurchaseService {
 
     private final UserRepository userRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
     private final SpeedTestRepository speedTestRepository;
     private final SessionRepository sessionRepository;
     private final PurchaseRepository purchaseRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
     private final IPaymentService sellerPaymentService;
 
-    public PurchaseServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
+    public PurchaseServiceImpl(UserRepository userRepository, PurchaseOrderRepository purchaseOrderRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
         this.userRepository = userRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
         this.speedTestRepository = speedTestRepository;
         this.sessionRepository = sessionRepository;
         this.purchaseRepository = purchaseRepository;
@@ -82,15 +89,74 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
     @Transactional
     @Override
-    public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
-
-        Long buyerId = purchaseRequest.getBuyerId();
-        Long sessionId = purchaseRequest.getSessionId();
+    public PurchaseOrder addPurchaseOrder(OrderRequest orderRequest) {
+        Long sessionId = orderRequest.getSessionId();
         Session session = sessionRepository.findById(sessionId).orElse(null);
-        User buyer = userRepository.findById(buyerId).orElse(null);
+        User buyer = userRepository.findById(orderRequest.getBuyerId()).orElse(null);
         PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
 
         try {
+            BigDecimal amountOrder = session != null ?
+                    session.getPrice()
+                            .multiply(BigDecimal.valueOf(orderRequest.getData()))
+                            .divide(BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), 2, RoundingMode.CEILING)
+                            .setScale(0, RoundingMode.CEILING) : BigDecimal.ZERO;
+
+            if (amountOrder.compareTo(orderRequest.getAmount()) != 0) {
+                throw new HotifiException(PurchaseErrorCodes.ORDER_AMOUNT_MODIFIED);
+            }
+
+            PurchaseOrder purchaseOrder = paymentProcessor.addBuyerOrder(amountOrder, "INR");
+            purchaseOrder.setSession(session);
+            purchaseOrder.setUser(buyer);
+            purchaseOrder.setData(orderRequest.getData());
+            purchaseOrderRepository.save(purchaseOrder);
+            return purchaseOrder;
+
+        } catch (Exception e) {
+            log.error("Error occurred", e);
+            throw new HotifiException(PurchaseErrorCodes.UNEXPECTED_ORDER_ERROR);
+        }
+
+    }
+
+    @Transactional
+    @Override
+    public PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest) {
+
+        Long sessionId = purchaseRequest.getSessionId();
+        String orderId = purchaseRequest.getOrderId();
+        String paymentId = purchaseRequest.getPaymentId();
+        Session session = sessionRepository.findById(sessionId).orElse(null);
+        PurchaseOrder purchaseOrder = purchaseOrderRepository.findPurchaseOrderByPurchaseOrderId(orderId);
+        User buyer = userRepository.findById(purchaseOrder.getUser().getId()).orElse(null);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PaymentGatewayCodes.RAZORPAY);
+
+        try {
+            String clientRazorpaySignature = purchaseRequest.getClientRazorpaySignature();
+            boolean isPaymentAuthentic = RazorpayVerificationUtils.verifyRazorpaySignature(orderId, paymentId, clientRazorpaySignature);
+            if (!isPaymentAuthentic)
+                throw new HotifiException(PurchaseErrorCodes.CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH);
+
+            com.razorpay.Order razorpayOrder = paymentProcessor.getPurchaseOrder(orderId);
+            BigDecimal orderAmount = PaymentUtils
+                    .divideThenMultiplyCeilingTwoScale(new BigDecimal(razorpayOrder.get("amount").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+            BigDecimal orderAmountPaid = PaymentUtils
+                    .divideThenMultiplyCeilingTwoScale(new BigDecimal(razorpayOrder.get("amount_paid").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+            BigDecimal orderAmountDue = PaymentUtils
+                    .divideThenMultiplyCeilingTwoScale(new BigDecimal(razorpayOrder.get("amount_due").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+
+            String status = razorpayOrder.get("status");
+            int attempts = Integer.parseInt(razorpayOrder.get("attempts").toString());
+            Date modifiedAt = new Date(System.currentTimeMillis());
+
+            purchaseOrder.setAmount(orderAmount);
+            purchaseOrder.setAmountPaid(orderAmountPaid);
+            purchaseOrder.setAmountDue(orderAmountDue);
+            purchaseOrder.setStatus(OrderStatusCodes.valueOf(status.toUpperCase()).name());
+            purchaseOrder.setAttempts(attempts);
+            purchaseOrder.setOrderModifiedAt(modifiedAt);
+
             BigDecimal amountPaid = session != null ?
                     session.getPrice()
                             .multiply(BigDecimal.valueOf(purchaseRequest.getData()))
@@ -99,8 +165,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
             Purchase buyerPurchase = paymentProcessor.getBuyerPurchase(purchaseRequest.getPaymentId(), amountPaid);
             Purchase purchase = new Purchase();
-            purchase.setSession(session);
-            purchase.setUser(buyer);
+            purchase.setPurchaseOrder(purchaseOrder);
 
             //Getting values from payment processor
             purchase.setPaymentDoneAt(buyerPurchase.getPaymentDoneAt());
@@ -136,6 +201,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             if (session != null && updateSessionFlag) {
                 session.setDataUsed(session.getDataUsed() + purchaseRequest.getData());
                 sessionRepository.save(session);
+                purchaseOrderRepository.save(purchaseOrder);
             }
 
             return getPurchaseReceipt(purchaseId);
@@ -153,7 +219,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         if (purchase == null)
             throw new HotifiException(PurchaseErrorCodes.PURCHASE_NOT_FOUND);
         try {
-            Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+            Session session = sessionRepository.findById(purchase.getPurchaseOrder().getSession().getId()).orElse(null);
             String wifiPassword = session != null ? session.getWifiPassword() : null;
             PurchaseReceiptResponse receiptResponse = new PurchaseReceiptResponse();
             receiptResponse.setPurchaseId(purchase.getId());
@@ -221,7 +287,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             BigDecimal calculatedSellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
 
             //Updating seller payment each time update is made
-            Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+            Session session = sessionRepository.findById(purchase.getPurchaseOrder().getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
             SellerPayment sellerPayment = seller != null ? sellerPaymentRepository.findSellerPaymentBySellerId(seller.getId()) : null;
             boolean isUpdateTimeOnly = Double.compare(dataUsed, dataUsedBefore) == 0;
@@ -276,7 +342,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             double dataUsedBefore = purchase.getDataUsed();
             BigDecimal amountRefund = calculateBuyerRefundAmount(dataBought, dataUsed, purchase.getAmountPaid());
             BigDecimal sellerAmount = calculateSellerPaymentAmount(dataBought, dataUsed, dataUsedBefore, purchase.getAmountPaid());
-            Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+            Session session = sessionRepository.findById(purchase.getPurchaseOrder().getSession().getId()).orElse(null);
             User seller = session != null ? session.getSpeedTest().getUser() : null;
             boolean isUpdateTimeOnly = Double.compare(dataUsed, purchase.getDataUsed()) == 0;
 
@@ -344,7 +410,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     }
 
     private WifiSummaryResponse getBuyerWifiSummary(Purchase purchase) {
-        Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+        Session session = sessionRepository.findById(purchase.getPurchaseOrder().getSession().getId()).orElse(null);
         SpeedTest speedTest = session != null ? speedTestRepository.findById(session.getSpeedTest().getId()).orElse(null) : null;
         User seller = speedTest != null ? userRepository.findById(speedTest.getUser().getId()).orElse(null) : null;
 
@@ -365,7 +431,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
         wifiSummaryResponse.setAmountPaid(purchase.getAmountPaid());
         wifiSummaryResponse.setAmountRefund(purchase.getAmountRefund());
         wifiSummaryResponse.setSessionStartedAt(purchase.getSessionCreatedAt());
-        wifiSummaryResponse.setNetworkProvider(purchase.getSession().getSpeedTest().getNetworkProvider());
+        wifiSummaryResponse.setNetworkProvider(purchase.getPurchaseOrder().getSession().getSpeedTest().getNetworkProvider());
         wifiSummaryResponse.setSessionFinishedAt(purchase.getSessionFinishedAt());
         wifiSummaryResponse.setDataBought(purchase.getData());
         wifiSummaryResponse.setDataUsed(purchase.getDataUsed());
@@ -379,7 +445,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
     }
 
     private void saveSessionWithWifiService(Purchase purchase) {
-        Session session = sessionRepository.findById(purchase.getSession().getId()).orElse(null);
+        Session session = sessionRepository.findById(purchase.getPurchaseOrder().getSession().getId()).orElse(null);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         session.setDataUsed(PaymentUtils.getDataUsedSumOfSession(session));

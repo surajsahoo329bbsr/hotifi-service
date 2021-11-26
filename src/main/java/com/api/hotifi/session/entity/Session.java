@@ -1,7 +1,7 @@
 package com.api.hotifi.session.entity;
 
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
-import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -55,6 +55,6 @@ public class Session implements Serializable {
     private Date finishedAt;
 
     @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
-    private List<Purchase> purchases;
+    private List<PurchaseOrder> purchaseOrders;
 
 }

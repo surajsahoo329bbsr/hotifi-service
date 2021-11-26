@@ -1,5 +1,7 @@
 package com.api.hotifi.payment.processor.razorpay;
 
+import com.api.hotifi.common.constants.configurations.AppConfigurations;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
@@ -9,7 +11,7 @@ import java.security.SignatureException;
  * This class defines common routines for generating
  * authentication signatures for Razorpay Webhook requests.
  */
-public class RazorpaySignature {
+public class RazorpayVerificationUtils {
 
     private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
 
@@ -44,5 +46,16 @@ public class RazorpaySignature {
             throw new SignatureException("Failed to generate HMAC : " + e.getMessage());
         }
         return result;
+    }
+
+    public static boolean verifyRazorpaySignature(String orderId, String razorpayPaymentId, String razorpaySignature) {
+        try {
+            String generatedSignature =
+                    calculateRFC2104HMAC(orderId + "|" + razorpayPaymentId, AppConfigurations.RAZORPAY_CLIENT_SECRET);
+            return generatedSignature.equals(razorpaySignature);
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

@@ -1,6 +1,7 @@
 package com.api.hotifi.identity.entities;
 
 import com.api.hotifi.payment.entities.BankAccount;
+import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -84,4 +85,8 @@ public class User implements Serializable {
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<SpeedTest> speedTests;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<PurchaseOrder> purchaseOrders;
 }

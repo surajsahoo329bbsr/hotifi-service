@@ -21,9 +21,6 @@ import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.error.SessionErrorCodes;
 import com.api.hotifi.session.repository.SessionRepository;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class CustomerAuthorizationImpl implements ICustomerAuthorizationService {
 
     private final AuthenticationRepository authenticationRepository;
@@ -145,6 +142,7 @@ public class CustomerAuthorizationImpl implements ICustomerAuthorizationService 
             throw new HotifiException(UserErrorCodes.USER_FORBIDDEN);
         return jwtUsername
                 .equals(purchase
+                        .getPurchaseOrder()
                         .getUser()
                         .getAuthentication().getEmail());
     }

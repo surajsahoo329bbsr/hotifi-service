@@ -17,10 +17,10 @@ public interface PurchaseRepository extends PagingAndSortingRepository<Purchase,
 
     Purchase findByPaymentId(String paymentId);
 
-    @Query(value = "SELECT * FROM purchase WHERE buyer_id = ?1", nativeQuery = true)
+    @Query(value = "SELECT * FROM purchase p JOIN purchase_order po WHERE po.buyer_id = ?1 AND p.purchase_order_id = po.id", nativeQuery = true)
     List<Purchase> findPurchasesByBuyerId(Long buyerId, Pageable pageable);
 
-    @Query(value = "SELECT * FROM purchase WHERE session_id IN :session_ids", nativeQuery = true)
+    @Query(value = "SELECT * FROM purchase p JOIN purchase_order po WHERE po.session_id IN :session_ids AND p.purchase_order_id = po.id", nativeQuery = true)
     List<Purchase> findPurchasesBySessionIds(@Param("session_ids") List<Long> sessionIds);
 
     @Modifying

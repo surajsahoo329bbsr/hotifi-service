@@ -6,7 +6,6 @@ import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
-import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.entities.Feedback;
 import com.api.hotifi.payment.services.interfaces.IFeedbackService;
 import com.api.hotifi.payment.web.request.FeedbackRequest;
@@ -87,9 +86,7 @@ public class FeedbackController {
                                                 @PathVariable(value = "size")
                                                 @Range(min = 1, max = Integer.MAX_VALUE, message = "{page.size.invalid}") int size,
                                                 @PathVariable(value = "is-descending") boolean isDescending) {
-        List<FeedbackResponse> feedbackResponses = (AuthorizationUtils.isAdministratorRole() ||
-                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
-                feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending) : null;
+        List<FeedbackResponse> feedbackResponses = feedbackService.getSellerFeedbacks(sellerId, page, size, isDescending);
         return new ResponseEntity<>(feedbackResponses, HttpStatus.OK);
     }
 
@@ -106,9 +103,7 @@ public class FeedbackController {
     @PreAuthorize("hasAuthority('ADMINISTRATOR') or hasAuthority('CUSTOMER')")
     public ResponseEntity<?> getSellerRatingDetails(@PathVariable(value = "seller-id")
                                                     @Range(min = 1, message = "{seller.id.invalid}") Long sellerId) {
-        SellerReviewsResponse sellerReviewsResponse = (AuthorizationUtils.isAdministratorRole() ||
-                customerAuthorizationService.isAuthorizedByUserId(sellerId, AuthorizationUtils.getUserToken())) ?
-                feedbackService.getSellerRatingDetails(sellerId) : null;
+        SellerReviewsResponse sellerReviewsResponse = feedbackService.getSellerRatingDetails(sellerId);
         return new ResponseEntity<>(sellerReviewsResponse, HttpStatus.OK);
     }
 }

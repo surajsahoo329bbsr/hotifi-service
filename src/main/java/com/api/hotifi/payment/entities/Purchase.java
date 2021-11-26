@@ -1,7 +1,5 @@
 package com.api.hotifi.payment.entities;
 
-import com.api.hotifi.identity.entities.User;
-import com.api.hotifi.session.entity.Session;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,16 +29,11 @@ public class Purchase implements Serializable {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    private Session session;
+    @JoinColumn(name = "purchase_order_id", nullable = false)
+    private PurchaseOrder purchaseOrder;
 
     @Column(columnDefinition = "INT", nullable = false)
     private int status;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer_id", nullable = false)
-    private User user;
 
     @Column(length = 20)
     private String macAddress;

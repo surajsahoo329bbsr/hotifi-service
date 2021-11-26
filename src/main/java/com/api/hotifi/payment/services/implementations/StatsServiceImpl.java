@@ -73,7 +73,7 @@ public class StatsServiceImpl implements IStatsService {
 
                 double totalDataBought = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
                 String wifi = NetworkProviderCodes.fromInt(1).name();
-                double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkProvider().equals(wifi))
+                double totalDataBoughtByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getPurchaseOrder().getSession().getSpeedTest().getNetworkProvider().equals(wifi))
                         .mapToDouble(Purchase::getDataUsed)
                         .sum();
                 double totalDataBoughtByMobile = totalDataBought - totalDataBoughtByWifi;
@@ -114,7 +114,7 @@ public class StatsServiceImpl implements IStatsService {
 
             double totalDataSold = purchaseStreamSupplier.get().mapToDouble(Purchase::getDataUsed).sum();
             String wifi = NetworkProviderCodes.fromInt(1).name();
-            double totalDataSoldByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getSession().getSpeedTest().getNetworkProvider().equals(wifi))
+            double totalDataSoldByWifi = purchaseStreamSupplier.get().filter(purchase -> purchase.getPurchaseOrder().getSession().getSpeedTest().getNetworkProvider().equals(wifi))
                     .mapToDouble(Purchase::getDataUsed)
                     .sum();
             double totalDataSoldByMobile = totalDataSold - totalDataSoldByWifi;

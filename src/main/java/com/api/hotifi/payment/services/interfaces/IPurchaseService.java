@@ -1,8 +1,9 @@
 package com.api.hotifi.payment.services.interfaces;
 
+import com.api.hotifi.payment.entities.PurchaseOrder;
+import com.api.hotifi.payment.web.request.OrderRequest;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.PurchaseReceiptResponse;
-import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.WifiSummaryResponse;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,8 @@ public interface IPurchaseService {
 
     @Transactional(readOnly = true)
     boolean isCurrentSessionLegit(Long buyerId, Long sessionId, int dataToBeUsed);
+
+    PurchaseOrder addPurchaseOrder(OrderRequest orderRequest);
 
     PurchaseReceiptResponse addPurchase(PurchaseRequest purchaseRequest);
 

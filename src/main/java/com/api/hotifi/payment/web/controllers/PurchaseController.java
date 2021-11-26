@@ -7,7 +7,9 @@ import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.constants.messages.SuccessMessages;
 import com.api.hotifi.common.exception.errors.ErrorMessages;
 import com.api.hotifi.common.exception.errors.ErrorResponse;
+import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.payment.services.interfaces.IPurchaseService;
+import com.api.hotifi.payment.web.request.OrderRequest;
 import com.api.hotifi.payment.web.request.PurchaseRequest;
 import com.api.hotifi.payment.web.responses.*;
 import io.swagger.annotations.*;
@@ -35,6 +37,24 @@ public class PurchaseController {
 
     @Autowired
     private ICustomerAuthorizationService customerAuthorizationService;
+
+    @PostMapping(path = "/buyer/order", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Add Order For Purchase",
+            notes = "Add Order For Purchase",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = PurchaseReceiptResponse.class)
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer Token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<?> addPurchaseOrder(@RequestBody @Validated OrderRequest orderRequest) {
+        PurchaseOrder purchaseOrder =
+                (customerAuthorizationService.isAuthorizedByUserId(orderRequest.getBuyerId(), AuthorizationUtils.getUserToken())) ?
+                        purchaseService.addPurchaseOrder(orderRequest) : null;
+        return new ResponseEntity<>(purchaseOrder, HttpStatus.OK);
+    }
 
     @PostMapping(path = "/buyer", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(

@@ -18,4 +18,8 @@ public class PurchaseErrorMessages {
     public static final String PAYMENT_NOT_SUCCESSFUL = "Payment is not successful";
     public static final String BUYER_PENDING_REFUNDS_NOT_FOUND = "Buyer pending refunds not found";
     public static final String UPDATE_WIFI_SERVICE_BEFORE_FINISHING = "Update Wifi Service  before finishing";
+    public static final String ORDER_AMOUNT_MODIFIED = "Order amount has been modified";
+    public static final String UNEXPECTED_ORDER_ERROR = "Unexpected Order Error Occurred";
+    public static final String CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH = "Signature mismatch between client and server payment";
+
 }

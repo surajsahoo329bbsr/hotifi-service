@@ -3,6 +3,7 @@ package com.api.hotifi.payment.utils;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.payment.entities.Purchase;
 import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
+import com.api.hotifi.payment.processor.codes.OrderStatusCodes;
 import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
 import com.api.hotifi.session.entity.Session;
 import org.json.JSONObject;
@@ -14,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PaymentUtils {
@@ -37,7 +39,12 @@ public class PaymentUtils {
     }
 
     public static int getDataUsedSumOfSession(Session session) {
-        List<Purchase> purchases = session.getPurchases();
+        List<Purchase> purchases = session
+                .getPurchaseOrders()
+                .stream()
+                .filter(order -> order.getStatus().equals(OrderStatusCodes.PAID.name()))
+                .flatMap(map -> map.getPurchases().stream()).collect(Collectors.toList());
+
         Supplier<Stream<Purchase>> dataStreamSupplier = purchases::stream;
         double finishedDataSum = dataStreamSupplier.get()
                 .filter(p -> p.getStatus() % BusinessConfigurations.PAYMENT_METHOD_START_VALUE_CODE >= BuyerPaymentCodes.FINISH_WIFI_SERVICE.value())

@@ -2,11 +2,9 @@ package com.api.hotifi.payment.processor;
 
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.payment.entities.Purchase;
+import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.payment.entities.SellerReceipt;
-import com.api.hotifi.payment.processor.codes.BuyerPaymentCodes;
-import com.api.hotifi.payment.processor.codes.PaymentGatewayCodes;
-import com.api.hotifi.payment.processor.codes.PaymentMethodCodes;
-import com.api.hotifi.payment.processor.codes.SellerPaymentCodes;
+import com.api.hotifi.payment.processor.codes.*;
 import com.api.hotifi.payment.processor.razorpay.RazorpayProcessor;
 import com.api.hotifi.payment.processor.razorpay.codes.PaymentStatusCodes;
 import com.api.hotifi.payment.processor.razorpay.codes.RefundStatusCodes;
@@ -16,6 +14,7 @@ import com.api.hotifi.payment.repositories.SellerReceiptRepository;
 import com.api.hotifi.payment.utils.PaymentUtils;
 import com.api.hotifi.payment.web.responses.RefundReceiptResponse;
 import com.api.hotifi.payment.web.responses.SellerReceiptResponse;
+import com.razorpay.Order;
 import com.razorpay.Payment;
 import com.razorpay.Refund;
 import com.razorpay.Transfer;
@@ -56,6 +55,60 @@ public class PaymentProcessor {
                 break;
         }
 
+    }
+
+    public PurchaseOrder addBuyerOrder(BigDecimal amountOrder, String currency) {
+        switch (paymentGatewayCodes) {
+            case RAZORPAY:
+                Order order = razorpayProcessor
+                        .createOrder(amountOrder.multiply(BigDecimal.valueOf(100)).intValue(), currency);
+
+                String orderId = order.get("id");
+                BigDecimal amount = PaymentUtils
+                        .divideThenMultiplyCeilingTwoScale(new BigDecimal(order.get("amount").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+                BigDecimal amountPaid = PaymentUtils
+                        .divideThenMultiplyCeilingTwoScale(new BigDecimal(order.get("amount_paid").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+                BigDecimal amountDue = PaymentUtils
+                        .divideThenMultiplyCeilingTwoScale(new BigDecimal(order.get("amount_due").toString()), BigDecimal.valueOf(100), BigDecimal.ONE);
+
+                String status = order.get("status");
+                int attempts = Integer.parseInt(order.get("attempts").toString());
+                Date createdAt = order.get("created_at");
+                Date modifiedAt = new Date(System.currentTimeMillis());
+
+                PurchaseOrder purchaseOrderEntity = new PurchaseOrder();
+                purchaseOrderEntity.setOrderId(orderId);
+                purchaseOrderEntity.setAmount(amount);
+                purchaseOrderEntity.setAmountPaid(amountPaid);
+                purchaseOrderEntity.setAmountDue(amountDue);
+                purchaseOrderEntity.setStatus(OrderStatusCodes.valueOf(status.toUpperCase()).name());
+                purchaseOrderEntity.setAttempts(attempts);
+                purchaseOrderEntity.setOrderCreatedAt(createdAt);
+                purchaseOrderEntity.setOrderModifiedAt(modifiedAt);
+
+                return purchaseOrderEntity;
+            case STRIPE:
+                log.info("STRIPE PAYMENT");
+                break;
+            case PAYPAL:
+                log.info("PAYPAL PAYMENT");
+                break;
+        }
+        return null;
+    }
+
+    public Order getPurchaseOrder(String orderId) {
+        switch (paymentGatewayCodes) {
+            case RAZORPAY:
+                return razorpayProcessor.fetchOrderById(orderId);
+            case STRIPE:
+                log.info("STRIPE PAYMENT");
+                break;
+            case PAYPAL:
+                log.info("PAYPAL PAYMENT");
+                break;
+        }
+        return null;
     }
 
     public Purchase getBuyerPurchase(String paymentId, BigDecimal amountPaid) {

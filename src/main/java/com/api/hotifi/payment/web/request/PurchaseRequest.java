@@ -17,6 +17,14 @@ public class PurchaseRequest {
     @Length(max = 255, message = "{payment.id.invalid}")
     private String paymentId;
 
+    @NotBlank(message = "{order.id.blank}")
+    @Length(max = 255, message = "{order.id.invalid}")
+    private String orderId;
+
+    @NotBlank(message = "{client.razorpay.signature.blank}")
+    @Length(max = 2048, message = "{client.razorpay.signature.invalid")
+    private String clientRazorpaySignature;
+
     @Range(min = 1, message = "{session.id.invalid}")
     private Long sessionId;
 

@@ -187,8 +187,8 @@ public class SessionServiceImpl implements ISessionService {
                             .collect(Collectors.toList());
             purchases.forEach(purchase -> {
                 Buyer buyer = new Buyer();
-                buyer.setUsername(purchase.getUser().getUsername());
-                buyer.setPhotoUrl(purchase.getUser().getPhotoUrl());
+                buyer.setUsername(purchase.getPurchaseOrder().getUser().getUsername());
+                buyer.setPhotoUrl(purchase.getPurchaseOrder().getUser().getPhotoUrl());
                 buyer.setMacAddress(purchase.getMacAddress());
                 buyer.setIpAddress(purchase.getIpAddress());
                 buyer.setStatus(purchase.getStatus());
@@ -205,7 +205,7 @@ public class SessionServiceImpl implements ISessionService {
                 //Add user status abnormal activities logic
                 if (PaymentUtils.isAbnormalBehaviour(currentTime, lastModifiedAt) && isActive) {
                     UserStatusRequest userStatusRequest = new UserStatusRequest();
-                    userStatusRequest.setUserId(purchase.getUser().getId());
+                    userStatusRequest.setUserId(purchase.getPurchaseOrder().getUser().getId());
                     userStatusRequest.setWarningReason("Abnormal Activity");
                     userStatusRequest.setPurchaseId(purchase.getId());
                     userStatusRequest.setRole(RoleName.CUSTOMER.name());
