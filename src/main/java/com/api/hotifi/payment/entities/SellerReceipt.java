@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.entities;
 
+import com.api.hotifi.identity.entities.Authentication;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,8 +50,18 @@ public class SellerReceipt implements Serializable {
     @Column(nullable = false)
     private Date createdAt = new Date(System.currentTimeMillis());
 
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "created_by", referencedColumnName = "id", nullable = false)
+    private Authentication createdBy;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedAt;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "modified_by", referencedColumnName = "id")
+    private Authentication modifiedBy;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date paidAt; // Time at which amount is paid to the seller

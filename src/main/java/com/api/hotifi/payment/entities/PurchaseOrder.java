@@ -24,14 +24,22 @@ public class PurchaseOrder implements Serializable {
     @Column(nullable = false)
     private String orderId;
 
+    //Below 2 attributes are of money transaction
     @Column(nullable = false)
-    private BigDecimal amount;
+    private BigDecimal amount; //This can be zero
 
     @Column(nullable = false)
-    private BigDecimal amountPaid;
+    private BigDecimal amountPaid; //This can be zero
 
     @Column(nullable = false)
-    private BigDecimal amountDue;
+    private BigDecimal amountDue; //This can be zero
+
+    //Below 2 attributes are because of offers
+    @Column(nullable = false)
+    private BigDecimal amountTotal; // This is always more than zero
+
+    @Column(nullable = false)
+    private BigDecimal amountDiscount; /** This is cannot be more than amountTotal  **/
 
     @Column(columnDefinition = "INT", nullable = false)
     private int data;

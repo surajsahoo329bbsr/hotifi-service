@@ -18,4 +18,9 @@ public class AuthorizationUtils {
                 .anyMatch(role -> role.getAuthority().equals(RoleName.ADMINISTRATOR.name()));
     }
 
+    public static String getAdministratorEmail(){
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
+    }
+
 }

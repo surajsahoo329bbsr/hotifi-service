@@ -22,7 +22,7 @@ public class OrderRequest {
     @Range(min = BusinessConfigurations.MINIMUM_BUYING_DATA_MB, message = "{min.data.range.invalid}")
     private int data;
 
-    @Range(min = BusinessConfigurations.MINIMUM_AMOUNT_INR, message = "{min.amount.range.invalid}")
+    @Range(min = BusinessConfigurations.MINIMUM_PURCHASE_AMOUNT, message = "{min.amount.range.invalid}")
     private BigDecimal amount;
 
 }

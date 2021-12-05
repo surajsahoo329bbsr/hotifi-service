@@ -266,11 +266,11 @@ public class PaymentServiceImpl implements IPaymentService {
 
         Date now = new Date(System.currentTimeMillis());
 
-        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT_BEFORE_MATURITY)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
                 throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
-            if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0)
+            if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0)
                 throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
         }
 
@@ -466,11 +466,11 @@ public class PaymentServiceImpl implements IPaymentService {
 
         Date now = new Date(System.currentTimeMillis());
 
-        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT_BEFORE_MATURITY)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             if (!PaymentUtils.isSellerPaymentDue(now, lastPaidAt))
                 throw new HotifiException(SellerPaymentErrorCodes.WITHDRAW_AMOUNT_PERIOD_ERROR);
-            if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0)
+            if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0)
                 throw new HotifiException(SellerPaymentErrorCodes.MINIMUM_WITHDRAWAL_AMOUNT_ERROR);
         }
 
@@ -568,10 +568,10 @@ public class PaymentServiceImpl implements IPaymentService {
         boolean isWithdrawalClaimNotified = sellerPayment.isWithdrawalClaimNotified();
         String transferErrorDescription = sellerPayment.getTransferErrorDescription();
 
-        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0) {
+        if (sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT_BEFORE_MATURITY)) < 0) {
             Date lastPaidAt = sellerPayment.getLastPaidAt() != null ? sellerPayment.getLastPaidAt() : sellerPayment.getCreatedAt();
             boolean isSellerPaymentDue = !PaymentUtils.isSellerPaymentDue(now, lastPaidAt);
-            boolean isMinimumWithdrawalAmount = sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_AMOUNT_INR)) < 0;
+            boolean isMinimumWithdrawalAmount = sellerAmountPaid.compareTo(BigDecimal.valueOf(BusinessConfigurations.MINIMUM_WITHDRAWAL_AMOUNT)) < 0;
             if (isSellerPaymentDue || isMinimumWithdrawalAmount)
                 return new PendingMoneyResponse(false, sellerAmountPaid, isWithdrawalClaimNotified,
                         transferErrorDescription, lastPaidAt, false, buyerRefund, null);

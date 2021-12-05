@@ -1,5 +1,6 @@
 package com.api.hotifi.identity.entities;
 
+import com.api.hotifi.offer.entities.Referrer;
 import com.api.hotifi.payment.entities.BankAccount;
 import com.api.hotifi.payment.entities.PurchaseOrder;
 import com.api.hotifi.speedtest.entity.SpeedTest;
@@ -81,6 +82,10 @@ public class User implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date loggedAt = new Timestamp(System.currentTimeMillis());
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Referrer> referrers;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package com.api.hotifi.payment.entities;
 
+import com.api.hotifi.offer.entities.Offer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,5 +69,9 @@ public class Purchase implements Serializable {
 
     @Column(nullable = false)
     private BigDecimal amountRefund;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "offer_id", referencedColumnName = "id", nullable = false)
+    private Offer offer;
 
 }

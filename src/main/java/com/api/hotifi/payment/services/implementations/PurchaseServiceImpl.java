@@ -134,6 +134,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
         try {
             String clientRazorpaySignature = purchaseRequest.getClientRazorpaySignature();
+            //TODO
+            if(clientRazorpaySignature == null){
+
+            }
+
             boolean isPaymentAuthentic = RazorpayVerificationUtils.verifyRazorpaySignature(orderId, paymentId, clientRazorpaySignature);
             if (!isPaymentAuthentic)
                 throw new HotifiException(PurchaseErrorCodes.CLIENT_SERVER_PAYMENT_SIGNATURE_MISMATCH);
