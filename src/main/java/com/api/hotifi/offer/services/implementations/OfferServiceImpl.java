@@ -150,6 +150,11 @@ public class OfferServiceImpl implements IOfferService {
     }
 
     @Override
+    public void verifyOffer(Long userId, String offerCode) {
+
+    }
+
+    @Override
     @Transactional
     public void deactivateOfferBeforeExpiry(Long offerId, String adminEmail, String deactivateBeforeExpiryReason) {
         Authentication authentication = authenticationRepository.findByEmail(adminEmail);

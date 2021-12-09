@@ -33,7 +33,6 @@ public class Referrer implements Serializable {
     @Column(nullable = false)
     private String referralCode;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "offer_id", nullable = false)
     private Offer offer;
@@ -45,9 +44,7 @@ public class Referrer implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "referrer", fetch = FetchType.LAZY)
     private List<Referent> referents;
-
 
 }

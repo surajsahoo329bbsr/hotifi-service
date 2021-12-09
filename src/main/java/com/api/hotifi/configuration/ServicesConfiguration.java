@@ -10,7 +10,6 @@ import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.IFirebaseMessagingService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
 import com.api.hotifi.common.services.interfaces.IVerificationService;
-import com.api.hotifi.identity.entities.Authentication;
 import com.api.hotifi.identity.repositories.*;
 import com.api.hotifi.identity.services.implementations.AuthenticationServiceImpl;
 import com.api.hotifi.identity.services.implementations.DeviceServiceImpl;
@@ -21,8 +20,11 @@ import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.services.interfaces.IUserService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.offer.repositories.OfferRepository;
+import com.api.hotifi.offer.repositories.ReferrerRepository;
 import com.api.hotifi.offer.services.implementations.OfferServiceImpl;
+import com.api.hotifi.offer.services.implementations.ReferrerServiceImpl;
 import com.api.hotifi.offer.services.interfaces.IOfferService;
+import com.api.hotifi.offer.services.interfaces.IReferrerService;
 import com.api.hotifi.payment.repositories.*;
 import com.api.hotifi.payment.services.implementations.*;
 import com.api.hotifi.payment.services.interfaces.*;
@@ -115,8 +117,13 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IOfferService offerService(AuthenticationRepository authenticationRepository, OfferRepository offerRepository){
+    public IOfferService offerService(AuthenticationRepository authenticationRepository, OfferRepository offerRepository) {
         return new OfferServiceImpl(authenticationRepository, offerRepository);
+    }
+
+    @Bean
+    public IReferrerService referrerService(ReferrerRepository referrerRepository, UserRepository userRepository) {
+        return new ReferrerServiceImpl(referrerRepository, userRepository);
     }
 
 }

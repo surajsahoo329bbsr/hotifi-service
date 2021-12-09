@@ -18,6 +18,8 @@ public interface IOfferService {
 
     void activateOffer(Long offerId, String adminEmail);
 
+    void verifyOffer(Long userId, String offerCode);
+
     void deactivateOfferBeforeExpiry(Long offerId, String adminEmail, String deactivateBeforeExpiryReason);
 
 }
