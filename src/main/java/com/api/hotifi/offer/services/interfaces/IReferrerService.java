@@ -4,7 +4,7 @@ import com.api.hotifi.offer.entities.Referrer;
 
 public interface IReferrerService {
 
-    String addReferral(Long userId);
+    String addOrUpdateReferral(Long userId);
 
     void verifyReferral(String referrerCode);
 

@@ -122,8 +122,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public IReferrerService referrerService(ReferrerRepository referrerRepository, UserRepository userRepository) {
-        return new ReferrerServiceImpl(referrerRepository, userRepository);
+    public IReferrerService referrerService(ReferrerRepository referrerRepository, UserRepository userRepository, IOfferService offerService) {
+        return new ReferrerServiceImpl(referrerRepository, userRepository, offerService);
     }
 
 }

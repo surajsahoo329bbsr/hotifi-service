@@ -1,5 +1,12 @@
 package com.api.hotifi.offer.utils;
 
+import com.api.hotifi.offer.entities.Offer;
+import com.api.hotifi.offer.repositories.OfferRepository;
+import com.api.hotifi.offer.repositories.ReferrerRepository;
+import com.api.hotifi.offer.services.interfaces.IOfferService;
+import com.api.hotifi.offer.web.responses.OfferResponse;
+
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -50,6 +57,12 @@ public class OfferUtils {
         }
 
         return REFERRAL_CODE_PREFIX + stringBuilder;
+    }
+
+    public static void addReferral(Long referenceUserId, ReferrerRepository referrerRepository, IOfferService offerService){
+        //OfferResponse activeOfferResponse = offerService.findAllActiveOffers()
+          //      .stream().filter(offer -> offer.getOfferType().equals(""));
+
     }
 
     /*public static String generateReferralCode(Long referrerUserId) {

@@ -74,6 +74,40 @@ public class SessionController {
         return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/active/district/{postalCode}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Active Session Details In District",
+            notes = "Get Active Session Details In District",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = ActiveSessionsResponse.class, responseContainer = "List")
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> getActiveSessionsInDistrict(@PathVariable(value = "postalCode") String postalCode) {
+        List<ActiveSessionsResponse> activeSessionsResponses = sessionService.getActiveSessionsInDistrict(postalCode);
+        return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/active/nearby/{postalCode}/{nearbySessionCount}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(
+            value = "Get Nearby Active Session Details",
+            notes = "Get Nearby Active Session Details",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = ErrorMessages.INTERNAL_ERROR, response = ErrorResponse.class),
+            @ApiResponse(code = 200, message = SuccessMessages.OK, response = ActiveSessionsResponse.class, responseContainer = "List")
+    })
+    @ApiImplicitParams(value = @ApiImplicitParam(name = "Authorization", value = "Bearer token", required = true, dataType = "string", paramType = "header"))
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<?> getNearbyActiveSessions(@Range(min = -90, max = 90, message = "{buyer.longitude.invalid}") @PathVariable(value = "buyerLongitude") double buyerLongitude,
+                                                     @Range(min = -180, max = 180, message = "{buyer.latitude.invalid}") @PathVariable(value = "buyerLatitude") double buyerLatitude,
+                                                     @Range(min = 1, message = "{nearby.sessions.count.invalid}") @PathVariable(value = "nearbySessionCount") int nearbySessionCount) {
+        List<ActiveSessionsResponse> activeSessionsResponses = sessionService.getNearbyActiveSessions(buyerLongitude, buyerLatitude, nearbySessionCount);
+        return new ResponseEntity<>(activeSessionsResponses, HttpStatus.OK);
+    }
+
     @GetMapping(path = "/buyers/{session-id}/{is-active}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(
             value = "Get Buyer's List By Session Id",
@@ -90,7 +124,7 @@ public class SessionController {
                                        @PathVariable(value = "is-active") boolean isActive) {
         List<Buyer> getBuyers =
                 AuthorizationUtils.isAdministratorRole() || customerAuthorizationService.isAuthorizedBySessionId(sessionId, AuthorizationUtils.getUserToken()) ?
-                sessionService.getBuyers(sessionId, isActive) : null;
+                        sessionService.getBuyers(sessionId, isActive) : null;
         return new ResponseEntity<>(getBuyers, HttpStatus.OK);
     }
 

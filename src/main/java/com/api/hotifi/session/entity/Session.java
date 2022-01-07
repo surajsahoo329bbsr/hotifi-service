@@ -44,6 +44,12 @@ public class Session implements Serializable {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(columnDefinition = "DECIMAL(10,15)", nullable = false)
+    private double longitude = 1000.0;
+
+    @Column(columnDefinition = "DECIMAL(10,15)", nullable = false)
+    private double latitude = 1000.0;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date createdAt = new Date(System.currentTimeMillis());

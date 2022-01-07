@@ -30,4 +30,8 @@ public class ActiveSessionsResponse {
 
     private double data;
 
+    private double longitude;
+
+    private double latitude;
+
 }

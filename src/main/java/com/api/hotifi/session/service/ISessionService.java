@@ -16,6 +16,10 @@ public interface ISessionService {
 
     List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames);
 
+    List<ActiveSessionsResponse> getActiveSessionsInDistrict(String postalCode);
+
+    List<ActiveSessionsResponse> getNearbyActiveSessions(double buyerLongitude, double buyerLatitude, int nearbySessionsLimit);
+
     List<Buyer> getBuyers(Long sessionId, boolean isActive);
 
     void sendNotificationsToFinishSession(Long sessionId);

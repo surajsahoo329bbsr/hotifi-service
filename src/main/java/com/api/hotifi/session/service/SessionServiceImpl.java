@@ -25,6 +25,7 @@ import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.error.SessionErrorCodes;
 import com.api.hotifi.session.model.Buyer;
 import com.api.hotifi.session.repository.SessionRepository;
+import com.api.hotifi.session.utils.LocationUtils;
 import com.api.hotifi.session.web.request.SessionRequest;
 import com.api.hotifi.session.web.response.ActiveSessionsResponse;
 import com.api.hotifi.session.web.response.SessionSummaryResponse;
@@ -114,6 +115,43 @@ public class SessionServiceImpl implements ISessionService {
         }
     }
 
+    private List<ActiveSessionsResponse> getActiveSessionsBySpeedTestMapping(Map<Long, List<SpeedTest>> speedTests) {
+        List<ActiveSessionsResponse> activeSessionsResponses = new ArrayList<>();
+
+        speedTests.forEach((sellerId, speedTestList) -> {
+            List<Long> speedTestIds = speedTestList.stream()
+                    .map(SpeedTest::getId)
+                    .collect(Collectors.toList());
+
+            Map<SpeedTest, Session> sessions = sessionRepository.findActiveSessionsBySpeedTestIds(speedTestIds)
+                    .stream()
+                    .collect(Collectors.toMap(Session::getSpeedTest, Function.identity(),
+                            BinaryOperator.maxBy(Comparator.comparing(Session::getId))));
+
+            sessions.forEach((speedTest, session) -> {
+                double availableData = session.getData() - session.getDataUsed();
+                double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
+                double uploadSpeed = session.getSpeedTest().getUploadSpeed();
+                ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
+                activeSessionsResponse.setSessionId(session.getId());
+                activeSessionsResponse.setSellerId(speedTest.getUser().getId());
+                activeSessionsResponse.setUsername(speedTest.getUser().getUsername());
+                activeSessionsResponse.setUserPhotoUrl(speedTest.getUser().getPhotoUrl());
+                activeSessionsResponse.setNetworkProvider(speedTest.getNetworkProvider());
+                activeSessionsResponse.setData(availableData);
+                activeSessionsResponse.setPrice(session.getPrice());
+                activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(speedTest.getUser().getId()));
+                activeSessionsResponse.setDownloadSpeed(downloadSpeed);
+                activeSessionsResponse.setUploadSpeed(uploadSpeed);
+                activeSessionsResponse.setLongitude(session.getLongitude());
+                activeSessionsResponse.setLatitude(session.getLatitude());
+                activeSessionsResponses.add(activeSessionsResponse);
+            });
+        });
+
+        return activeSessionsResponses;
+    }
+
     @Transactional
     @Override
     public List<ActiveSessionsResponse> getActiveSessions(Set<String> usernames) {
@@ -127,40 +165,46 @@ public class SessionServiceImpl implements ISessionService {
             Map<Long, List<SpeedTest>> speedTests = speedTestRepository.findSpeedTestsByUserIds(userIds, pageable)
                     .stream()
                     .collect(Collectors.groupingBy(speedTest -> speedTest.getUser().getId()));
-            List<ActiveSessionsResponse> activeSessionsResponses = new ArrayList<>();
+            return getActiveSessionsBySpeedTestMapping(speedTests);
+        } catch (Exception e) {
+            log.error("Error occurred ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
+        }
+    }
 
-            speedTests.forEach((sellerId, speedTestList) -> {
-                //Long sellerId = entry.getKey();
-                List<Long> speedTestIds = speedTestList.stream()
-                        .map(SpeedTest::getId)
-                        .collect(Collectors.toList());
+    @Override
+    public List<ActiveSessionsResponse> getActiveSessionsInDistrict(String postalCode) {
+        try {
+            String districtPincode = postalCode.substring(0, 4); //First 3 digits determines district pincode in India
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+            Map<Long, List<SpeedTest>> speedTests = sessionRepository.findAll(pageable)
+                    .stream().filter(session -> session.getFinishedAt() != null)
+                    .map(Session::getSpeedTest)
+                    .filter(speedTest -> speedTest.getPinCode().substring(0, 4).equals(districtPincode))
+                    .collect(Collectors.groupingBy(speedTest -> speedTest.getUser().getId()));
 
-                Map<SpeedTest, Session> sessions = sessionRepository.findActiveSessionsBySpeedTestIds(speedTestIds)
-                        .stream()
-                        .collect(Collectors.toMap(Session::getSpeedTest, Function.identity(),
-                                BinaryOperator.maxBy(Comparator.comparing(Session::getId))));
+            return getActiveSessionsBySpeedTestMapping(speedTests);
+        } catch (Exception e) {
+            log.error("Error occurred ", e);
+            throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
+        }
+    }
 
-                sessions.forEach((speedTest, session) -> {
-                    double availableData = session.getData() - session.getDataUsed();
-                    //BigDecimal availableDataPrice = PaymentUtils
-                    //.divideThenMultiplyCeilingZeroScale(session.getPrice(), BigDecimal.valueOf(BusinessConfigurations.UNIT_GB_VALUE_IN_MB), BigDecimal.valueOf(availableData));
-                    double downloadSpeed = session.getSpeedTest().getDownloadSpeed();
-                    double uploadSpeed = session.getSpeedTest().getUploadSpeed();
-                    ActiveSessionsResponse activeSessionsResponse = new ActiveSessionsResponse();
-                    activeSessionsResponse.setSessionId(session.getId());
-                    activeSessionsResponse.setSellerId(speedTest.getUser().getId());
-                    activeSessionsResponse.setUsername(speedTest.getUser().getUsername());
-                    activeSessionsResponse.setUserPhotoUrl(speedTest.getUser().getPhotoUrl());
-                    activeSessionsResponse.setNetworkProvider(speedTest.getNetworkProvider());
-                    activeSessionsResponse.setData(availableData);
-                    activeSessionsResponse.setPrice(session.getPrice());
-                    activeSessionsResponse.setAverageRating(feedbackService.getAverageRating(speedTest.getUser().getId()));
-                    activeSessionsResponse.setDownloadSpeed(downloadSpeed);
-                    activeSessionsResponse.setUploadSpeed(uploadSpeed);
-                    activeSessionsResponses.add(activeSessionsResponse);
-                });
-            });
-            return activeSessionsResponses;
+
+    @Override
+    public List<ActiveSessionsResponse> getNearbyActiveSessions(double buyerLongitude, double buyerLatitude, int nearbySessionsLimit) {
+        try {
+            Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("created_at").descending());
+            List<Session> activeSessions = sessionRepository.findAll(pageable)
+                    .stream().filter(session -> session.getFinishedAt() != null)
+                    .collect(Collectors.toList());
+
+            Map<Long, List<SpeedTest>> getNearbyActiveSessions = LocationUtils.getNearbyActiveSessions(activeSessions, buyerLongitude, buyerLatitude, nearbySessionsLimit)
+                    .stream()
+                    .map(Session::getSpeedTest)
+                    .collect(Collectors.groupingBy(speedTest -> speedTest.getUser().getId()));
+
+            return getActiveSessionsBySpeedTestMapping(getNearbyActiveSessions);
         } catch (Exception e) {
             log.error("Error occurred ", e);
             throw new HotifiException(SessionErrorCodes.UNEXPECTED_SESSION_ERROR);
@@ -239,7 +283,7 @@ public class SessionServiceImpl implements ISessionService {
     @Override
     public void finishSession(Long sessionId, boolean isForceStop) {
         Session session = sessionRepository.findById(sessionId).orElse(null);
-        List<Buyer> buyers = getBuyers(sessionId, true);
+        //List<Buyer> buyers = getBuyers(sessionId, true);
         if (session == null)
             throw new HotifiException(PurchaseErrorCodes.SESSION_NOT_FOUND);
         if (session.getFinishedAt() != null)
