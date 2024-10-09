@@ -1,6 +1,5 @@
 package com.api.hotifi.identity.services.implementations;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.identity.entities.Authentication;
@@ -16,6 +15,7 @@ import com.api.hotifi.identity.services.interfaces.IDeviceService;
 import com.api.hotifi.identity.services.interfaces.IUserStatusService;
 import com.api.hotifi.identity.web.request.UserStatusRequest;
 import com.api.hotifi.payment.repositories.BankAccountRepository;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +32,12 @@ public class UserStatusServiceImpl implements IUserStatusService {
     private final BankAccountRepository bankAccountRepository;
     private final IDeviceService deviceService;
     private final IEmailService emailService;
+
+    @Value("${email.no-reply-address}")
+    private String noReplyEmailAddress;
+
+    @Value("${email.no-reply-password}")
+    private String noReplyEmailPassword;
 
     public UserStatusServiceImpl(AuthenticationRepository authenticationRepository, UserStatusRepository userStatusRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, IDeviceService deviceService, IEmailService emailService) {
         this.authenticationRepository = authenticationRepository;
@@ -160,8 +166,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
             if (freezeUser) {
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(noReplyEmailAddress);
+                emailModel.setFromEmailPassword(noReplyEmailPassword);
                 emailService.sendAccountFreezedEmail(user, emailModel);
             }
         }
@@ -185,8 +191,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
                 userRepository.save(user);
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(noReplyEmailAddress);
+                emailModel.setFromEmailPassword(noReplyEmailPassword);
                 emailService.sendBuyerBannedEmail(user, emailModel);
             }
             authentication.setBanned(banUser);
@@ -229,8 +235,8 @@ public class UserStatusServiceImpl implements IUserStatusService {
 
         EmailModel emailModel = new EmailModel();
         emailModel.setToEmail(toEmail);
-        emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-        emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+        emailModel.setFromEmail(noReplyEmailAddress);
+        emailModel.setFromEmailPassword(noReplyEmailPassword);
         emailService.sendAccountDeletedEmail(user, emailModel);
     }
 

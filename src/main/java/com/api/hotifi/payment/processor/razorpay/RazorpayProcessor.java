@@ -1,13 +1,17 @@
 package com.api.hotifi.payment.processor.razorpay;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.payment.error.RazorpayErrorCodes;
 import com.api.hotifi.payment.processor.response.Settlement;
 import com.razorpay.*;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -16,13 +20,23 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+
+@Slf4j
 public class RazorpayProcessor {
 
     RazorpayClient razorpayClient;
 
+    @Value("${razorpay.client}")
+    private String razorpayClientId;
+
+    @Value("${razorpay.secret}")
+    private String razorpayClientSecret;
+
+    private static final Logger logger = LoggerFactory.getLogger(RazorpayProcessor.class);
+
     public RazorpayProcessor() {
         try {
-            razorpayClient = new RazorpayClient(AppConfigurations.RAZORPAY_CLIENT_ID, AppConfigurations.RAZORPAY_CLIENT_SECRET);
+            razorpayClient = new RazorpayClient(razorpayClientId, razorpayClientSecret);
         } catch (RazorpayException e) {
             throw new HotifiException(RazorpayErrorCodes.INVALID_CLIENT_CREDENTIALS);
         }
@@ -117,7 +131,6 @@ public class RazorpayProcessor {
      *     }
      *   ]
      * }
-     *
      * */
 
     public List<Payment> fetchPaymentsByOrderId(String orderId) {
@@ -283,6 +296,8 @@ public class RazorpayProcessor {
      * ]
      * }
      */
+
+    //TODO
     public List<Payment> getPaymentsByLinkedAccount(String linkedAccountId) {
         try {
             razorpayClient.addHeaders(Map.of("X-Razorpay-Account", linkedAccountId));
@@ -311,6 +326,8 @@ public class RazorpayProcessor {
      * "speed_requested": "normal"
      * }
      */
+
+    //TODO
     public Refund startNormalFullRefund(String paymentId) {
         try {
             return razorpayClient.Payments.refund(paymentId);
@@ -344,7 +361,7 @@ public class RazorpayProcessor {
         try {
             return razorpayClient.Payments.refund(paymentId, refundRequest);
         } catch (RazorpayException e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
             throw new HotifiException(RazorpayErrorCodes.NORMAL_PARTIAL_REFUND_FAILED);
         }
     }
@@ -468,7 +485,7 @@ public class RazorpayProcessor {
         try {
             return razorpayClient.Transfers.create(jsonObject);
         } catch (RazorpayException e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
             throw new HotifiException(RazorpayErrorCodes.TRANSFER_FAILED);
         }
     }
@@ -519,21 +536,9 @@ public class RazorpayProcessor {
             String url = "https://api.razorpay.com/v1/settlements/" + settlementId;
             URL obj = new URL(url);
             String encoded = Base64.getEncoder()
-                    .encodeToString((AppConfigurations.RAZORPAY_CLIENT_ID + ":" + AppConfigurations.RAZORPAY_CLIENT_SECRET)
+                    .encodeToString((razorpayClientId + ":" + razorpayClientSecret)
                             .getBytes(StandardCharsets.UTF_8));
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-            connection.setRequestProperty("Authorization", "Basic " + encoded);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            while ((inputLine = bufferedReader.readLine()) != null) {
-                response.append(inputLine);
-            }
-            bufferedReader.close();
-            //Read JSON response and print
-            JSONObject jsonObject = new JSONObject(response.toString());
+            JSONObject jsonObject = getJsonObject(obj, encoded);
             String id = jsonObject.getString("id");
             String entity = jsonObject.getString("entity");
             int amount = jsonObject.getInt("amount");
@@ -545,9 +550,25 @@ public class RazorpayProcessor {
             return new Settlement(id, entity, amount, status, fees, tax, utr, createdAt);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
         }
 
         return null;
+    }
+
+    private static JSONObject getJsonObject(URL obj, String encoded) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+        connection.setRequestProperty("Authorization", "Basic " + encoded);
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Content-Type", "application/json");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while ((inputLine = bufferedReader.readLine()) != null) {
+            response.append(inputLine);
+        }
+        bufferedReader.close();
+        //Read JSON response and print
+        return new JSONObject(response.toString());
     }
 }

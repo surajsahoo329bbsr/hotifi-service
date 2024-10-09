@@ -1,6 +1,5 @@
 package com.api.hotifi.identity.utils;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.common.constants.configurations.BusinessConfigurations;
 import com.api.hotifi.common.exception.HotifiException;
 import com.api.hotifi.identity.entities.Authentication;
@@ -9,6 +8,7 @@ import com.api.hotifi.identity.models.EmailModel;
 import com.api.hotifi.identity.repositories.AuthenticationRepository;
 import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,12 @@ public class OtpUtils {
 
     @Autowired
     private IEmailService emailService;
+
+    @Value("${email.no-reply-address}")
+    private static String noReplyEmailAddress;
+
+    @Value("${email.no-reply-password}")
+    private static String noReplyEmailPassword;
 
     public static String generateEmailOtp() {
         //do stuff
@@ -71,8 +77,8 @@ public class OtpUtils {
             //Populating email model with values
             EmailModel emailModel = new EmailModel();
             emailModel.setToEmail(authentication.getEmail());
-            emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-            emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+            emailModel.setFromEmail(noReplyEmailAddress);
+            emailModel.setFromEmailPassword(noReplyEmailPassword);
             emailModel.setEmailOtp(emailOtp);
 
             emailService.sendEmailOtpEmail(emailModel);

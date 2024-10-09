@@ -32,6 +32,7 @@ import com.api.hotifi.session.web.response.SessionSummaryResponse;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.api.hotifi.speedtest.repository.SpeedTestRepository;
 import com.api.hotifi.speedtest.service.ISpeedTestService;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,9 @@ public class SessionServiceImpl implements ISessionService {
     private final IUserStatusService userStatusService;
     private final INotificationService notificationService;
 
+    @Value("{business.aes.secret-key}")
+    private String businessAESSecretKey;
+
     public SessionServiceImpl(UserRepository userRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, SellerPaymentRepository sellerPaymentRepository, PurchaseRepository purchaseRepository, ISpeedTestService speedTestService, IFeedbackService feedbackService, IUserStatusService userStatusService, INotificationService notificationService) {
         this.userRepository = userRepository;
         this.speedTestRepository = speedTestRepository;
@@ -83,7 +87,7 @@ public class SessionServiceImpl implements ISessionService {
         SpeedTest speedTest = speedTestService.getLatestSpeedTest(sessionRequest.getUserId(), sessionRequest.getPinCode(), sessionRequest.isWifi());
         if (speedTest == null && sessionRequest.isWifi())
             throw new HotifiException(SessionErrorCodes.WIFI_SPEED_TEST_ABSENT);
-        if (speedTest == null && !sessionRequest.isWifi())
+        if (speedTest == null)
             throw new HotifiException(SessionErrorCodes.SPEED_TEST_ABSENT);
 
         SellerPayment sellerPayment = sellerPaymentRepository.findSellerPaymentBySellerId(user.getId());
@@ -102,7 +106,7 @@ public class SessionServiceImpl implements ISessionService {
             sessionRepository.updatePreviousSessionsFinishTimeIfNull(speedTestIds, finishedAt);
 
             //Everything is fine, so encrypt the password
-            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), BusinessConfigurations.AES_PASSWORD_SECRET_KEY);
+            String encryptedString = AESUtils.encrypt(sessionRequest.getWifiPassword(), businessAESSecretKey);
             Session session = new Session();
             session.setSpeedTest(speedTest);
             session.setData(sessionRequest.getData());

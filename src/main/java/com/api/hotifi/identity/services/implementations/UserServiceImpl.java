@@ -20,9 +20,13 @@ import com.api.hotifi.identity.web.request.UserRequest;
 import com.api.hotifi.identity.web.response.CredentialsResponse;
 import com.api.hotifi.identity.web.response.FacebookDeletionResponse;
 import com.api.hotifi.identity.web.response.FacebookDeletionStatusResponse;
+import com.api.hotifi.payment.processor.razorpay.RazorpayProcessor;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +40,24 @@ public class UserServiceImpl implements IUserService {
     private final AuthenticationRepository authenticationRepository;
     private final IEmailService emailService;
     private final IVerificationService verificationService;
+
+    @Value("${email.host}")
+    private String emailHost;
+
+    @Value("${email.no-reply-address}")
+    private String noReplyEmailAddress;
+
+    @Value("${email.no-reply-password}")
+    private String noReplyEmailPassword;
+
+    @Value("${facebook.app.secret}")
+    private String facebookAppSecret;
+
+    @Value("${facebook.app.deletion-status-url}")
+    private String facebookDeletionStatusUrl;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
 
     public UserServiceImpl(UserRepository userRepository, AuthenticationRepository authenticationRepository, IEmailService emailService, IVerificationService verificationService) {
         this.userRepository = userRepository;
@@ -68,8 +90,8 @@ public class UserServiceImpl implements IUserService {
 
             EmailModel emailModel = new EmailModel();
             emailModel.setToEmail(authentication.getEmail());
-            emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-            emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+            emailModel.setFromEmail(noReplyEmailAddress);
+            emailModel.setFromEmailPassword(noReplyEmailPassword);
             emailService.sendWelcomeEmail(user, emailModel);
         } catch (DataIntegrityViolationException e) {
             throw new HotifiException(UserErrorCodes.USER_EXISTS);
@@ -218,10 +240,10 @@ public class UserServiceImpl implements IUserService {
     public FacebookDeletionResponse deleteFacebookUserData(String signedRequest) {
         FacebookProcessor facebookProcessor = new FacebookProcessor();
         try {
-            JSONObject jsonObject = facebookProcessor.parseFacebookSignedRequest(signedRequest, AppConfigurations.FACEBOOK_APP_SECRET);
+            JSONObject jsonObject = facebookProcessor.parseFacebookSignedRequest(signedRequest, facebookAppSecret);
             String facebookUserId = jsonObject.getString("user_id");
             String confirmationCode = "FB" + OtpUtils.generateEmailOtp();
-            String url = AppConfigurations.FACEBOOK_DELETION_STATUS_URL + facebookUserId + "/" + confirmationCode;
+            String url = facebookDeletionStatusUrl + facebookUserId + "/" + confirmationCode;
 
             //Saving Deletion Request
             User user = userRepository.findByFacebookId(facebookUserId);
@@ -232,7 +254,7 @@ public class UserServiceImpl implements IUserService {
 
             return new FacebookDeletionResponse(url, confirmationCode);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
         }
         return null;
     }

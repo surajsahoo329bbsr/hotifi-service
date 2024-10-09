@@ -8,6 +8,7 @@ import com.api.hotifi.common.services.interfaces.IEmailService;
 import com.api.hotifi.common.services.interfaces.INotificationService;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.models.EmailModel;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,6 +26,12 @@ import java.nio.charset.StandardCharsets;
 public class EmailServiceImpl implements IEmailService {
 
     private final INotificationService notificationService;
+
+    @Value("${email.host}")
+    private String emailHost;
+
+    @Value("${email.port}")
+    private Integer emailPort;
 
     public EmailServiceImpl(INotificationService notificationService) {
         this.notificationService = notificationService;
@@ -155,7 +162,7 @@ public class EmailServiceImpl implements IEmailService {
                 .withHTMLText(htmlContent)
                 .buildEmail();
         Mailer mailer = MailerBuilder
-                .withSMTPServer(AppConfigurations.EMAIL_HOST, AppConfigurations.EMAIL_PORT, emailModel.getFromEmail(), emailModel.getFromEmailPassword())
+                .withSMTPServer(emailHost, emailPort, emailModel.getFromEmail(), emailModel.getFromEmailPassword())
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withSessionTimeout(10 * 1000)
                 .async()

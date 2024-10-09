@@ -1,0 +1,93 @@
+server:
+  servlet:
+    context-path: /
+  port: 5000
+  error:
+    include-stacktrace: never
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  datasource:
+    # driver-class-code: com.mysql.cj.jdbc.Driver - Required for localhost Db conn
+    max-active: 10
+    max-wait: 10000
+    min-active: 5
+    password: ${DATABASE_PWD}
+    test-on-borrow: true
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    validationQuery: SELECT 1
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        temp:
+          use_jdbc_metadata_defaults: false
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
+api-platform:
+  oauth:
+    token:
+      timeout: 300
+    refresh-token:
+      timeout: 3600
+    client: ${OAUTH2_CLIENT_ID}
+    secret: ${OAUTH2_CLIENT_SECRET}
+    signing-key: api-connect
+    grant-types:
+      - password
+      - refresh_token
+      - implicit
+    scopes:
+      - read
+      - write
+      - trust
+
+business:
+  aes:
+    secret-key: ${BUSINESS_AES_SECRET_KEY}
+
+email:
+  host: smtp.gmail.com
+  port: 587
+  no-reply-address: ${NO_REPLY_EMAIL_ADDRESS}
+  no-reply-password: ${NO_REPLY_EMAIL_PWD}
+
+razorpay:
+  environment: live
+  client: ${RAZORPAY_CLIENT_ID}
+  secret: ${RAZORPAY_CLIENT_SECRET}
+
+google:
+  firebase:
+    project-name: hotifi-app
+    account-info-url: ${FIREBASE_ACCOUNT_INFO_URL}
+    android:
+      secret: ${FIREBASE_ANDROID_SECRET}
+
+facebook:
+  app:
+    id: ${FACEBOOK_APP_ID}
+    secret: ${FACEBOOK_APP_SECRET}
+    graph-api-url: https://graph.facebook.com
+    deletion-status-url: https://hotifi.com/v1/user/facebook/deletion-status/
+
+security:
+  signing-key: online-platform-vision-connect
+
+user:
+  token:
+    verification-expire-minutes: 1440
+
+hibernate:
+  validator:
+    fail-fast: false

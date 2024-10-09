@@ -1,6 +1,8 @@
 package com.api.hotifi.payment.processor.razorpay;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -13,7 +15,12 @@ import java.security.SignatureException;
  */
 public class RazorpayVerificationUtils {
 
+    @Value("${razorpay.secret}")
+    private static String razorpayClientSecret;
+
     private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
+
+    private static final Logger logger = LoggerFactory.getLogger(RazorpayVerificationUtils.class);
 
     /**
      * Computes RFC 2104-compliant HMAC signature.
@@ -51,10 +58,10 @@ public class RazorpayVerificationUtils {
     public static boolean verifyRazorpaySignature(String orderId, String razorpayPaymentId, String razorpaySignature) {
         try {
             String generatedSignature =
-                    calculateRFC2104HMAC(orderId + "|" + razorpayPaymentId, AppConfigurations.RAZORPAY_CLIENT_SECRET);
+                    calculateRFC2104HMAC(orderId + "|" + razorpayPaymentId, razorpayClientSecret);
             return generatedSignature.equals(razorpaySignature);
         } catch (SignatureException e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
         }
         return false;
     }

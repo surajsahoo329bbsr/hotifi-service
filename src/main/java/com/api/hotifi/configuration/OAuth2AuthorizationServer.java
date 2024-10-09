@@ -1,9 +1,8 @@
 package com.api.hotifi.configuration;
 
-
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,11 +29,20 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
 
+    @Value("{api-platform.oauth.client}")
+    private String oauth2ClientId;
+
+    @Value("{api-platform.oauth.secret}")
+    private String oauth2ClientSecret;
+
+    @Value("{api-platform.signing-key}")
+    private String signingKey;
+
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient(AppConfigurations.HOTIFI_OAUTH2_CLIENT_ID)
-                .secret(passwordEncoder().encode(AppConfigurations.HOTIFI_OAUTH2_CLIENT_SECRET))
+                .withClient(oauth2ClientId)
+                .secret(passwordEncoder().encode(oauth2ClientSecret))
                 .authorizedGrantTypes("password", "authorization_code", "refresh_token")
                 .scopes("read", "write")
                 .autoApprove(true);
@@ -65,7 +73,7 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
     @Bean
     public JwtAccessTokenConverter defaultAccessTokenConverter(){
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey(AppConfigurations.SIGNING_KEY);
+        converter.setSigningKey(signingKey);
         return converter;
     }
 }

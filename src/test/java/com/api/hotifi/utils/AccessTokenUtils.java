@@ -1,6 +1,6 @@
 package com.api.hotifi.utils;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -14,17 +14,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class AccessTokenUtils {
 
+    @Value("${api-platform.oauth.client}")
+    private static String oauth2ClientId;
+
+    @Value("${api-platform.oauth.secret}")
+    private static String oauth2ClientSecret;
+
     public static String getAccessToken(String username, String password, MockMvc mockMvc) throws Exception {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "password");
-        params.add("client_id", AppConfigurations.HOTIFI_OAUTH2_CLIENT_ID);
+        params.add("client_id", oauth2ClientId);
         params.add("username", username);
         params.add("password", password);
 
         ResultActions result
                 = mockMvc.perform(post("/oauth/token")
                 .params(params)
-                .with(httpBasic(AppConfigurations.HOTIFI_OAUTH2_CLIENT_ID, AppConfigurations.HOTIFI_OAUTH2_CLIENT_SECRET))
+                .with(httpBasic(oauth2ClientId, oauth2ClientSecret))
                 .accept("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"));

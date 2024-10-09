@@ -1,6 +1,5 @@
 package com.api.hotifi.common.processors.social;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.identity.entities.User;
 import com.api.hotifi.identity.models.GoogleIdTokenJson;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -13,12 +12,23 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 @Slf4j
 public class GoogleProcessor {
+
+    @Value("{google.firebase.android.secret}")
+    private String firebaseAndroidClientSecret;
+
+    @Value("{google.firebase.file-name}")
+    private String firebaseFileName;
+
+    private static final Logger logger = LoggerFactory.getLogger(GoogleProcessor.class);
 
     public boolean verifyEmail(String email, String token) throws FirebaseAuthException {
         NetHttpTransport netHttpTransport = new NetHttpTransport();
@@ -36,13 +46,14 @@ public class GoogleProcessor {
             }
 
         } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
+
         }
         return false;
     }
 
     public boolean verifyPhone(String countryCode, String phone, String token) {
-        String url = AppConfigurations.FIREBASE_GET_ACCOUNT_INFO_URL + "?key=" + AppConfigurations.GOOGLE_FIREBASE_ANDROID_CLIENT_SECRET;
+        String url = firebaseFileName + "?key=" + firebaseAndroidClientSecret;
         GoogleIdTokenJson googleIdToken = new GoogleIdTokenJson(token);
         String json = new Gson().toJson(googleIdToken);
         try {
@@ -55,16 +66,20 @@ public class GoogleProcessor {
                     .method("POST", body)
                     .addHeader("Content-Type", "application/json")
                     .build();
-            Response response = client.newCall(request).execute();
-            if (response.code() == 200 && response.body() != null) {
-                String jsonString = response.body().string(); //assign your JSON String here
-                JSONObject obj = new JSONObject(jsonString);
-                JSONArray array = obj.getJSONArray("users"); // notice that `"posts": [...]`
-                String phoneNumber = array.getJSONObject(0).getString("phoneNumber");
-                return phoneNumber.contains("+" + countryCode + phone);
+
+            try(Response response = client.newCall(request).execute()){
+                if (response.code() == 200 && response.body() != null) {
+                    String jsonString = response.body().string(); //assign your JSON String here
+                    JSONObject obj = new JSONObject(jsonString);
+                    JSONArray array = obj.getJSONArray("users"); // notice that `"posts": [...]`
+                    String phoneNumber = array.getJSONObject(0).getString("phoneNumber");
+                    return phoneNumber.contains("+" + countryCode + phone);
+                }
+            } catch (Exception e){
+                logger.error("An error occurred : {}", e.getMessage(), e);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
         }
         return false;
     }
@@ -91,7 +106,7 @@ public class GoogleProcessor {
                 //System.out.println("Invalid ID token.");
             }
         } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred : {}", e.getMessage(), e);
         }
         return null;
     }

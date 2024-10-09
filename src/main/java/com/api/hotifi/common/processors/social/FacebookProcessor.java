@@ -1,10 +1,10 @@
 package com.api.hotifi.common.processors.social;
 
-import com.api.hotifi.common.constants.configurations.AppConfigurations;
 import com.api.hotifi.identity.entities.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Base64;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
@@ -12,16 +12,24 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class FacebookProcessor {
 
+    @Value("${facebook.api.graph-api-url}")
+    private String facebookGraphApiUrl;
+
+    @Value("${facebook.api.id}")
+    private String facebookAppId;
+
+    @Value("${facebook.app.secret}")
+    private String facebookAppSecret;
+
     public boolean verifyEmail(String identifier, String userToken){
         RestTemplate restTemplate = new RestTemplate();
-        String appUrl = AppConfigurations.FACEBOOK_GRAPH_API_URL + "/debug_token?input_token=" + userToken
-                + "&access_token=" + AppConfigurations.FACEBOOK_APP_ID + "|" + AppConfigurations.FACEBOOK_APP_SECRET;
+        String appUrl = facebookGraphApiUrl + "/debug_token?input_token=" + userToken
+                + "&access_token=" + facebookAppId + "|" + facebookAppSecret;
         try {
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(appUrl, String.class);
             ObjectMapper mapper = new ObjectMapper();
@@ -52,7 +60,7 @@ public class FacebookProcessor {
      Below method's JSONObject returns this JSON Response
      */
 
-    public JSONObject parseFacebookSignedRequest(String signedRequest, String secret) throws UnsupportedEncodingException, Exception {
+    public JSONObject parseFacebookSignedRequest(String signedRequest, String secret) throws Exception {
         //split request into signature and data
         String[] signedRequests = signedRequest.split("\\.", 2);
         //parse signature

@@ -31,6 +31,7 @@ import com.api.hotifi.session.entity.Session;
 import com.api.hotifi.session.repository.SessionRepository;
 import com.api.hotifi.speedtest.entity.SpeedTest;
 import com.api.hotifi.speedtest.repository.SpeedTestRepository;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +54,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
     private final PurchaseRepository purchaseRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
     private final IPaymentService sellerPaymentService;
+
+    @Value("${business.aes.secret-key}")
+    private String businessAESSecretKey;
 
     public PurchaseServiceImpl(UserRepository userRepository, PurchaseOrderRepository purchaseOrderRepository, SpeedTestRepository speedTestRepository, SessionRepository sessionRepository, PurchaseRepository purchaseRepository, SellerPaymentRepository sellerPaymentRepository, IPaymentService sellerPaymentService) {
         this.userRepository = userRepository;
@@ -136,7 +140,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             String clientRazorpaySignature = purchaseRequest.getClientRazorpaySignature();
             //TODO
             if(clientRazorpaySignature == null){
-
+                //TODO
             }
 
             boolean isPaymentAuthentic = RazorpayVerificationUtils.verifyRazorpaySignature(orderId, paymentId, clientRazorpaySignature);
@@ -234,7 +238,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
             receiptResponse.setAmountPaid(purchase.getAmountPaid());
             receiptResponse.setPurchaseTransactionId(purchase.getPaymentTransactionId());
             receiptResponse.setHotifiBankAccount(BusinessConfigurations.HOTIFI_BANK_ACCOUNT);
-            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, BusinessConfigurations.AES_PASSWORD_SECRET_KEY));
+            receiptResponse.setWifiPassword(AESUtils.decrypt(wifiPassword, businessAESSecretKey));
             if (purchase.getRefundPaymentId() != null) {
                 receiptResponse.setRefundStartedAt(purchase.getRefundStartedAt());
                 receiptResponse.setRefundPaymentId(purchase.getRefundPaymentId());

@@ -16,6 +16,7 @@ import com.api.hotifi.payment.repositories.SellerPaymentRepository;
 import com.api.hotifi.payment.services.interfaces.IBankAccountService;
 import com.api.hotifi.payment.web.request.BankAccountRequest;
 import com.api.hotifi.payment.web.responses.BankAccountAdminResponse;
+import com.google.api.client.util.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,12 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final SellerPaymentRepository sellerPaymentRepository;
     private final IEmailService emailService;
+
+    @Value("${email.no-reply-address}")
+    private static String noReplyEmailAddress;
+
+    @Value("${email.no-reply-password}")
+    private static String noReplyEmailPassword;
 
     public BankAccountServiceImpl(UserRepository userRepository, BankAccountRepository bankAccountRepository, SellerPaymentRepository sellerPaymentRepository, IEmailService emailService) {
         this.userRepository = userRepository;
@@ -158,8 +165,8 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
                 EmailModel emailModel = new EmailModel();
                 emailModel.setToEmail(user.getAuthentication().getEmail());
-                emailModel.setFromEmail(AppConfigurations.FROM_EMAIL);
-                emailModel.setFromEmailPassword(AppConfigurations.FROM_EMAIL_PASSWORD);
+                emailModel.setFromEmail(noReplyEmailAddress);
+                emailModel.setFromEmailPassword(noReplyEmailPassword);
 
                 if (errorDescription != null) {
                     emailService.sendLinkedAccountFailed(user, errorDescription, emailModel);
